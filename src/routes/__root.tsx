@@ -55,7 +55,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Orbit — Flagship phones, all in one store" },
+      { title: "Kingpin Electronics — Authorized iPhone & Samsung retailer" },
       { name: "description", content: "Shop the world's flagship smartphones in one elegant store. Pro, Foldable, Air and Mini — designed for every kind of human." },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
