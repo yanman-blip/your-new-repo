@@ -7,7 +7,9 @@ export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {
-        const paths = ["/", "/shop", "/about", "/contact"];
+        const paths = ["/", "/shop", "/about", "/contact", "/checkout",
+          "/product/iphone-17-pro","/product/iphone-air","/product/iphone-17",
+          "/product/galaxy-z-fold-6","/product/galaxy-s25-ultra","/product/galaxy-z-flip-6"];
         const xml = [
           `<?xml version="1.0" encoding="UTF-8"?>`,
           `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,

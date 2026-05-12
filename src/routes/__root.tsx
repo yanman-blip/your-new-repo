@@ -79,7 +79,9 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
-      <SiteLayout />
+      <CartProvider>
+        <SiteLayout />
+      </CartProvider>
     </QueryClientProvider>
   );
 }
