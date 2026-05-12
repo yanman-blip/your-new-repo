@@ -1,5 +1,5 @@
 import { createFileRoute, notFound, Link } from "@tanstack/react-router";
-import { getProduct, products } from "@/lib/products";
+import { getProduct, products, type Product } from "@/lib/products";
 import { useCart } from "@/lib/cart";
 import { useState } from "react";
 import { Check, ChevronLeft, ShieldCheck, Truck, RefreshCw } from "lucide-react";
@@ -33,7 +33,7 @@ export const Route = createFileRoute("/product/$id")({
 });
 
 function ProductPage() {
-  const { product } = Route.useLoaderData();
+  const { product } = Route.useLoaderData() as { product: Product };
   const { add, setOpen } = useCart();
   const [storage, setStorage] = useState(product.storage[0]);
   const [color, setColor] = useState(product.colors[0].name);
