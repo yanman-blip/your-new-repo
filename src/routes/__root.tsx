@@ -10,6 +10,7 @@ import {
 
 import appCss from "../styles.css?url";
 import { SiteLayout } from "@/components/site-layout";
+import { CartProvider } from "@/lib/cart";
 
 function NotFoundComponent() {
   return (
