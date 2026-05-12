@@ -9,7 +9,7 @@ export const Route = createFileRoute("/product/$id")({
   loader: ({ params }) => {
     const product = getProduct(params.id);
     if (!product) throw notFound();
-    return { product };
+    return { product: product as NonNullable<ReturnType<typeof getProduct>> };
   },
   head: ({ loaderData }) =>
     loaderData
