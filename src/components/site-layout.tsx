@@ -1,6 +1,8 @@
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { ShoppingBag, Search, Menu } from "lucide-react";
 import { useState } from "react";
+import { useCart } from "@/lib/cart";
+import { CartDrawer } from "./cart-drawer";
 
 const nav = [
   { to: "/", label: "Home" },
@@ -12,12 +14,14 @@ const nav = [
 export function SiteHeader() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
+  const { count, setOpen: setCartOpen } = useCart();
+
   return (
     <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/70 border-b border-border/50">
       <div className="mx-auto max-w-7xl px-6 h-14 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 font-semibold tracking-tight">
           <span className="inline-block w-6 h-6 rounded-full bg-gradient-to-br from-brand to-foreground" />
-          <span>Orbit</span>
+          <span>Kingpin Electronics</span>
         </Link>
         <nav className="hidden md:flex items-center gap-8 text-sm">
           {nav.map((n) => (
@@ -34,8 +38,17 @@ export function SiteHeader() {
           <button aria-label="Search" className="hover:text-foreground transition-colors">
             <Search className="w-4 h-4" />
           </button>
-          <button aria-label="Bag" className="hover:text-foreground transition-colors">
+          <button
+            aria-label="Bag"
+            onClick={() => setCartOpen(true)}
+            className="relative hover:text-foreground transition-colors"
+          >
             <ShoppingBag className="w-4 h-4" />
+            {count > 0 && (
+              <span className="absolute -top-1.5 -right-2 bg-foreground text-background text-[10px] leading-none rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center">
+                {count}
+              </span>
+            )}
           </button>
           <button
             aria-label="Menu"
@@ -66,12 +79,12 @@ export function SiteFooter() {
         <div>
           <div className="flex items-center gap-2 font-semibold mb-3">
             <span className="inline-block w-5 h-5 rounded-full bg-gradient-to-br from-brand to-foreground" />
-            Orbit
+            Kingpin Electronics
           </div>
-          <p className="text-muted-foreground">The world's flagship phones, in one place.</p>
+          <p className="text-muted-foreground">Authorized iPhone & Samsung retailer. Real devices, real warranty.</p>
         </div>
         {[
-          { h: "Shop", l: ["Pro", "Standard", "Foldable", "Compact"] },
+          { h: "Shop", l: ["iPhone", "Galaxy", "Foldables", "Accessories"] },
           { h: "Support", l: ["Help Center", "Repairs", "Trade-in", "Shipping"] },
           { h: "Company", l: ["About", "Press", "Careers", "Contact"] },
         ].map((c) => (
@@ -87,8 +100,8 @@ export function SiteFooter() {
       </div>
       <div className="border-t border-border/50">
         <div className="mx-auto max-w-7xl px-6 py-5 text-xs text-muted-foreground flex justify-between">
-          <span>© 2026 Orbit. All rights reserved.</span>
-          <span>Made for the next era of mobile.</span>
+          <span>© 2026 Kingpin Electronics. All rights reserved.</span>
+          <span>Authorized Apple & Samsung retailer.</span>
         </div>
       </div>
     </footer>
@@ -103,6 +116,7 @@ export function SiteLayout() {
         <Outlet />
       </main>
       <SiteFooter />
+      <CartDrawer />
     </div>
   );
 }
