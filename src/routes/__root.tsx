@@ -10,6 +10,7 @@ import {
 
 import appCss from "../styles.css?url";
 import { SiteLayout } from "@/components/site-layout";
+import { CartProvider } from "@/lib/cart";
 
 function NotFoundComponent() {
   return (
@@ -54,8 +55,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Orbit — Flagship phones, all in one store" },
-      { name: "description", content: "Shop the world's flagship smartphones in one elegant store. Pro, Foldable, Air and Mini — designed for every kind of human." },
+      { title: "Kingpin Electronics — Authorized iPhone & Samsung retailer" },
+      { name: "description", content: "Authorized iPhone & Samsung retailer. Genuine, sealed, warrantied phones with free shipping and easy trade-in." },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),
@@ -78,7 +79,9 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
-      <SiteLayout />
+      <CartProvider>
+        <SiteLayout />
+      </CartProvider>
     </QueryClientProvider>
   );
 }

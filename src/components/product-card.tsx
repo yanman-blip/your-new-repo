@@ -4,15 +4,19 @@ import type { Product } from "@/lib/products";
 export function ProductCard({ p, large = false }: { p: Product; large?: boolean }) {
   return (
     <Link
-      to="/shop"
+      to="/product/$id"
+      params={{ id: p.id }}
       className={`group relative overflow-hidden rounded-3xl ${p.bg} ${p.accent} ${large ? "min-h-[560px]" : "min-h-[440px]"} flex flex-col p-8 md:p-10 transition-transform duration-500 hover:-translate-y-1`}
     >
       <div className="relative z-10">
-        {p.badge && (
-          <span className="inline-block text-xs uppercase tracking-[0.2em] opacity-70 mb-3">
-            {p.badge}
-          </span>
-        )}
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-xs uppercase tracking-[0.2em] opacity-60">{p.brand}</span>
+          {p.badge && (
+            <span className="text-[10px] uppercase tracking-widest bg-current/10 px-2 py-0.5 rounded-full opacity-80">
+              {p.badge}
+            </span>
+          )}
+        </div>
         <h3 className={`font-semibold tracking-tight ${large ? "text-4xl md:text-5xl" : "text-2xl md:text-3xl"}`}>
           {p.name}
         </h3>

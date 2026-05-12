@@ -7,8 +7,10 @@ import { ArrowRight, Truck, ShieldCheck, RefreshCw } from "lucide-react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Orbit — Flagship phones, all in one store" },
-      { name: "description", content: "Pro, Foldable, Air, Mini. The best smartphones from every world, in one elegant storefront." },
+      { title: "Kingpin Electronics — Authorized iPhone & Samsung retailer" },
+      { name: "description", content: "Shop the latest iPhone and Samsung Galaxy phones. Certified retailer with full warranty, free shipping, and easy trade-in." },
+      { property: "og:title", content: "Kingpin Electronics" },
+      { property: "og:description", content: "Authorized iPhone & Samsung retailer." },
     ],
   }),
   component: Home,
@@ -22,22 +24,22 @@ function Home() {
       <section className="relative overflow-hidden bg-[oklch(0.12_0.02_265)] text-white">
         <div className="mx-auto max-w-7xl px-6 pt-20 md:pt-28 pb-10 md:pb-16">
           <div className="max-w-3xl">
-            <span className="text-xs uppercase tracking-[0.25em] text-white/60">New · Orbit Pro 17</span>
+            <span className="text-xs uppercase tracking-[0.25em] text-white/60">Authorized retailer · iPhone & Samsung</span>
             <h1 className="mt-4 text-5xl md:text-7xl lg:text-8xl font-semibold tracking-tight leading-[0.95]">
-              Titanium.<br />Cinematic.<br />
+              The kings<br />of mobile,<br />
               <span className="bg-gradient-to-r from-[oklch(0.7_0.2_280)] via-[oklch(0.75_0.18_220)] to-[oklch(0.85_0.15_180)] bg-clip-text text-transparent">
-                Unstoppable.
+                in one shop.
               </span>
             </h1>
             <p className="mt-6 text-lg text-white/70 max-w-xl">
-              The flagship reimagined. A4-grade titanium, the all-new A19 chip, and the most cinematic display ever on a phone.
+              Kingpin Electronics is your certified destination for every flagship iPhone and Samsung Galaxy — fully sealed, fully warrantied, ready to ship.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link to="/shop" className="px-6 py-3 rounded-full bg-white text-[oklch(0.12_0.02_265)] text-sm font-medium hover:bg-white/90 transition">
-                Buy from $1,299
+                Shop all phones
               </Link>
-              <Link to="/shop" className="px-6 py-3 rounded-full border border-white/20 text-sm font-medium hover:bg-white/10 transition inline-flex items-center gap-2">
-                Watch the film <ArrowRight className="w-4 h-4" />
+              <Link to="/product/iphone-17-pro" className="px-6 py-3 rounded-full border border-white/20 text-sm font-medium hover:bg-white/10 transition inline-flex items-center gap-2">
+                See iPhone 17 Pro <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
           </div>
@@ -45,7 +47,7 @@ function Home() {
         <div className="relative">
           <img
             src={heroPhone}
-            alt="Orbit Pro 17 floating in space"
+            alt="iPhone 17 Pro in titanium"
             width={1920}
             height={1080}
             className="w-full max-h-[70vh] object-contain"
