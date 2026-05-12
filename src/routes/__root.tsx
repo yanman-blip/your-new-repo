@@ -56,7 +56,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Kingpin Electronics — Authorized iPhone & Samsung retailer" },
-      { name: "description", content: "Shop the world's flagship smartphones in one elegant store. Pro, Foldable, Air and Mini — designed for every kind of human." },
+      { name: "description", content: "Authorized iPhone & Samsung retailer. Genuine, sealed, warrantied phones with free shipping and easy trade-in." },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),
