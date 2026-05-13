@@ -19,9 +19,8 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/70 border-b border-border/50">
       <div className="mx-auto max-w-7xl px-6 h-14 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 font-semibold tracking-tight">
-          <span className="inline-block w-6 h-6 rounded-full bg-gradient-to-br from-brand to-foreground" />
-          <span>Kingpin Electronics</span>
+        <Link to="/" className="flex items-center gap-2 font-semibold tracking-[0.18em] text-sm uppercase">
+          LOFTIE
         </Link>
         <nav className="hidden md:flex items-center gap-8 text-sm">
           {nav.map((n) => (
@@ -77,16 +76,13 @@ export function SiteFooter() {
     <footer className="border-t border-border/50 mt-24">
       <div className="mx-auto max-w-7xl px-6 py-12 grid gap-8 md:grid-cols-4 text-sm">
         <div>
-          <div className="flex items-center gap-2 font-semibold mb-3">
-            <span className="inline-block w-5 h-5 rounded-full bg-gradient-to-br from-brand to-foreground" />
-            Kingpin Electronics
-          </div>
-          <p className="text-muted-foreground">Authorized iPhone & Samsung retailer. Real devices, real warranty.</p>
+          <div className="font-semibold tracking-[0.18em] text-sm uppercase mb-3">LOFTIE</div>
+          <p className="text-muted-foreground">Quietly luxurious lingerie, sleepwear, and lounge — designed to feel like a second skin.</p>
         </div>
         {[
-          { h: "Shop", l: ["iPhone", "Galaxy", "Foldables", "Accessories"] },
-          { h: "Support", l: ["Help Center", "Repairs", "Trade-in", "Shipping"] },
-          { h: "Company", l: ["About", "Press", "Careers", "Contact"] },
+          { h: "Shop", l: ["Lace", "Silk", "Lounge", "Everyday"] },
+          { h: "Care", l: ["Size guide", "Fabric care", "Returns", "Shipping"] },
+          { h: "Atelier", l: ["About", "Journal", "Sustainability", "Contact"] },
         ].map((c) => (
           <div key={c.h}>
             <div className="font-medium mb-3">{c.h}</div>
@@ -99,9 +95,9 @@ export function SiteFooter() {
         ))}
       </div>
       <div className="border-t border-border/50">
-        <div className="mx-auto max-w-7xl px-6 py-5 text-xs text-muted-foreground flex justify-between">
-          <span>© 2026 Kingpin Electronics. All rights reserved.</span>
-          <span>Authorized Apple & Samsung retailer.</span>
+        <div className="mx-auto max-w-7xl px-6 py-5 text-xs text-muted-foreground flex flex-wrap gap-2 justify-between">
+          <span>© 2026 LOFTIE Atelier. All rights reserved.</span>
+          <span>Designed in Paris · Made ethically in Portugal.</span>
         </div>
       </div>
     </footer>

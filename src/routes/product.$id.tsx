@@ -2,7 +2,7 @@ import { createFileRoute, notFound, Link } from "@tanstack/react-router";
 import { getProduct, products, type Product } from "@/lib/products";
 import { useCart } from "@/lib/cart";
 import { useState } from "react";
-import { Check, ChevronLeft, ShieldCheck, Truck, RefreshCw } from "lucide-react";
+import { Check, ChevronLeft, Heart, Truck, RefreshCw } from "lucide-react";
 import { ProductCard } from "@/components/product-card";
 
 export const Route = createFileRoute("/product/$id")({
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/product/$id")({
     loaderData
       ? {
           meta: [
-            { title: `${loaderData.product.name} — Kingpin Electronics` },
+            { title: `${loaderData.product.name} — LOFTIE` },
             { name: "description", content: loaderData.product.description },
             { property: "og:title", content: loaderData.product.name },
             { property: "og:description", content: loaderData.product.description },
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/product/$id")({
       : {},
   notFoundComponent: () => (
     <div className="mx-auto max-w-3xl px-6 py-24 text-center">
-      <h1 className="text-3xl font-semibold">Phone not found</h1>
+      <h1 className="text-3xl font-semibold">Piece not found</h1>
       <Link to="/shop" className="mt-6 inline-block underline underline-offset-4">Back to shop</Link>
     </div>
   ),
@@ -35,12 +35,12 @@ export const Route = createFileRoute("/product/$id")({
 function ProductPage() {
   const { product } = Route.useLoaderData() as { product: Product };
   const { add, setOpen } = useCart();
-  const [storage, setStorage] = useState(product.storage[0]);
+  const [size, setSize] = useState(product.storage[0]);
   const [color, setColor] = useState(product.colors[0].name);
   const [added, setAdded] = useState(false);
 
   const onAdd = () => {
-    add({ productId: product.id, storage, color, qty: 1 });
+    add({ productId: product.id, storage: size, color, qty: 1 });
     setAdded(true);
     setTimeout(() => setAdded(false), 1500);
     setOpen(true);
@@ -52,19 +52,21 @@ function ProductPage() {
     <>
       <div className="mx-auto max-w-7xl px-6 pt-8">
         <Link to="/shop" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-          <ChevronLeft className="w-4 h-4" /> All phones
+          <ChevronLeft className="w-4 h-4" /> All pieces
         </Link>
       </div>
       <section className="mx-auto max-w-7xl px-6 py-10 grid lg:grid-cols-2 gap-12">
-        <div className={`rounded-3xl ${product.bg} ${product.accent} aspect-square flex items-center justify-center p-10`}>
-          <img src={product.image} alt={product.name} className="max-h-full max-w-full object-contain" />
+        <div className={`rounded-3xl ${product.bg} ${product.accent} aspect-square flex items-center justify-center p-10 overflow-hidden`}>
+          <img src={product.image} alt={product.name} className="max-h-full max-w-full object-cover rounded-2xl" />
         </div>
         <div>
-          <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">{product.brand}</div>
+          <div className="text-xs uppercase tracking-[0.3em] text-muted-foreground">{product.brand} collection</div>
           <h1 className="mt-2 text-4xl md:text-5xl font-semibold tracking-tight">{product.name}</h1>
-          <p className="mt-3 text-muted-foreground">{product.tagline}</p>
+          <p className="mt-3 text-muted-foreground italic">{product.tagline}</p>
           <p className="mt-6 text-2xl font-semibold">${product.price.toLocaleString()}</p>
-          <p className="text-xs text-muted-foreground mt-1">or ${Math.round(product.price / 24)}/mo. for 24 mo.</p>
+          <p className="text-xs text-muted-foreground mt-1">or 4 interest-free payments of ${Math.round(product.price / 4)}</p>
+
+          <p className="mt-6 text-sm text-muted-foreground leading-relaxed">{product.description}</p>
 
           <div className="mt-8">
             <div className="text-sm font-medium mb-3">Color — <span className="text-muted-foreground font-normal">{color}</span></div>
@@ -82,13 +84,16 @@ function ProductPage() {
           </div>
 
           <div className="mt-8">
-            <div className="text-sm font-medium mb-3">Storage</div>
+            <div className="text-sm font-medium mb-3 flex items-center justify-between">
+              <span>Size</span>
+              <button className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-4">Size guide</button>
+            </div>
             <div className="flex flex-wrap gap-2">
               {product.storage.map((s) => (
                 <button
                   key={s}
-                  onClick={() => setStorage(s)}
-                  className={`px-4 py-2 rounded-full border text-sm transition ${storage === s ? "border-foreground bg-foreground text-background" : "border-border hover:border-foreground/40"}`}
+                  onClick={() => setSize(s)}
+                  className={`px-4 py-2 rounded-full border text-sm transition ${size === s ? "border-foreground bg-foreground text-background" : "border-border hover:border-foreground/40"}`}
                 >
                   {s}
                 </button>
@@ -105,7 +110,7 @@ function ProductPage() {
             </button>
             <Link
               to="/checkout"
-              onClick={() => add({ productId: product.id, storage, color, qty: 1 })}
+              onClick={() => add({ productId: product.id, storage: size, color, qty: 1 })}
               className="px-7 py-3 rounded-full border border-border text-sm font-medium hover:border-foreground/40 transition"
             >
               Buy now
@@ -122,9 +127,9 @@ function ProductPage() {
 
           <div className="mt-8 grid grid-cols-3 gap-3 text-xs text-muted-foreground">
             {[
-              { Icon: Truck, t: "Free 2-day shipping" },
-              { Icon: ShieldCheck, t: "2-year warranty" },
-              { Icon: RefreshCw, t: "30-day returns" },
+              { Icon: Truck, t: "Free shipping over $150" },
+              { Icon: RefreshCw, t: "30-day exchanges" },
+              { Icon: Heart, t: "Made in Portugal" },
             ].map(({ Icon, t }) => (
               <div key={t} className="flex flex-col items-start gap-1.5 rounded-xl bg-surface p-3">
                 <Icon className="w-4 h-4" />
@@ -135,12 +140,14 @@ function ProductPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-12">
-        <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-6">More from {product.brand}</h2>
-        <div className="grid gap-5 md:grid-cols-3">
-          {related.map((p) => <ProductCard key={p.id} p={p} />)}
-        </div>
-      </section>
+      {related.length > 0 && (
+        <section className="mx-auto max-w-7xl px-6 py-12">
+          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-6">More from {product.brand}</h2>
+          <div className="grid gap-5 md:grid-cols-3">
+            {related.map((p) => <ProductCard key={p.id} p={p} />)}
+          </div>
+        </section>
+      )}
     </>
   );
 }

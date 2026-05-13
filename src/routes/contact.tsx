@@ -3,8 +3,10 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact — Orbit" },
-      { name: "description", content: "Talk to a real human. Orbit support, sales, and press contacts." },
+      { title: "Contact — LOFTIE" },
+      { name: "description", content: "Questions about sizing, care, or your order? The LOFTIE atelier replies within 24 hours." },
+      { property: "og:title", content: "Contact LOFTIE" },
+      { property: "og:description", content: "We reply within 24 hours, in English or French." },
     ],
   }),
   component: Contact,
@@ -13,10 +15,11 @@ export const Route = createFileRoute("/contact")({
 function Contact() {
   return (
     <section className="mx-auto max-w-3xl px-6 py-24">
-      <span className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Contact</span>
-      <h1 className="mt-3 text-5xl md:text-6xl font-semibold tracking-tight">Say hello.</h1>
+      <span className="text-xs uppercase tracking-[0.3em] text-muted-foreground">L'atelier</span>
+      <h1 className="mt-3 text-5xl md:text-6xl font-semibold tracking-tight">Bonjour.</h1>
       <p className="mt-4 text-muted-foreground text-lg">
-        Questions about a phone, an order, or anything else? We answer within 24 hours.
+        Sizing questions, fabric care, a tricky exchange? Send us a note — a real human at the Paris studio replies within 24 hours,
+        in English or French.
       </p>
       <form
         onSubmit={(e) => { e.preventDefault(); }}
