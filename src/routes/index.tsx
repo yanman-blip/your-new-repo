@@ -1,16 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { products } from "@/lib/products";
 import { ProductCard } from "@/components/product-card";
-import heroPhone from "@/assets/hero-phone.jpg";
-import { ArrowRight, Truck, ShieldCheck, RefreshCw } from "lucide-react";
+import lingerieHero from "@/assets/lingerie-hero.jpg";
+import { ArrowRight, Truck, Heart, RefreshCw, Sparkles } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Kingpin Electronics — Authorized iPhone & Samsung retailer" },
-      { name: "description", content: "Shop the latest iPhone and Samsung Galaxy phones. Certified retailer with full warranty, free shipping, and easy trade-in." },
-      { property: "og:title", content: "Kingpin Electronics" },
-      { property: "og:description", content: "Authorized iPhone & Samsung retailer." },
+      { title: "LOFTIE — Quietly luxurious lingerie, sleepwear & lounge" },
+      { name: "description", content: "LOFTIE makes featherlight French lace, mulberry silk slips and Pima cotton essentials. Designed in Paris, made ethically in Portugal." },
+      { property: "og:title", content: "LOFTIE — Quietly luxurious lingerie" },
+      { property: "og:description", content: "Featherlight lace, mulberry silk, and everyday softness. Made ethically in Portugal." },
     ],
   }),
   component: Home,
@@ -21,38 +21,35 @@ function Home() {
   return (
     <>
       {/* Hero */}
-      <section className="relative overflow-hidden bg-[oklch(0.12_0.02_265)] text-white">
+      <section className="relative overflow-hidden bg-[oklch(0.95_0.02_30)] text-[oklch(0.18_0.02_30)]">
         <div className="mx-auto max-w-7xl px-6 pt-20 md:pt-28 pb-10 md:pb-16">
           <div className="max-w-3xl">
-            <span className="text-xs uppercase tracking-[0.25em] text-white/60">Authorized retailer · iPhone & Samsung</span>
+            <span className="text-xs uppercase tracking-[0.3em] opacity-60">Maison · Paris / Porto</span>
             <h1 className="mt-4 text-5xl md:text-7xl lg:text-8xl font-semibold tracking-tight leading-[0.95]">
-              The kings<br />of mobile,<br />
-              <span className="bg-gradient-to-r from-[oklch(0.7_0.2_280)] via-[oklch(0.75_0.18_220)] to-[oklch(0.85_0.15_180)] bg-clip-text text-transparent">
-                in one shop.
-              </span>
+              Soft things,<br />
+              <span className="italic font-light">worn close.</span>
             </h1>
-            <p className="mt-6 text-lg text-white/70 max-w-xl">
-              Kingpin Electronics is your certified destination for every flagship iPhone and Samsung Galaxy — fully sealed, fully warrantied, ready to ship.
+            <p className="mt-6 text-lg opacity-70 max-w-xl">
+              LOFTIE is lingerie, sleepwear and lounge made the slow way — French lace, mulberry silk, heritage Pima cotton — designed to feel like nothing at all.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/shop" className="px-6 py-3 rounded-full bg-white text-[oklch(0.12_0.02_265)] text-sm font-medium hover:bg-white/90 transition">
-                Shop all phones
+              <Link to="/shop" className="px-6 py-3 rounded-full bg-foreground text-background text-sm font-medium hover:opacity-90 transition">
+                Shop the collection
               </Link>
-              <Link to="/product/iphone-17-pro" className="px-6 py-3 rounded-full border border-white/20 text-sm font-medium hover:bg-white/10 transition inline-flex items-center gap-2">
-                See iPhone 17 Pro <ArrowRight className="w-4 h-4" />
+              <Link to="/product/$id" params={{ id: "noir-silk-slip" }} className="px-6 py-3 rounded-full border border-foreground/20 text-sm font-medium hover:bg-foreground/5 transition inline-flex items-center gap-2">
+                Discover the Silk slip <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
           </div>
         </div>
         <div className="relative">
           <img
-            src={heroPhone}
-            alt="iPhone 17 Pro in titanium"
+            src={lingerieHero}
+            alt="Folded blush and ivory silk lingerie with lace trim"
             width={1920}
             height={1080}
-            className="w-full max-h-[70vh] object-contain"
+            className="w-full max-h-[70vh] object-cover"
           />
-          <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-[oklch(0.12_0.02_265)]" />
         </div>
       </section>
 
@@ -60,10 +57,10 @@ function Home() {
       <section className="border-y border-border/50 bg-surface">
         <div className="mx-auto max-w-7xl px-6 py-6 flex flex-wrap items-center justify-between gap-6 text-sm text-muted-foreground">
           {[
-            { Icon: Truck, t: "Free 2-day shipping" },
-            { Icon: RefreshCw, t: "Trade in any phone" },
-            { Icon: ShieldCheck, t: "2-year warranty" },
-            { Icon: ArrowRight, t: "Pay over 24 months 0% APR" },
+            { Icon: Truck, t: "Complimentary shipping over $150" },
+            { Icon: RefreshCw, t: "30-day exchanges" },
+            { Icon: Heart, t: "Made ethically in Portugal" },
+            { Icon: Sparkles, t: "Discreet packaging" },
           ].map(({ Icon, t }) => (
             <div key={t} className="flex items-center gap-2"><Icon className="w-4 h-4" /> {t}</div>
           ))}
@@ -74,8 +71,8 @@ function Home() {
       <section className="mx-auto max-w-7xl px-6 py-20">
         <div className="flex items-end justify-between mb-10">
           <div>
-            <h2 className="text-4xl md:text-5xl font-semibold tracking-tight">Meet the lineup</h2>
-            <p className="mt-2 text-muted-foreground">Pick the phone that matches your story.</p>
+            <h2 className="text-4xl md:text-5xl font-semibold tracking-tight">The new edit</h2>
+            <p className="mt-2 text-muted-foreground">Six pieces. Every one made to live close to the skin.</p>
           </div>
           <Link to="/shop" className="hidden md:inline-flex items-center gap-2 text-sm hover:text-brand transition-colors">
             Shop all <ArrowRight className="w-4 h-4" />
@@ -89,23 +86,23 @@ function Home() {
 
       {/* Banner */}
       <section className="mx-auto max-w-7xl px-6 pb-20">
-        <div className="rounded-3xl bg-gradient-to-br from-foreground to-[oklch(0.25_0.03_265)] text-background p-10 md:p-16 grid md:grid-cols-2 gap-8 items-center">
+        <div className="rounded-3xl bg-gradient-to-br from-[oklch(0.92_0.04_25)] to-[oklch(0.86_0.03_30)] text-[oklch(0.2_0.03_30)] p-10 md:p-16 grid md:grid-cols-2 gap-8 items-center">
           <div>
-            <span className="text-xs uppercase tracking-[0.25em] opacity-60">Trade-in</span>
+            <span className="text-xs uppercase tracking-[0.3em] opacity-60">Our atelier</span>
             <h3 className="mt-3 text-3xl md:text-5xl font-semibold tracking-tight">
-              Get up to <span className="text-brand">$800</span> when you trade in.
+              Cut, sewn and finished <span className="italic font-light">by hand.</span>
             </h3>
             <p className="mt-4 opacity-70 max-w-md">
-              Send us your old phone. We'll send you a new one. It's that simple — and good for the planet.
+              Every LOFTIE piece is made in a small family-run atelier outside Porto. No middlemen, no waste, no compromises on fabric.
             </p>
-            <Link to="/shop" className="mt-6 inline-flex px-6 py-3 rounded-full bg-background text-foreground text-sm font-medium">
-              Estimate my trade
+            <Link to="/about" className="mt-6 inline-flex px-6 py-3 rounded-full bg-foreground text-background text-sm font-medium">
+              Read our story
             </Link>
           </div>
-          <div className="opacity-90">
+          <div>
             <div className="grid grid-cols-3 gap-4 text-center">
-              {[{n:"40M+",l:"Phones sold"},{n:"180",l:"Countries"},{n:"4.9★",l:"Avg rating"}].map(s=>(
-                <div key={s.l} className="rounded-2xl bg-white/5 p-6">
+              {[{n:"22mm",l:"Mulberry silk"},{n:"100%",l:"OEKO-TEX certified"},{n:"4.9★",l:"15k reviews"}].map(s=>(
+                <div key={s.l} className="rounded-2xl bg-foreground/5 p-6">
                   <div className="text-2xl md:text-3xl font-semibold">{s.n}</div>
                   <div className="text-xs opacity-60 mt-1">{s.l}</div>
                 </div>

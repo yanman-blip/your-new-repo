@@ -5,8 +5,8 @@ import { Trash2, ChevronLeft } from "lucide-react";
 export const Route = createFileRoute("/checkout")({
   head: () => ({
     meta: [
-      { title: "Checkout — Kingpin Electronics" },
-      { name: "description", content: "Review your bag and complete your purchase securely." },
+      { title: "Checkout — LOFTIE" },
+      { name: "description", content: "Review your bag and complete your LOFTIE order securely." },
     ],
   }),
   component: Checkout,
@@ -22,9 +22,9 @@ function Checkout() {
     return (
       <section className="mx-auto max-w-3xl px-6 py-24 text-center">
         <h1 className="text-4xl font-semibold tracking-tight">Your bag is empty</h1>
-        <p className="mt-3 text-muted-foreground">Add a phone to get started.</p>
+        <p className="mt-3 text-muted-foreground">Find something soft to slip into.</p>
         <Link to="/shop" className="mt-8 inline-block px-6 py-3 rounded-full bg-foreground text-background text-sm font-medium">
-          Browse phones
+          Shop the collection
         </Link>
       </section>
     );

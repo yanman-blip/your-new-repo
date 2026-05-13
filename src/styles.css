@@ -72,12 +72,12 @@
 
 :root {
   --radius: 1rem;
-  --background: oklch(0.99 0.002 250);
-  --foreground: oklch(0.16 0.01 260);
-  --ink: oklch(0.10 0.01 260);
-  --surface: oklch(0.97 0.003 250);
-  --surface-2: oklch(0.94 0.004 250);
-  --brand: oklch(0.55 0.22 265);
+  --background: oklch(0.985 0.004 60);
+  --foreground: oklch(0.18 0.02 30);
+  --ink: oklch(0.12 0.02 30);
+  --surface: oklch(0.96 0.008 50);
+  --surface-2: oklch(0.92 0.012 45);
+  --brand: oklch(0.62 0.14 25);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.129 0.042 264.695);
   --popover: oklch(1 0 0);

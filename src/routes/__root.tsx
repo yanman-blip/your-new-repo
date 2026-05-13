@@ -55,8 +55,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Kingpin Electronics — Authorized iPhone & Samsung retailer" },
-      { name: "description", content: "Authorized iPhone & Samsung retailer. Genuine, sealed, warrantied phones with free shipping and easy trade-in." },
+      { title: "LOFTIE — Quietly luxurious lingerie, sleepwear & lounge" },
+      { name: "description", content: "LOFTIE makes featherlight French lace, mulberry silk slips and Pima cotton essentials. Designed in Paris, made ethically in Portugal." },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),

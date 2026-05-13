@@ -8,8 +8,8 @@ export const Route = createFileRoute("/sitemap.xml")({
     handlers: {
       GET: async () => {
         const paths = ["/", "/shop", "/about", "/contact", "/checkout",
-          "/product/iphone-17-pro","/product/iphone-air","/product/iphone-17",
-          "/product/galaxy-z-fold-6","/product/galaxy-s25-ultra","/product/galaxy-z-flip-6"];
+          "/product/aurora-lace-set","/product/noir-silk-slip","/product/cheri-satin-robe",
+          "/product/sage-seamless-bodysuit","/product/petale-lace-chemise","/product/rosee-cotton-set"];
         const xml = [
           `<?xml version="1.0" encoding="UTF-8"?>`,
           `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
