@@ -7,8 +7,8 @@ import { useProducts } from "@/lib/use-products";
 export const Route = createFileRoute("/shop")({
   head: () => ({
     meta: [
-      { title: "Shop lingerie, silk & lounge - Joy's Closet" },
-      { name: "description", content: "Shop the Joy's Closet collection: French lace bralettes, mulberry silk slips, satin robes and Pima cotton essentials. Free 30-day exchanges." },
+      { title: "Shop lingerie, silk & lounge - LOFTIE" },
+      { name: "description", content: "Shop the LOFTIE collection: French lace bralettes, mulberry silk slips, satin robes and Pima cotton essentials. Free 30-day exchanges." },
     ],
   }),
   component: Shop,

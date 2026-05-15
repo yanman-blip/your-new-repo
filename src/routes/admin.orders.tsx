@@ -15,7 +15,7 @@ export const Route = createFileRoute("/admin/orders")({
   },
   head: () => ({
     meta: [
-      { title: "Admin Orders - Joy's Closet" },
+      { title: "Admin Orders - LOFTIE" },
       { name: "description", content: "Review and approve customer payments." },
     ],
   }),

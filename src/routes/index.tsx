@@ -7,13 +7,13 @@ import { useProducts } from "@/lib/use-products";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Joy's Closet - Lingerie, Sleepwear & Lounge | Harare, Zimbabwe" },
+      { title: "LOFTIE - Lingerie, Sleepwear & Lounge | Harare, Zimbabwe" },
       {
         name: "description",
         content:
-          "Joy's Closet is Harare's destination for premium lingerie, sleepwear and lounge. Quality pieces for every body.",
+          "LOFTIE is Harare's destination for premium lingerie, sleepwear and lounge. Quality pieces for every body.",
       },
-      { property: "og:title", content: "Joy's Closet - Harare's Lingerie Boutique" },
+      { property: "og:title", content: "LOFTIE - Harare's Lingerie Boutique" },
       {
         property: "og:description",
         content: "Premium lingerie, sleepwear and lounge. Based in Harare, Zimbabwe.",
@@ -51,7 +51,7 @@ function Home() {
               <span className="font-light italic">worn close.</span>
             </h1>
             <p className="mt-6 max-w-xl text-lg opacity-70">
-              Joy's Closet is your go-to boutique for lingerie, sleepwear and lounge. Quality pieces for every occasion, right here in Harare.
+              LOFTIE is your go-to boutique for lingerie, sleepwear and lounge. Quality pieces for every occasion, right here in Harare.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
@@ -127,7 +127,7 @@ function Home() {
               Harare's <span className="font-light italic">lingerie boutique.</span>
             </h3>
             <p className="mt-4 max-w-md opacity-70">
-              Joy's Closet is based in Harare, Zimbabwe. We stock quality lingerie, sleepwear and lounge for women who want to feel great every day.
+              LOFTIE is based in Harare, Zimbabwe. We stock quality lingerie, sleepwear and lounge for women who want to feel great every day.
             </p>
             <Link
               to="/about"
@@ -140,7 +140,7 @@ function Home() {
           <div className="grid grid-cols-2 gap-3">
             {heroGallery.slice(0, 4).map((img, i) => (
               <div key={img} className={`overflow-hidden rounded-2xl ${i === 0 ? "col-span-2 h-52" : "h-36"}`}>
-                <img src={img} alt="Joy's Closet lookbook" className="h-full w-full object-cover" loading="lazy" />
+                <img src={img} alt="LOFTIE lookbook" className="h-full w-full object-cover" loading="lazy" />
               </div>
             ))}
           </div>
