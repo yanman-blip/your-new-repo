@@ -64,6 +64,13 @@ export function SiteHeader() {
           <button aria-label="Search" className="hover:text-foreground transition-colors">
             <Search className="w-4 h-4" />
           </button>
+          <Link
+            to="/auth"
+            aria-label={isAuthed ? "Account" : "Sign in"}
+            className="hover:text-foreground transition-colors"
+          >
+            <User className="w-4 h-4" />
+          </Link>
           <button
             aria-label="Bag"
             onClick={() => setCartOpen(true)}
