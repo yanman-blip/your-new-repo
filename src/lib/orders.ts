@@ -102,8 +102,12 @@ export async function createOrderRecord(input: Omit<StoredOrder, "id" | "created
   if (!client) return order;
 
   try {
+    const { data: sessionData } = await client.auth.getSession();
+    const userId = sessionData?.session?.user?.id ?? null;
+
     await client.from("orders").insert({
       id: order.id,
+      user_id: userId,
       status: order.status,
       payment_method: order.paymentMethod,
       fulfillment: order.fulfillment,
