@@ -5,6 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
+    "dev:mobile": "vite dev --host 0.0.0.0 --port 5173",
+    "emulator:start": "powershell -ExecutionPolicy Bypass -Command \"& 'C:\\Users\\msham\\AppData\\Local\\Android\\Sdk\\emulator\\emulator.exe' -avd Pixel_7 -no-snapshot-load -no-snapshot-save -gpu host\"",
+    "emulator:start:safe": "powershell -ExecutionPolicy Bypass -Command \"& 'C:\\Users\\msham\\AppData\\Local\\Android\\Sdk\\emulator\\emulator.exe' -avd Pixel_7 -no-snapshot -gpu swiftshader_indirect\"",
+    "mobile:start": "powershell -ExecutionPolicy Bypass -File scripts/mobile-start.ps1",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",

@@ -1,13 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { products, type Collection } from "@/lib/products";
+import { type Collection } from "@/lib/products";
 import { ProductCard } from "@/components/product-card";
 import { useState, useMemo } from "react";
+import { useProducts } from "@/lib/use-products";
 
 export const Route = createFileRoute("/shop")({
   head: () => ({
     meta: [
-      { title: "Shop lingerie, silk & lounge — LOFTIE" },
-      { name: "description", content: "Shop the LOFTIE collection: French lace bralettes, mulberry silk slips, satin robes and Pima cotton essentials. Free 30-day exchanges." },
+      { title: "Shop lingerie, silk & lounge - Joy's Closet" },
+      { name: "description", content: "Shop the Joy's Closet collection: French lace bralettes, mulberry silk slips, satin robes and Pima cotton essentials. Free 30-day exchanges." },
     ],
   }),
   component: Shop,
@@ -17,6 +18,7 @@ type CollectionFilter = "All" | Collection;
 type PriceFilter = "All" | "Under $100" | "$100–$150" | "$150+";
 
 function Shop() {
+  const products = useProducts();
   const [collection, setCollection] = useState<CollectionFilter>("All");
   const [price, setPrice] = useState<PriceFilter>("All");
   const [sort, setSort] = useState<"featured" | "low" | "high">("featured");
@@ -41,7 +43,7 @@ function Shop() {
         <span className="text-xs uppercase tracking-[0.3em] text-muted-foreground">The collection</span>
         <h1 className="mt-3 text-5xl md:text-6xl font-semibold tracking-tight">Everything we make.</h1>
         <p className="mt-4 text-muted-foreground text-lg">
-          A small, considered collection of lingerie, silk and lounge — designed in Paris, made ethically in Portugal.
+          A handpicked collection of lingerie, sleepwear and lounge. Based in Harare, Zimbabwe.
         </p>
       </div>
 
@@ -70,6 +72,8 @@ function Shop() {
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value as typeof sort)}
+          aria-label="Sort products"
+          title="Sort products"
           className="rounded-full border border-border bg-background px-4 py-2 text-sm focus:outline-none focus:border-foreground/40"
         >
           <option value="featured">Featured</option>
@@ -80,13 +84,13 @@ function Shop() {
 
       <div className="mt-3 text-xs text-muted-foreground">{filtered.length} piece{filtered.length === 1 ? "" : "s"}</div>
 
-      <div className="mt-6 grid gap-5 md:grid-cols-2">
+      <div className="mt-6 grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {filtered.length === 0 ? (
-          <div className="md:col-span-2 text-center py-20 text-muted-foreground">
+          <div className="col-span-full text-center py-20 text-muted-foreground">
             Nothing matches these filters.
           </div>
         ) : (
-          filtered.map((p) => <ProductCard key={p.id} p={p} />)
+          filtered.map((p) => <ProductCard key={p.id} p={p} clean />)
         )}
       </div>
     </section>

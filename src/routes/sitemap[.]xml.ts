@@ -8,7 +8,6 @@ export const Route = createFileRoute("/sitemap.xml")({
     handlers: {
       GET: async () => {
         const paths = ["/", "/shop", "/about", "/contact", "/checkout",
-          "/product/aurora-lace-set","/product/noir-silk-slip","/product/cheri-satin-robe",
           "/product/sage-seamless-bodysuit","/product/petale-lace-chemise","/product/rosee-cotton-set"];
         const xml = [
           `<?xml version="1.0" encoding="UTF-8"?>`,

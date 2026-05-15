@@ -3,9 +3,9 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact — LOFTIE" },
-      { name: "description", content: "Questions about sizing, care, or your order? The LOFTIE atelier replies within 24 hours." },
-      { property: "og:title", content: "Contact LOFTIE" },
+      { title: "Contact - Joy's Closet" },
+      { name: "description", content: "Questions about sizing, care, or your order? The Joy's Closet team replies within 24 hours." },
+      { property: "og:title", content: "Contact Joy's Closet" },
       { property: "og:description", content: "We reply within 24 hours, in English or French." },
     ],
   }),
@@ -18,7 +18,7 @@ function Contact() {
       <span className="text-xs uppercase tracking-[0.3em] text-muted-foreground">L'atelier</span>
       <h1 className="mt-3 text-5xl md:text-6xl font-semibold tracking-tight">Bonjour.</h1>
       <p className="mt-4 text-muted-foreground text-lg">
-        Sizing questions, fabric care, a tricky exchange? Send us a note — a real human at the Paris studio replies within 24 hours,
+        Sizing questions, fabric care, a tricky exchange? Send us a note and our team in Harare will get back to you within 24 hours.
         in English or French.
       </p>
       <form

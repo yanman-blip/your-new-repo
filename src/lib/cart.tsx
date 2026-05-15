@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { products, type Product } from "./products";
+import { getProducts, type Product } from "./products";
 
 export type CartItem = {
   productId: string;
@@ -42,6 +42,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [items, hydrated]);
 
   const value = useMemo<CartContextValue>(() => {
+    const products = getProducts();
     const detailed = items
       .map((i) => {
         const product = products.find((p) => p.id === i.productId);
