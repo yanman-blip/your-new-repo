@@ -18,6 +18,7 @@ export function SiteHeader() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isAuthed, setIsAuthed] = useState(false);
   const { count, setOpen: setCartOpen } = useCart();
 
   useEffect(() => {
@@ -25,8 +26,15 @@ export function SiteHeader() {
     void hasAdminSession().then((result) => {
       if (mounted) setIsAdmin(result.ok);
     });
+    void supabase.auth.getSession().then(({ data }) => {
+      if (mounted) setIsAuthed(!!data.session?.user);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      if (mounted) setIsAuthed(!!session?.user);
+    });
     return () => {
       mounted = false;
+      sub.subscription.unsubscribe();
     };
   }, []);
 
@@ -37,9 +45,9 @@ export function SiteHeader() {
       <div className="mx-auto max-w-7xl px-6 h-14 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 font-semibold text-sm">
           <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-background text-[10px] font-bold tracking-normal">
-            JC
+            L
           </span>
-          <span className="tracking-[0.14em] uppercase">Joy's Closet</span>
+          <span className="tracking-[0.14em] uppercase">LOFTIE</span>
         </Link>
         <nav className="hidden md:flex items-center gap-8 text-sm">
           {visibleNav.map((n) => (
