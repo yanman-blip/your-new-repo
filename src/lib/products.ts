@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export type Collection = Lace | Silk | Lounge | Everyday;
+export type Collection = "Lace" | "Silk" | "Lounge" | "Everyday";
 
 export type Product = {
   id: string;
@@ -820,7 +820,7 @@ export const baseProducts: Product[] = [
   }
 ];
 
-const CUSTOM_PRODUCTS_KEY = "joys-closet-custom-products-v1";
+const CUSTOM_PRODUCTS_KEY = "loftie-custom-products-v1";
 type ProductsListener = () => void;
 const productListeners = new Set<ProductsListener>();
 

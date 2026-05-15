@@ -55,8 +55,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Joy's Closet - Quietly luxurious lingerie, sleepwear & lounge" },
-      { name: "description", content: "Joy's Closet is Harare's boutique for premium lingerie, sleepwear and lounge. Quality pieces for every woman in Zimbabwe." },
+      { title: "LOFTIE - Quietly luxurious lingerie, sleepwear & lounge" },
+      { name: "description", content: "LOFTIE is Harare's boutique for premium lingerie, sleepwear and lounge. Quality pieces for every woman in Zimbabwe." },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),

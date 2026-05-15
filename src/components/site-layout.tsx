@@ -1,9 +1,10 @@
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { ShoppingBag, Search, Menu } from "lucide-react";
+import { ShoppingBag, Search, Menu, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useCart } from "@/lib/cart";
 import { CartDrawer } from "./cart-drawer";
 import { hasAdminSession } from "@/lib/admin-auth";
+import { supabase } from "@/integrations/supabase/client";
 
 const nav = [
   { to: "/", label: "Home" },
@@ -17,6 +18,7 @@ export function SiteHeader() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [open, setOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isAuthed, setIsAuthed] = useState(false);
   const { count, setOpen: setCartOpen } = useCart();
 
   useEffect(() => {
@@ -24,8 +26,15 @@ export function SiteHeader() {
     void hasAdminSession().then((result) => {
       if (mounted) setIsAdmin(result.ok);
     });
+    void supabase.auth.getSession().then(({ data }) => {
+      if (mounted) setIsAuthed(!!data.session?.user);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      if (mounted) setIsAuthed(!!session?.user);
+    });
     return () => {
       mounted = false;
+      sub.subscription.unsubscribe();
     };
   }, []);
 
@@ -36,9 +45,9 @@ export function SiteHeader() {
       <div className="mx-auto max-w-7xl px-6 h-14 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 font-semibold text-sm">
           <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-background text-[10px] font-bold tracking-normal">
-            JC
+            L
           </span>
-          <span className="tracking-[0.14em] uppercase">Joy's Closet</span>
+          <span className="tracking-[0.14em] uppercase">LOFTIE</span>
         </Link>
         <nav className="hidden md:flex items-center gap-8 text-sm">
           {visibleNav.map((n) => (
@@ -55,6 +64,13 @@ export function SiteHeader() {
           <button aria-label="Search" className="hover:text-foreground transition-colors">
             <Search className="w-4 h-4" />
           </button>
+          <Link
+            to="/auth"
+            aria-label={isAuthed ? "Account" : "Sign in"}
+            className="hover:text-foreground transition-colors"
+          >
+            <User className="w-4 h-4" />
+          </Link>
           <button
             aria-label="Bag"
             onClick={() => setCartOpen(true)}
@@ -98,7 +114,7 @@ export function SiteFooter() {
             <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-background text-[10px] font-bold tracking-normal">
               JC
             </span>
-            <span className="tracking-[0.14em] uppercase">Joy's Closet</span>
+            <span className="tracking-[0.14em] uppercase">LOFTIE</span>
           </div>
           <p className="text-muted-foreground">Lingerie, sleepwear and lounge. Based in Harare, Zimbabwe.</p>
         </div>
@@ -119,7 +135,7 @@ export function SiteFooter() {
       </div>
       <div className="border-t border-border/50">
         <div className="mx-auto max-w-7xl px-6 py-5 text-xs text-muted-foreground flex flex-wrap gap-2 justify-between">
-          <span>© 2026 Joy's Closet. All rights reserved.</span>
+          <span>© 2026 LOFTIE. All rights reserved.</span>
           <span>Based in Harare, Zimbabwe.</span>
         </div>
       </div>

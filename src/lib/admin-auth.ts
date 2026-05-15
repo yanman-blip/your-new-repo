@@ -5,51 +5,38 @@ export type AdminSessionResult = {
   reason?: "no_session" | "not_admin" | "missing_config";
 };
 
-function getOptionalSupabase(): any | null {
-  try {
-    return supabase as any;
-  } catch {
-    return null;
-  }
-}
-
 export async function hasAdminSession(): Promise<AdminSessionResult> {
-  const client = getOptionalSupabase();
-  if (!client) return { ok: false, reason: "missing_config" };
   try {
-    const { data: sessionData } = await client.auth.getSession();
+    const { data: sessionData } = await supabase.auth.getSession();
     const session = sessionData?.session;
     if (!session?.user?.id) return { ok: false, reason: "no_session" };
 
-    const { data, error } = await client
-      .from("profiles")
+    // Roles live in user_roles (separate from profiles to prevent privilege escalation).
+    const { data, error } = await supabase
+      .from("user_roles" as any)
       .select("role")
-      .eq("id", session.user.id)
-      .single();
+      .eq("user_id", session.user.id)
+      .eq("role", "admin")
+      .maybeSingle();
 
     if (error) return { ok: false, reason: "not_admin" };
-    return { ok: data?.role === "admin", reason: data?.role === "admin" ? undefined : "not_admin" };
+    return { ok: !!data, reason: data ? undefined : "not_admin" };
   } catch {
     return { ok: false, reason: "missing_config" };
   }
 }
 
 export async function signInAdmin(email: string, password: string) {
-  const client = getOptionalSupabase();
-  if (!client) throw new Error("Invalid login attempt.");
-
-  const { error } = await client.auth.signInWithPassword({ email, password });
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) throw new Error("Invalid login attempt.");
 
   const check = await hasAdminSession();
   if (!check.ok) {
-    await client.auth.signOut();
+    await supabase.auth.signOut();
     throw new Error("Invalid login attempt.");
   }
 }
 
 export async function signOutAdmin() {
-  const client = getOptionalSupabase();
-  if (!client) return;
-  await client.auth.signOut();
+  await supabase.auth.signOut();
 }

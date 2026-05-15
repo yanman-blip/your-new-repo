@@ -7,16 +7,16 @@ import { createOrderRecord, updateOrderRecord, type OrderWorkflowStatus, type Pa
 const paymentMethods: { id: PaymentMethodId; name: string; instructions: string }[] = [
   { id: "ecocash", name: "EcoCash", instructions: "Send payment to EcoCash number 0772 000 000 and use your order number as reference." },
   { id: "innbucks", name: "InnBucks", instructions: "Pay via InnBucks wallet to merchant ID INB-00218 and attach your order number." },
-  { id: "mukuru", name: "Mukuru", instructions: "Use Mukuru transfer to recipient Joy's Closet and include your order number in notes." },
-  { id: "bank-transfer", name: "Bank transfer", instructions: "Transfer to CBZ 2212334455, Joy's Closet. Use order number as payment reference." },
+  { id: "mukuru", name: "Mukuru", instructions: "Use Mukuru transfer to recipient LOFTIE and include your order number in notes." },
+  { id: "bank-transfer", name: "Bank transfer", instructions: "Transfer to CBZ 2212334455, LOFTIE. Use order number as payment reference." },
   { id: "cash-on-delivery", name: "Cash on delivery", instructions: "Pay cash when your order is delivered. Keep exact amount where possible." },
 ];
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({
     meta: [
-      { title: "Checkout - Joy's Closet" },
-      { name: "description", content: "Review your bag and complete your Joy's Closet order securely." },
+      { title: "Checkout - LOFTIE" },
+      { name: "description", content: "Review your bag and complete your LOFTIE order securely." },
     ],
   }),
   component: Checkout,
