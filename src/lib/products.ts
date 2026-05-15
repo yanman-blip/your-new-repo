@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export type Collection = Lace | Silk | Lounge | Everyday;
+export type Collection = "Lace" | "Silk" | "Lounge" | "Everyday";
 
 export type Product = {
   id: string;
