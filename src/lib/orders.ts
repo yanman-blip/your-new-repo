@@ -43,7 +43,7 @@ export type StoredOrder = {
   };
 };
 
-const ORDERS_STORAGE_KEY = "joys-closet-orders-v1";
+const ORDERS_STORAGE_KEY = "loftie-orders-v1";
 
 function getOptionalSupabase(): any | null {
   try {
