@@ -47,7 +47,7 @@ export function SiteHeader() {
           <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-background text-[10px] font-bold tracking-normal">
             L
           </span>
-          <span className="tracking-[0.14em] uppercase">LOFTIE</span>
+          <span className="tracking-[0.14em] uppercase">WET LACE</span>
         </Link>
         <nav className="hidden md:flex items-center gap-8 text-sm">
           {visibleNav.map((n) => (
@@ -114,7 +114,7 @@ export function SiteFooter() {
             <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-background text-[10px] font-bold tracking-normal">
               JC
             </span>
-            <span className="tracking-[0.14em] uppercase">LOFTIE</span>
+            <span className="tracking-[0.14em] uppercase">WET LACE</span>
           </div>
           <p className="text-muted-foreground">Lingerie, sleepwear and lounge. Based in Harare, Zimbabwe.</p>
         </div>
@@ -135,7 +135,7 @@ export function SiteFooter() {
       </div>
       <div className="border-t border-border/50">
         <div className="mx-auto max-w-7xl px-6 py-5 text-xs text-muted-foreground flex flex-wrap gap-2 justify-between">
-          <span>© 2026 LOFTIE. All rights reserved.</span>
+          <span>© 2026 WET LACE. All rights reserved.</span>
           <span>Based in Harare, Zimbabwe.</span>
         </div>
       </div>

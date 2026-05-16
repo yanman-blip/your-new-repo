@@ -55,8 +55,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "LOFTIE - Quietly luxurious lingerie, sleepwear & lounge" },
-      { name: "description", content: "LOFTIE is Harare's boutique for premium lingerie, sleepwear and lounge. Quality pieces for every woman in Zimbabwe." },
+      { title: "WET LACE - Quietly luxurious lingerie, sleepwear & lounge" },
+      { name: "description", content: "WET LACE is Harare's boutique for premium lingerie, sleepwear and lounge. Quality pieces for every woman in Zimbabwe." },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),

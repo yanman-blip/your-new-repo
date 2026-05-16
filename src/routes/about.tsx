@@ -3,9 +3,9 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About - LOFTIE" },
-      { name: "description", content: "LOFTIE is Harare's boutique for premium lingerie, sleepwear and lounge." },
-      { property: "og:title", content: "About LOFTIE" },
+      { title: "About - WET LACE" },
+      { name: "description", content: "WET LACE is Harare's boutique for premium lingerie, sleepwear and lounge." },
+      { property: "og:title", content: "About WET LACE" },
       { property: "og:description", content: "Based in Harare, Zimbabwe. Quality lingerie for every woman." },
     ],
   }),
@@ -20,7 +20,7 @@ function About() {
         Harare's <span className="italic font-light">lingerie boutique.</span>
       </h1>
       <p className="mt-6 text-lg text-muted-foreground leading-relaxed">
-        LOFTIE is a lingerie and sleepwear boutique based in Harare, Zimbabwe. We started with one goal: to make quality lingerie and lounge accessible to every woman in Zimbabwe. We stock a range of styles, from everyday essentials to special-occasion pieces, so you always find what you need.
+        WET LACE is a lingerie and sleepwear boutique based in Harare, Zimbabwe. We started with one goal: to make quality lingerie and lounge accessible to every woman in Zimbabwe. We stock a range of styles, from everyday essentials to special-occasion pieces, so you always find what you need.
       </p>
       <div className="mt-12 grid md:grid-cols-3 gap-6">
         {[
