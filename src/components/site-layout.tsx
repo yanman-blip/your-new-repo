@@ -112,11 +112,11 @@ export function SiteFooter() {
         <div>
           <div className="mb-3 flex items-center gap-2 font-semibold text-sm">
             <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-background text-[10px] font-bold tracking-normal">
-              JC
+              WL
             </span>
             <span className="tracking-[0.14em] uppercase">WET LACE</span>
           </div>
-          <p className="text-muted-foreground">Lingerie, sleepwear and lounge. Based in Harare, Zimbabwe.</p>
+          <p className="text-muted-foreground italic">For the ones who don't behave.</p>
         </div>
         {[
           { h: "Shop", l: ["Lace", "Silk", "Lounge", "Everyday"] },
