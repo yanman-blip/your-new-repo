@@ -46,12 +46,12 @@ function Home() {
           <div className="max-w-3xl">
             <span className="text-xs uppercase tracking-[0.3em] opacity-60">Harare, Zimbabwe</span>
             <h1 className="mt-4 text-5xl leading-[0.95] font-semibold tracking-tight md:text-7xl lg:text-8xl">
-              Soft things,
+              For the ones who
               <br />
-              <span className="font-light italic">worn close.</span>
+              <span className="font-light italic">don't behave.</span>
             </h1>
             <p className="mt-6 max-w-xl text-lg opacity-70">
-              WET LACE is your go-to boutique for lingerie, sleepwear and lounge. Quality pieces for every occasion, right here in Harare.
+              WET LACE — lingerie, silk and lace for the women who wear what they want. Made in Harare, worn everywhere.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
