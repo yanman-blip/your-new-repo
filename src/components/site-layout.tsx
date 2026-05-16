@@ -45,7 +45,7 @@ export function SiteHeader() {
       <div className="mx-auto max-w-7xl px-6 h-14 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 font-semibold text-sm">
           <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-background text-[10px] font-bold tracking-normal">
-            L
+            W
           </span>
           <span className="tracking-[0.14em] uppercase">WET LACE</span>
         </Link>
