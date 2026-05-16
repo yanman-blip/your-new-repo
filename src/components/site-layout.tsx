@@ -65,8 +65,8 @@ export function SiteHeader() {
             <Search className="w-4 h-4" />
           </button>
           <Link
-            to="/auth"
-            aria-label={isAuthed ? "Account" : "Sign in"}
+            to={isAuthed ? "/account/orders" : "/auth"}
+            aria-label={isAuthed ? "My orders" : "Sign in"}
             className="hover:text-foreground transition-colors"
           >
             <User className="w-4 h-4" />
