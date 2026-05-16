@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { ChevronLeft, Package, Clock3, CheckCircle2, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchOrders, type OrderWorkflowStatus, type StoredOrder } from "@/lib/orders";
+import { getProducts } from "@/lib/products";
 
 export const Route = createFileRoute("/account/orders")({
   head: () => ({
@@ -154,27 +155,31 @@ function AccountOrders() {
               </div>
 
               <div className="mt-4 grid gap-2">
-                {order.items.map((item) => (
-                  <div key={`${order.id}-${item.id}-${item.size}-${item.color}`} className="flex items-center gap-3 text-sm">
-                    {item.image && (
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="h-12 w-12 rounded-md object-cover"
-                        loading="lazy"
-                      />
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate font-medium">{item.name}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {item.size && <>Size {item.size} · </>}
-                        {item.color && <>{item.color} · </>}
-                        Qty {item.qty}
+                {order.items.map((item, idx) => {
+                  const product = getProducts().find((p) => p.id === item.productId);
+                  const name = product?.name ?? item.productId;
+                  const image = product?.image;
+                  const price = product?.price ?? 0;
+                  return (
+                    <div
+                      key={`${order.id}-${item.productId}-${item.storage}-${item.color}-${idx}`}
+                      className="flex items-center gap-3 text-sm"
+                    >
+                      {image && (
+                        <img src={image} alt={name} className="h-12 w-12 rounded-md object-cover" loading="lazy" />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate font-medium">{name}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {item.storage && <>Size {item.storage} · </>}
+                          {item.color && <>{item.color} · </>}
+                          Qty {item.qty}
+                        </div>
                       </div>
+                      <div className="text-sm font-medium">${(price * item.qty).toFixed(2)}</div>
                     </div>
-                    <div className="text-sm font-medium">${(item.price * item.qty).toFixed(2)}</div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3 text-sm">
