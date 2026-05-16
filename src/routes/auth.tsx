@@ -6,8 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in - LOFTIE" },
-      { name: "description", content: "Sign in to LOFTIE to track orders and check out faster." },
+      { title: "Sign in - WET LACE" },
+      { name: "description", content: "Sign in to WET LACE to track orders and check out faster." },
       { name: "robots", content: "noindex,nofollow" },
     ],
   }),
@@ -79,7 +79,7 @@ function AuthPage() {
   return (
     <section className="mx-auto max-w-md px-6 py-16">
       <Link to="/" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-        <ChevronLeft className="h-4 w-4" /> Back to LOFTIE
+        <ChevronLeft className="h-4 w-4" /> Back to WET LACE
       </Link>
 
       <div className="mt-6 rounded-2xl border border-border bg-background p-6">
@@ -101,7 +101,7 @@ function AuthPage() {
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">
               {mode === "signin"
-                ? "Welcome back to LOFTIE."
+                ? "Welcome back to WET LACE."
                 : "Track your orders and check out faster."}
             </p>
 
@@ -157,7 +157,7 @@ function AuthPage() {
               }}
               className="mt-4 w-full text-center text-sm text-muted-foreground hover:text-foreground"
             >
-              {mode === "signin" ? "New to LOFTIE? Create an account" : "Already have an account? Sign in"}
+              {mode === "signin" ? "New to WET LACE? Create an account" : "Already have an account? Sign in"}
             </button>
           </>
         )}

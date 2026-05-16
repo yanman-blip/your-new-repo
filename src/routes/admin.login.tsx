@@ -29,8 +29,8 @@ function clearLockState() {
 export const Route = createFileRoute("/admin/login")({
   head: () => ({
     meta: [
-      { title: "Admin Login - LOFTIE" },
-      { name: "description", content: "Sign in to the LOFTIE admin portal." },
+      { title: "Admin Login - WET LACE" },
+      { name: "description", content: "Sign in to the WET LACE admin portal." },
       { name: "robots", content: "noindex,nofollow" },
     ],
   }),

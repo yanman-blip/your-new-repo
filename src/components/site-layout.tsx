@@ -45,9 +45,9 @@ export function SiteHeader() {
       <div className="mx-auto max-w-7xl px-6 h-14 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 font-semibold text-sm">
           <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-background text-[10px] font-bold tracking-normal">
-            L
+            W
           </span>
-          <span className="tracking-[0.14em] uppercase">LOFTIE</span>
+          <span className="tracking-[0.14em] uppercase">WET LACE</span>
         </Link>
         <nav className="hidden md:flex items-center gap-8 text-sm">
           {visibleNav.map((n) => (
@@ -112,11 +112,11 @@ export function SiteFooter() {
         <div>
           <div className="mb-3 flex items-center gap-2 font-semibold text-sm">
             <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-foreground text-background text-[10px] font-bold tracking-normal">
-              JC
+              WL
             </span>
-            <span className="tracking-[0.14em] uppercase">LOFTIE</span>
+            <span className="tracking-[0.14em] uppercase">WET LACE</span>
           </div>
-          <p className="text-muted-foreground">Lingerie, sleepwear and lounge. Based in Harare, Zimbabwe.</p>
+          <p className="text-muted-foreground italic">For the ones who don't behave.</p>
         </div>
         {[
           { h: "Shop", l: ["Lace", "Silk", "Lounge", "Everyday"] },
@@ -135,7 +135,7 @@ export function SiteFooter() {
       </div>
       <div className="border-t border-border/50">
         <div className="mx-auto max-w-7xl px-6 py-5 text-xs text-muted-foreground flex flex-wrap gap-2 justify-between">
-          <span>© 2026 LOFTIE. All rights reserved.</span>
+          <span>© 2026 WET LACE. All rights reserved.</span>
           <span>Based in Harare, Zimbabwe.</span>
         </div>
       </div>
