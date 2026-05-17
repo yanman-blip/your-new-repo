@@ -1058,9 +1058,11 @@ function notifyProductsChanged() {
   productListeners.forEach((listener) => listener());
 }
 
-export function subscribeProducts(listener: ProductsListener) {
+export function subscribeProducts(listener: ProductsListener): () => void {
   productListeners.add(listener);
-  return () => productListeners.delete(listener);
+  return () => {
+    productListeners.delete(listener);
+  };
 }
 
 export function getProducts(): Product[] {

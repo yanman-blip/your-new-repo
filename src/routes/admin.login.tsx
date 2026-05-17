@@ -81,7 +81,7 @@ function AdminLogin() {
     try {
       await signInAdmin(email.trim(), password);
       clearLockState();
-      await navigate({ to: "/admin/orders" });
+      await navigate({ to: "/admin/dashboard" });
     } catch {
       registerFailedAttempt();
     } finally {
