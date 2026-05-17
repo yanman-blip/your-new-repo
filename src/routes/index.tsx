@@ -51,7 +51,7 @@ function Home() {
               <span className="font-light italic">don't behave.</span>
             </h1>
             <p className="mt-6 max-w-xl text-lg opacity-70">
-              WET LACE — lingerie, silk and lace for the women who wear what they want. Made in Harare, worn everywhere.
+              WET LACE, lingerie, silk and lace for the women who wear what they want. Made in Harare, worn everywhere.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link

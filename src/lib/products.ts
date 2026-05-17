@@ -19,6 +19,57 @@ export type Product = {
   highlights: string[];
 };
 
+function normalizePath(rawPath: string): string {
+  const [pathWithLeadingSlash, searchAndHash = ""] = rawPath.split(/(?=[?#])/);
+  const hasLeadingSlash = pathWithLeadingSlash.startsWith("/");
+  const segments = pathWithLeadingSlash
+    .split("/")
+    .filter((segment) => segment.length > 0)
+    .map((segment) => {
+      try {
+        return encodeURIComponent(decodeURIComponent(segment));
+      } catch {
+        return encodeURIComponent(segment);
+      }
+    });
+
+  return `${hasLeadingSlash ? "/" : ""}${segments.join("/")}${searchAndHash}`;
+}
+
+function normalizeImageUrl(image: string): string {
+  if (!image) return image;
+
+  if (/^https?:\/\//i.test(image)) {
+    try {
+      const url = new URL(image);
+      url.pathname = normalizePath(url.pathname);
+      return url.toString();
+    } catch {
+      return image;
+    }
+  }
+
+  if (image.startsWith("/")) {
+    return normalizePath(image);
+  }
+
+  return image;
+}
+
+function normalizeProductImages(product: Product): Product {
+  const normalizedImage = normalizeImageUrl(product.image);
+  const normalizedGallery =
+    product.gallery && product.gallery.length > 0
+      ? product.gallery.map((img) => normalizeImageUrl(img))
+      : [normalizedImage];
+
+  return {
+    ...product,
+    image: normalizedImage,
+    gallery: normalizedGallery,
+  };
+}
+
 export const baseProducts: Product[] = [
   {
     "id": "1-set-womens-sexy-lingerie-black-sheer-backless-bodysuit-garter-stockings-pantyh",
@@ -820,6 +871,10 @@ export const baseProducts: Product[] = [
   }
 ];
 
+for (let i = 0; i < baseProducts.length; i++) {
+  baseProducts[i] = normalizeProductImages(baseProducts[i]);
+}
+
 const CUSTOM_PRODUCTS_KEY = "loftie-custom-products-v1";
 type ProductsListener = () => void;
 const productListeners = new Set<ProductsListener>();
@@ -838,7 +893,7 @@ function readCustomProducts(): Product[] {
     const raw = localStorage.getItem(CUSTOM_PRODUCTS_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as Product[];
-    return Array.isArray(parsed) ? parsed : [];
+    return Array.isArray(parsed) ? parsed.map(normalizeProductImages) : [];
   } catch {
     return [];
   }
@@ -904,9 +959,10 @@ export function createCustomProduct(input: {
     bg: "bg-[oklch(0.94_0.03_30)]",
     accent: "text-[oklch(0.22_0.04_30)]",
   };
+  const normalizedNext = normalizeProductImages(next);
 
   const customProducts = readCustomProducts();
-  writeCustomProducts([next, ...customProducts]);
+  writeCustomProducts([normalizedNext, ...customProducts]);
   notifyProductsChanged();
 
   const client = getOptionalSupabase();
@@ -916,13 +972,13 @@ export function createCustomProduct(input: {
       name: next.name,
       brand: next.brand,
       price: next.price,
-      image: next.image,
+      image: normalizedNext.image,
       is_published: true,
-      payload: next,
+      payload: normalizedNext,
     });
   }
 
-  return next;
+  return normalizedNext;
 }
 
 export function getCustomProducts(): Product[] {
@@ -965,9 +1021,10 @@ export function updateCustomProduct(
     colors: input.colors && input.colors.length > 0 ? input.colors : prev.colors,
     highlights: input.highlights && input.highlights.length > 0 ? input.highlights : prev.highlights,
   };
+  const normalizedNext = normalizeProductImages(next);
 
   const updated = [...customProducts];
-  updated[index] = next;
+  updated[index] = normalizedNext;
   writeCustomProducts(updated);
   notifyProductsChanged();
 
@@ -976,17 +1033,17 @@ export function updateCustomProduct(
     void client
       .from("products")
       .upsert({
-        id: next.id,
-        name: next.name,
-        brand: next.brand,
-        price: next.price,
-        image: next.image,
+        id: normalizedNext.id,
+        name: normalizedNext.name,
+        brand: normalizedNext.brand,
+        price: normalizedNext.price,
+        image: normalizedNext.image,
         is_published: true,
-        payload: next,
+        payload: normalizedNext,
       });
   }
 
-  return next;
+  return normalizedNext;
 }
 
 export function deleteCustomProduct(id: string): boolean {
@@ -1019,7 +1076,8 @@ export async function fetchCustomProducts(): Promise<Product[]> {
 
     const remote = data
       .map((row: any) => row?.payload as Product | null)
-      .filter(Boolean) as Product[];
+      .filter(Boolean)
+      .map(normalizeProductImages) as Product[];
 
     if (remote.length === 0) return readCustomProducts();
     writeCustomProducts(remote);

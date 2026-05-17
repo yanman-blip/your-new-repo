@@ -5,7 +5,6 @@ import { fetchOrders, updateOrderRecord, type OrderWorkflowStatus, type StoredOr
 import { createCustomProduct, deleteCustomProduct, fetchCustomProducts, getCustomProducts, updateCustomProduct, type Collection, type Product } from "@/lib/products";
 import { hasAdminSession, signOutAdmin } from "@/lib/admin-auth";
 import { uploadProductImagesToStorage } from "@/lib/product-image-storage";
-import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/admin/orders")({
   beforeLoad: async () => {
@@ -80,8 +79,12 @@ function AdminOrders() {
 
   const approve = async (orderId: string) => {
     setBusyId(orderId);
-    await updateOrderRecord(orderId, { status: "paid" });
+    const updated = await updateOrderRecord(orderId, { status: "paid" });
     setBusyId(null);
+    if (!updated) {
+      setProductMsg("Could not update this order. Try refreshing the list.");
+      return;
+    }
     refresh();
   };
 
@@ -490,15 +493,42 @@ function AdminOrders() {
                 </div>
                 <div>
                   <div className="text-muted-foreground">Proof</div>
-                  <div className="font-medium">
-                    {order.proofPath ? (
-                      <ProofLink path={order.proofPath} name={order.proofFileName ?? "View proof"} />
-                    ) : (
-                      order.proofFileName ?? "Not uploaded"
-                    )}
-                  </div>
+                  {order.proofFileUrl ? (
+                    <a
+                      href={order.proofFileUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-medium text-blue-600 underline underline-offset-2"
+                    >
+                      {order.proofFileName ?? "View proof"}
+                    </a>
+                  ) : (
+                    <div className="font-medium">{order.proofFileName ?? "Not uploaded"}</div>
+                  )}
                 </div>
               </div>
+
+              {order.proofFileUrl && (
+                <div className="mt-4 rounded-xl border border-border bg-surface p-3">
+                  <div className="text-xs text-muted-foreground">Proof preview</div>
+                  {order.proofFileUrl.match(/\.(png|jpe?g|webp|gif)$/i) ? (
+                    <img
+                      src={order.proofFileUrl}
+                      alt={`Proof for order ${order.id}`}
+                      className="mt-2 max-h-72 rounded-lg border border-border object-contain"
+                    />
+                  ) : (
+                    <a
+                      href={order.proofFileUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-2 inline-flex text-sm font-medium text-blue-600 underline underline-offset-2"
+                    >
+                      Open proof file
+                    </a>
+                  )}
+                </div>
+              )}
 
               <div className="mt-4 rounded-xl border border-border bg-surface p-3 text-sm text-muted-foreground">
                 {order.customer.street}{order.customer.complex ? `, ${order.customer.complex}` : ""}, {order.customer.suburb}, {order.customer.city}, {order.customer.province}, {order.customer.postalCode}
@@ -524,32 +554,5 @@ function AdminOrders() {
         </div>
       )}
     </section>
-  );
-}
-
-function ProofLink({ path, name }: { path: string; name: string }) {
-  const [url, setUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const open = async () => {
-    if (url) {
-      window.open(url, "_blank");
-      return;
-    }
-    setLoading(true);
-    const { data, error } = await supabase.storage
-      .from("payment-proofs")
-      .createSignedUrl(path, 60 * 10);
-    setLoading(false);
-    if (error || !data?.signedUrl) {
-      alert(`Could not load proof: ${error?.message ?? "unknown error"}`);
-      return;
-    }
-    setUrl(data.signedUrl);
-    window.open(data.signedUrl, "_blank");
-  };
-  return (
-    <button type="button" onClick={open} className="underline text-foreground hover:opacity-80" disabled={loading}>
-      {loading ? "Loading…" : name}
-    </button>
   );
 }

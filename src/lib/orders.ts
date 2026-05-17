@@ -23,7 +23,8 @@ export type StoredOrder = {
   tax: number;
   total: number;
   proofFileName?: string;
-  proofPath?: string;
+  proofFileUrl?: string;
+  proofStoragePath?: string;
   items: CartItem[];
   customer: {
     location: string;
@@ -88,6 +89,34 @@ function makeOrderId() {
   return `order-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+function mapStoredOrder(row: any): StoredOrder | null {
+  const payload = row?.payload as StoredOrder | null;
+  if (!payload) return null;
+
+  return {
+    ...payload,
+    proofFileName: payload.proofFileName ?? row?.proof_file_name ?? undefined,
+  };
+}
+
+async function fetchRemoteOrderById(orderId: string): Promise<StoredOrder | null> {
+  const client = getOptionalSupabase();
+  if (!client) return null;
+
+  try {
+    const { data, error } = await client
+      .from("orders")
+      .select("payload, proof_file_name")
+      .eq("id", orderId)
+      .maybeSingle();
+
+    if (error || !data) return null;
+    return mapStoredOrder(data);
+  } catch {
+    return null;
+  }
+}
+
 export async function createOrderRecord(input: Omit<StoredOrder, "id" | "createdAt" | "updatedAt">): Promise<StoredOrder> {
   const now = new Date().toISOString();
   const order: StoredOrder = {
@@ -128,7 +157,7 @@ export async function createOrderRecord(input: Omit<StoredOrder, "id" | "created
 
 export async function updateOrderRecord(orderId: string, patch: Partial<StoredOrder>): Promise<StoredOrder | null> {
   const orders = readLocalOrders();
-  const existing = orders.find((o) => o.id === orderId);
+  const existing = orders.find((o) => o.id === orderId) ?? (await fetchRemoteOrderById(orderId));
   if (!existing) return null;
 
   const next: StoredOrder = {
@@ -186,10 +215,11 @@ export async function fetchOrders(): Promise<StoredOrder[]> {
     if (error || !data) return readLocalOrders();
 
     const mapped = data
-      .map((row: any) => row?.payload as StoredOrder | null)
+      .map(mapStoredOrder)
       .filter(Boolean) as StoredOrder[];
 
     if (mapped.length === 0) return readLocalOrders();
+    writeLocalOrders(mapped);
     return mapped;
   } catch {
     return readLocalOrders();

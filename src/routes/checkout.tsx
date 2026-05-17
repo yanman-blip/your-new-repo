@@ -3,7 +3,7 @@ import { useCart } from "@/lib/cart";
 import { useState } from "react";
 import { Trash2, ChevronLeft, MapPin, Truck, Minus, Plus, ShieldCheck } from "lucide-react";
 import { createOrderRecord, updateOrderRecord, type OrderWorkflowStatus, type PaymentMethodId } from "@/lib/orders";
-import { supabase } from "@/integrations/supabase/client";
+import { uploadProofToStorage } from "@/lib/proof-storage";
 
 const paymentMethods: { id: PaymentMethodId; name: string; instructions: string }[] = [
   { id: "ecocash", name: "EcoCash", instructions: "Send payment to EcoCash number 0772 000 000 and use your order number as reference." },
@@ -30,6 +30,8 @@ function Checkout() {
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [proofUploaded, setProofUploaded] = useState(false);
   const [proofFileName, setProofFileName] = useState("");
+  const [proofUploading, setProofUploading] = useState(false);
+  const [proofUploadError, setProofUploadError] = useState("");
   const [activeOrderId, setActiveOrderId] = useState<string | null>(null);
   const [orderStatus, setOrderStatus] = useState<OrderWorkflowStatus>("draft");
   const [orderError, setOrderError] = useState("");
@@ -112,6 +114,8 @@ function Checkout() {
       setOrderStatus(nextStatus);
       setProofUploaded(false);
       setProofFileName("");
+      setProofUploading(false);
+      setProofUploadError("");
     } catch {
       setOrderError("Could not create order right now. Please try again.");
     }
@@ -410,6 +414,8 @@ function Checkout() {
                       setOrderPlaced(false);
                       setProofUploaded(false);
                       setProofFileName("");
+                      setProofUploading(false);
+                      setProofUploadError("");
                       setActiveOrderId(null);
                       setOrderStatus("draft");
                       setOrderError("");
@@ -496,31 +502,43 @@ function Checkout() {
                 id="proof-upload"
                 type="file"
                 accept="image/*,.pdf"
-                onChange={async (e) => {
+                disabled={!activeOrderId || proofUploading}
+                onChange={(e) => {
                   const file = e.target.files?.[0];
-                  if (!file || !activeOrderId) return;
-                  setProofFileName(file.name);
-                  const ext = file.name.includes(".") ? file.name.split(".").pop() : "bin";
-                  const path = `${activeOrderId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-                  const { error: upErr } = await supabase.storage
-                    .from("payment-proofs")
-                    .upload(path, file, { upsert: false, contentType: file.type || undefined });
-                  if (upErr) {
-                    alert(`Upload failed: ${upErr.message}`);
+                  if (!file) return;
+                  if (!activeOrderId) {
+                    setProofUploadError("Place the order before uploading proof.");
                     return;
                   }
-                  setProofUploaded(true);
-                  setOrderStatus("awaiting_admin_approval");
-                  void updateOrderRecord(activeOrderId, {
-                    proofFileName: file.name,
-                    proofPath: path,
-                    status: "awaiting_admin_approval",
-                  });
+
+                  setProofUploading(true);
+                  setProofUploadError("");
+                  void uploadProofToStorage(file, activeOrderId)
+                    .then((proof) => {
+                      setProofFileName(proof.fileName);
+                      setProofUploaded(true);
+                      setOrderStatus("awaiting_admin_approval");
+                      return updateOrderRecord(activeOrderId, {
+                        proofFileName: proof.fileName,
+                        proofFileUrl: proof.fileUrl,
+                        proofStoragePath: proof.storagePath,
+                        status: "awaiting_admin_approval",
+                      });
+                    })
+                    .catch((err) => {
+                      const message = err instanceof Error ? err.message : "Could not upload proof.";
+                      setProofUploadError(message);
+                    })
+                    .finally(() => {
+                      setProofUploading(false);
+                    });
                 }}
                 className="mt-2 w-full text-xs"
               />
+              {proofUploading && <p className="mt-2 text-xs text-muted-foreground">Uploading proof...</p>}
               {proofFileName && <p className="mt-2 text-xs text-muted-foreground">Uploaded: {proofFileName}</p>}
               {proofUploaded && <p className="mt-2 text-xs text-muted-foreground">Waiting for admin approval.</p>}
+              {proofUploadError && <p className="mt-2 text-xs text-[#b42318]">{proofUploadError}</p>}
             </div>
           )}
 

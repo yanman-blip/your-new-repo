@@ -114,13 +114,40 @@ function toDisplayColorName(raw: string): string {
     .join(" ");
 }
 
+function getDecodedPathSegments(imagePath: string): string[] {
+  try {
+    const pathname = imagePath.startsWith("http") ? new URL(imagePath).pathname : imagePath;
+    return pathname
+      .split("/")
+      .filter(Boolean)
+      .map((segment) => {
+        try {
+          return decodeURIComponent(segment);
+        } catch {
+          return segment;
+        }
+      });
+  } catch {
+    return imagePath
+      .split("/")
+      .filter(Boolean)
+      .map((segment) => {
+        try {
+          return decodeURIComponent(segment);
+        } catch {
+          return segment;
+        }
+      });
+  }
+}
+
 function getProductFolderName(imagePath: string): string {
-  const parts = imagePath.split("/").filter(Boolean);
+  const parts = getDecodedPathSegments(imagePath);
   return parts[0] ?? "";
 }
 
 function detectColorFromImagePath(imagePath: string): string | null {
-  const parts = imagePath.split("/").filter(Boolean);
+  const parts = getDecodedPathSegments(imagePath);
   if (parts.length < 3) return null;
   return toDisplayColorName(parts[1]);
 }
