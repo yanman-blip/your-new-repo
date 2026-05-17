@@ -188,13 +188,89 @@ function encodeStoragePath(rawPath: string): string {
     .join("/");
 }
 
-function toPublicProductImageUrl(imagePath: string, baseUrl: string | null): string {
+function toPublicProductImageUrl(
+  imagePath: string,
+  baseUrl: string | null,
+  canonicalFolderSegment?: string,
+): string {
   if (!imagePath) return imagePath;
   if (/^https?:\/\//i.test(imagePath)) return imagePath;
   if (!baseUrl) return imagePath;
 
-  const encodedPath = encodeStoragePath(imagePath.replace(/^\/+/, ""));
+  const rawPath = imagePath.replace(/^\/+/, "");
+  const segments = rawPath.split("/").filter(Boolean);
+  if (canonicalFolderSegment && segments.length > 0) {
+    let firstDecoded = segments[0];
+    try {
+      firstDecoded = decodeURIComponent(segments[0]);
+    } catch {
+      // use raw segment when decoding fails
+    }
+    if (toLookupToken(firstDecoded) === toLookupToken(canonicalFolderSegment)) {
+      segments[0] = canonicalFolderSegment;
+    }
+  }
+
+  const encodedPath = encodeStoragePath(segments.join("/"));
   return `${baseUrl}/${encodedPath}`;
+}
+
+function buildAbsoluteImageByFilename(images: string[]): Map<string, string> {
+  const byFilename = new Map<string, string>();
+  for (const image of images) {
+    if (!/^https?:\/\//i.test(image)) continue;
+    const filename = getDecodedFilename(image);
+    if (!filename || byFilename.has(filename)) continue;
+    byFilename.set(filename, image);
+  }
+  return byFilename;
+}
+
+function resolveVariantImageUrl(
+  imagePath: string,
+  baseUrl: string | null,
+  absoluteByFilename: Map<string, string>,
+  canonicalFolderSegment?: string,
+): string {
+  if (!imagePath) return imagePath;
+  if (/^https?:\/\//i.test(imagePath)) return imagePath;
+
+  const filename = getDecodedFilename(imagePath);
+  if (filename) {
+    const knownAbsolute = absoluteByFilename.get(filename);
+    if (knownAbsolute) return knownAbsolute;
+  }
+
+  return toPublicProductImageUrl(imagePath, baseUrl, canonicalFolderSegment);
+}
+
+function normalizeFilenameForDedup(filename: string): string {
+  return filename.replace(/\s*\(\d+\)(?=\.[^.]+$)/, "");
+}
+
+function uniquePreferredImages(images: string[]): string[] {
+  const byNormalizedName = new Map<string, string>();
+
+  for (const image of images) {
+    if (!image) continue;
+    const filename = getDecodedFilename(image);
+    if (!filename) continue;
+
+    const normalized = normalizeFilenameForDedup(filename).toLowerCase();
+    const existing = byNormalizedName.get(normalized);
+    if (!existing) {
+      byNormalizedName.set(normalized, image);
+      continue;
+    }
+
+    const currentHasCounter = /\s*\(\d+\)(?=\.[^.]+$)/.test(filename);
+    const existingHasCounter = /\s*\(\d+\)(?=\.[^.]+$)/.test(getDecodedFilename(existing));
+    if (existingHasCounter && !currentHasCounter) {
+      byNormalizedName.set(normalized, image);
+    }
+  }
+
+  return Array.from(byNormalizedName.values());
 }
 
 function resolveManifestProductFolderKey(imagePath: string): string {
@@ -245,15 +321,40 @@ function ProductPage() {
   const { add, setOpen } = useCart();
   const [size, setSize] = useState(product.storage[0]);
   const productImagesBaseUrl = getProductImagesPublicBaseUrl(product.image);
+  const canonicalFolderSegment = getProductImageRelativeSegments(product.image)[0];
   const productFolder = getProductFolderName(product.image);
-  const folderGallery = productFolderGalleryManifest[productFolder] ?? [];
+  const folderGallery = useMemo(
+    () =>
+      (productFolderGalleryManifest[productFolder] ?? []).map((imagePath) =>
+        toPublicProductImageUrl(imagePath, productImagesBaseUrl, canonicalFolderSegment),
+      ),
+    [productFolder, productImagesBaseUrl, canonicalFolderSegment],
+  );
   const folderVariants = productVariantManifest[productFolder] ?? {};
+  const knownAbsoluteImagesByFilename = useMemo(
+    () =>
+      buildAbsoluteImageByFilename([
+        ...folderGallery,
+        ...(product.gallery ?? []),
+        product.image,
+      ]),
+    [folderGallery, product.gallery, product.image],
+  );
   const variantEntries = useMemo(
     () => Object.entries(folderVariants).map(([rawColor, images]) => ({
       color: toDisplayColorName(rawColor),
-      images: images.map((imagePath) => toPublicProductImageUrl(imagePath, productImagesBaseUrl)),
+      images: uniquePreferredImages(
+        images.map((imagePath) =>
+          resolveVariantImageUrl(
+            imagePath,
+            productImagesBaseUrl,
+            knownAbsoluteImagesByFilename,
+            canonicalFolderSegment,
+          ),
+        ),
+      ),
     })),
-    [folderVariants, productImagesBaseUrl],
+    [folderVariants, productImagesBaseUrl, knownAbsoluteImagesByFilename, canonicalFolderSegment],
   );
 
   const fallbackColor = detectColorFromImagePath(product.image) ?? product.colors[0]?.name ?? "Default";
@@ -282,7 +383,10 @@ function ProductPage() {
   }, [initialColor, product.id]);
 
   useEffect(() => {
-    setSelectedImage(activeGallery[0]);
+    setSelectedImage((current) => {
+      if (current && activeGallery.includes(current)) return current;
+      return activeGallery[0];
+    });
   }, [product.id, activeGallery]);
 
   const showPrevImage = () => {

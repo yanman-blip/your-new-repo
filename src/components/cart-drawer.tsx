@@ -9,11 +9,14 @@ export function CartDrawer() {
     <>
       <div
         onClick={() => setOpen(false)}
-        className={`fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm transition-opacity ${open ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+        className={`fixed inset-0 z-60 bg-black/40 backdrop-blur-sm transition-opacity ${open ? "opacity-100" : "opacity-0 pointer-events-none"}`}
       />
       <aside
-        className={`fixed top-0 right-0 z-[70] h-full w-full max-w-md bg-background border-l border-border shadow-2xl transition-transform duration-300 flex flex-col ${open ? "translate-x-0" : "translate-x-full"}`}
-        aria-hidden={!open}
+        className={`fixed top-0 right-0 z-70 h-full w-full max-w-md bg-background border-l border-border shadow-2xl transition-transform duration-300 flex flex-col ${open ? "translate-x-0" : "translate-x-full"}`}
+        hidden={!open}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Shopping cart"
       >
         <header className="flex items-center justify-between px-6 h-14 border-b border-border">
           <div className="flex items-center gap-2 font-semibold">
@@ -38,7 +41,7 @@ export function CartDrawer() {
             <ul className="divide-y divide-border">
               {detailed.map((i) => (
                 <li key={`${i.productId}-${i.storage}-${i.color}`} className="py-4 flex gap-4">
-                  <div className="w-20 h-20 rounded-xl bg-surface overflow-hidden flex-shrink-0">
+                  <div className="w-20 h-20 rounded-xl bg-surface overflow-hidden shrink-0">
                     <img src={i.product.image} alt={i.product.name} className="w-full h-full object-contain" />
                   </div>
                   <div className="flex-1 min-w-0">

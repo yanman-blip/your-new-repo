@@ -19,6 +19,14 @@ export type Product = {
   highlights: string[];
 };
 
+const KNOWN_COLLECTIONS: Collection[] = ["Lace", "Silk", "Lounge", "Everyday"];
+
+function normalizeCollection(value: unknown): Collection {
+  if (typeof value !== "string") return "Lace";
+  const match = KNOWN_COLLECTIONS.find((collection) => collection.toLowerCase() === value.toLowerCase());
+  return match ?? "Lace";
+}
+
 function normalizePath(rawPath: string): string {
   const [pathWithLeadingSlash, searchAndHash = ""] = rawPath.split(/(?=[?#])/);
   const hasLeadingSlash = pathWithLeadingSlash.startsWith("/");
@@ -68,6 +76,84 @@ function normalizeProductImages(product: Product): Product {
     image: normalizedImage,
     gallery: normalizedGallery,
   };
+}
+
+function sanitizeProduct(input: unknown): Product | null {
+  if (!input || typeof input !== "object") return null;
+  const candidate = input as Partial<Product> & { [key: string]: unknown };
+
+  const id = typeof candidate.id === "string" ? candidate.id.trim() : "";
+  const name = typeof candidate.name === "string" ? candidate.name.trim() : "";
+  if (!id || !name) return null;
+
+  const priceNumber =
+    typeof candidate.price === "number"
+      ? candidate.price
+      : typeof candidate.price === "string"
+        ? Number(candidate.price)
+        : NaN;
+  const price = Number.isFinite(priceNumber) ? Math.max(0, priceNumber) : 0;
+
+  const rawGallery = Array.isArray(candidate.gallery)
+    ? candidate.gallery.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+    : [];
+  const image =
+    typeof candidate.image === "string" && candidate.image.trim().length > 0
+      ? candidate.image
+      : (rawGallery[0] ?? "");
+  if (!image) return null;
+
+  const storage = Array.isArray(candidate.storage)
+    ? candidate.storage.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+    : [];
+
+  const colors = Array.isArray(candidate.colors)
+    ? candidate.colors
+        .filter(
+          (item): item is { name: string; hex: string } =>
+            !!item &&
+            typeof item === "object" &&
+            typeof (item as { name?: unknown }).name === "string" &&
+            typeof (item as { hex?: unknown }).hex === "string",
+        )
+        .map((item) => ({ name: item.name, hex: item.hex }))
+    : [];
+
+  const highlights = Array.isArray(candidate.highlights)
+    ? candidate.highlights.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+    : [];
+
+  const safe: Product = {
+    id,
+    name,
+    brand: normalizeCollection(candidate.brand),
+    tagline:
+      typeof candidate.tagline === "string" && candidate.tagline.trim().length > 0
+        ? candidate.tagline
+        : `${name} - boutique pick for your collection.`,
+    description:
+      typeof candidate.description === "string" && candidate.description.trim().length > 0
+        ? candidate.description
+        : name,
+    price,
+    image,
+    gallery: rawGallery.length > 0 ? rawGallery : [image],
+    bg: typeof candidate.bg === "string" && candidate.bg.trim().length > 0 ? candidate.bg : "bg-[oklch(0.94_0.03_30)]",
+    accent:
+      typeof candidate.accent === "string" && candidate.accent.trim().length > 0
+        ? candidate.accent
+        : "text-[oklch(0.22_0.04_30)]",
+    badge:
+      typeof candidate.badge === "string" && candidate.badge.trim().length > 0 ? candidate.badge : undefined,
+    storage: storage.length > 0 ? storage : ["S", "M", "L", "XL"],
+    colors: colors.length > 0 ? colors : [{ name: "Black", hex: "#1c1c1e" }],
+    highlights:
+      highlights.length > 0
+        ? highlights
+        : ["Curated boutique catalog", "Comfort-forward fit", "Available while stock lasts"],
+  };
+
+  return normalizeProductImages(safe);
 }
 
 export const baseProducts: Product[] = [
@@ -878,6 +964,10 @@ for (let i = 0; i < baseProducts.length; i++) {
 const CUSTOM_PRODUCTS_KEY = "loftie-custom-products-v1";
 type ProductsListener = () => void;
 const productListeners = new Set<ProductsListener>();
+let cachedCustomProductsRaw: string | null | undefined;
+let cachedCustomProducts: Product[] = [];
+let cachedMergedCustomRef: Product[] | null = null;
+let cachedMergedProducts: Product[] = baseProducts;
 
 function getOptionalSupabase(): any | null {
   try {
@@ -891,17 +981,34 @@ function readCustomProducts(): Product[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(CUSTOM_PRODUCTS_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as Product[];
-    return Array.isArray(parsed) ? parsed.map(normalizeProductImages) : [];
+    if (raw === cachedCustomProductsRaw) return cachedCustomProducts;
+    if (!raw) {
+      cachedCustomProductsRaw = raw;
+      cachedCustomProducts = [];
+      return cachedCustomProducts;
+    }
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) {
+      cachedCustomProductsRaw = raw;
+      cachedCustomProducts = [];
+      return cachedCustomProducts;
+    }
+    cachedCustomProductsRaw = raw;
+    cachedCustomProducts = parsed.map(sanitizeProduct).filter((item): item is Product => !!item);
+    return cachedCustomProducts;
   } catch {
+    cachedCustomProductsRaw = null;
+    cachedCustomProducts = [];
     return [];
   }
 }
 
 function writeCustomProducts(products: Product[]) {
   if (typeof window === "undefined") return;
-  localStorage.setItem(CUSTOM_PRODUCTS_KEY, JSON.stringify(products));
+  const serialized = JSON.stringify(products);
+  localStorage.setItem(CUSTOM_PRODUCTS_KEY, serialized);
+  cachedCustomProductsRaw = serialized;
+  cachedCustomProducts = products;
 }
 
 function notifyProductsChanged() {
@@ -916,7 +1023,17 @@ export function subscribeProducts(listener: ProductsListener) {
 export function getProducts(): Product[] {
   const customProducts = readCustomProducts();
   if (customProducts.length === 0) return baseProducts;
-  return [...customProducts, ...baseProducts.filter((p) => !customProducts.some((c) => c.id === p.id))];
+  if (cachedMergedCustomRef === customProducts) return cachedMergedProducts;
+  cachedMergedCustomRef = customProducts;
+  cachedMergedProducts = [
+    ...customProducts,
+    ...baseProducts.filter((p) => !customProducts.some((c) => c.id === p.id)),
+  ];
+  return cachedMergedProducts;
+}
+
+export function getServerProducts(): Product[] {
+  return baseProducts;
 }
 
 export async function createCustomProduct(input: {
@@ -1084,9 +1201,8 @@ export async function fetchCustomProducts(): Promise<Product[]> {
     if (error || !data) return readCustomProducts();
 
     const remote = data
-      .map((row: any) => row?.payload as Product | null)
-      .filter(Boolean)
-      .map(normalizeProductImages) as Product[];
+      .map((row: any) => sanitizeProduct(row?.payload))
+      .filter((item: Product | null): item is Product => !!item);
 
     if (remote.length === 0) return readCustomProducts();
     writeCustomProducts(remote);

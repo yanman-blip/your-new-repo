@@ -1,8 +1,8 @@
 import { useEffect, useSyncExternalStore } from "react";
-import { fetchCustomProducts, getProducts, subscribeProducts } from "@/lib/products";
+import { fetchCustomProducts, getProducts, getServerProducts, subscribeProducts } from "@/lib/products";
 
 export function useProducts() {
-  const products = useSyncExternalStore(subscribeProducts, getProducts, getProducts);
+  const products = useSyncExternalStore(subscribeProducts, getProducts, getServerProducts);
 
   useEffect(() => {
     void fetchCustomProducts();
