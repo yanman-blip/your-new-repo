@@ -919,7 +919,7 @@ export function getProducts(): Product[] {
   return [...customProducts, ...baseProducts.filter((p) => !customProducts.some((c) => c.id === p.id))];
 }
 
-export function createCustomProduct(input: {
+export async function createCustomProduct(input: {
   name: string;
   brand: Collection;
   price: number;
@@ -967,24 +967,6 @@ export function createCustomProduct(input: {
 
   const client = getOptionalSupabase();
   if (client) {
-    void client.from("products").upsert({
-      id: next.id,
-      name: next.name,
-      brand: next.brand,
-      price: next.price,
-      image: normalizedNext.image,
-      is_published: true,
-      payload: normalizedNext,
-    });
-  }
-
-  return normalizedNext;
-  const customProducts = readCustomProducts();
-  writeCustomProducts([normalizedNext, ...customProducts]);
-  notifyProductsChanged();
-
-  const client = getOptionalSupabase();
-  if (client) {
     const { error } = await client.from("products").upsert({
       id: next.id,
       name: next.name,
@@ -1004,7 +986,7 @@ export function getCustomProducts(): Product[] {
   return readCustomProducts();
 }
 
-export function updateCustomProduct(
+export async function updateCustomProduct(
   id: string,
   input: {
     name: string;
