@@ -1204,10 +1204,18 @@ export async function fetchCustomProducts(): Promise<Product[]> {
       .map((row: any) => sanitizeProduct(row?.payload))
       .filter((item: Product | null): item is Product => !!item);
 
-    if (remote.length === 0) return readCustomProducts();
-    writeCustomProducts(remote);
+    const local = readCustomProducts();
+    if (remote.length === 0) return local;
+
+    // Keep local edits/items if cloud is stale or missing entries.
+    const mergedById = new Map<string, Product>();
+    for (const product of remote) mergedById.set(product.id, product);
+    for (const product of local) mergedById.set(product.id, product);
+
+    const merged = Array.from(mergedById.values());
+    writeCustomProducts(merged);
     notifyProductsChanged();
-    return remote;
+    return merged;
   } catch {
     return readCustomProducts();
   }

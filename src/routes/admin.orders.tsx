@@ -127,7 +127,7 @@ function AdminOrders() {
           colors,
           storage,
         });
-        setProductMsg(`Product updated and synced: ${updated.name}`);
+        setProductMsg(`Product updated and synced to cloud: ${updated.name}. Customers can now see the latest price/details.`);
         setEditingProductId(null);
       } else {
         const created = await createCustomProduct({
@@ -140,11 +140,11 @@ function AdminOrders() {
           colors,
           storage,
         });
-        setProductMsg(`Product added and synced to store: ${created.name}`);
+        setProductMsg(`Product added and synced to cloud: ${created.name}. Customers can now see it in the storefront.`);
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Unknown error saving product.";
-      setProductMsg(`⚠️ ${msg}`);
+      setProductMsg(`Cloud sync failed. This product is saved only in this browser and is not visible to customers yet. ${msg}`);
     }
 
     setProductDraft((prev) => ({
