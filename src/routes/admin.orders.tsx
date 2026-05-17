@@ -5,6 +5,7 @@ import { fetchOrders, updateOrderRecord, type OrderWorkflowStatus, type StoredOr
 import { createCustomProduct, deleteCustomProduct, fetchCustomProducts, getCustomProducts, updateCustomProduct, type Collection, type Product } from "@/lib/products";
 import { hasAdminSession, signOutAdmin } from "@/lib/admin-auth";
 import { uploadProductImagesToStorage } from "@/lib/product-image-storage";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/admin/orders")({
   beforeLoad: async () => {
@@ -489,7 +490,13 @@ function AdminOrders() {
                 </div>
                 <div>
                   <div className="text-muted-foreground">Proof</div>
-                  <div className="font-medium">{order.proofFileName ?? "Not uploaded"}</div>
+                  <div className="font-medium">
+                    {order.proofPath ? (
+                      <ProofLink path={order.proofPath} name={order.proofFileName ?? "View proof"} />
+                    ) : (
+                      order.proofFileName ?? "Not uploaded"
+                    )}
+                  </div>
                 </div>
               </div>
 
