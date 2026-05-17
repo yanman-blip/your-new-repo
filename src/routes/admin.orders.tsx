@@ -526,3 +526,30 @@ function AdminOrders() {
     </section>
   );
 }
+
+function ProofLink({ path, name }: { path: string; name: string }) {
+  const [url, setUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const open = async () => {
+    if (url) {
+      window.open(url, "_blank");
+      return;
+    }
+    setLoading(true);
+    const { data, error } = await supabase.storage
+      .from("payment-proofs")
+      .createSignedUrl(path, 60 * 10);
+    setLoading(false);
+    if (error || !data?.signedUrl) {
+      alert(`Could not load proof: ${error?.message ?? "unknown error"}`);
+      return;
+    }
+    setUrl(data.signedUrl);
+    window.open(data.signedUrl, "_blank");
+  };
+  return (
+    <button type="button" onClick={open} className="underline text-foreground hover:opacity-80" disabled={loading}>
+      {loading ? "Loading…" : name}
+    </button>
+  );
+}
