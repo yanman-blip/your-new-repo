@@ -3,6 +3,7 @@ import { useCart } from "@/lib/cart";
 import { useState } from "react";
 import { Trash2, ChevronLeft, MapPin, Truck, Minus, Plus, ShieldCheck } from "lucide-react";
 import { createOrderRecord, updateOrderRecord, type OrderWorkflowStatus, type PaymentMethodId } from "@/lib/orders";
+import { supabase } from "@/integrations/supabase/client";
 
 const paymentMethods: { id: PaymentMethodId; name: string; instructions: string }[] = [
   { id: "ecocash", name: "EcoCash", instructions: "Send payment to EcoCash number 0772 000 000 and use your order number as reference." },
@@ -495,18 +496,26 @@ function Checkout() {
                 id="proof-upload"
                 type="file"
                 accept="image/*,.pdf"
-                onChange={(e) => {
+                onChange={async (e) => {
                   const file = e.target.files?.[0];
-                  if (!file) return;
+                  if (!file || !activeOrderId) return;
                   setProofFileName(file.name);
+                  const ext = file.name.includes(".") ? file.name.split(".").pop() : "bin";
+                  const path = `${activeOrderId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+                  const { error: upErr } = await supabase.storage
+                    .from("payment-proofs")
+                    .upload(path, file, { upsert: false, contentType: file.type || undefined });
+                  if (upErr) {
+                    alert(`Upload failed: ${upErr.message}`);
+                    return;
+                  }
                   setProofUploaded(true);
                   setOrderStatus("awaiting_admin_approval");
-                  if (activeOrderId) {
-                    void updateOrderRecord(activeOrderId, {
-                      proofFileName: file.name,
-                      status: "awaiting_admin_approval",
-                    });
-                  }
+                  void updateOrderRecord(activeOrderId, {
+                    proofFileName: file.name,
+                    proofPath: path,
+                    status: "awaiting_admin_approval",
+                  });
                 }}
                 className="mt-2 w-full text-xs"
               />

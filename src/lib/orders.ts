@@ -23,6 +23,7 @@ export type StoredOrder = {
   tax: number;
   total: number;
   proofFileName?: string;
+  proofPath?: string;
   items: CartItem[];
   customer: {
     location: string;
