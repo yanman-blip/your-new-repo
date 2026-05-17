@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\msham\\\\Documents\\\\one-stop-phone-shop\" -Recurse -Directory)",
+      "Bash(Select-Object FullName)",
+      "Bash(xargs grep -l \"createServerFn\\\\|createRoute\\\\|loader\")",
+      "Bash(xargs wc -l)",
+      "Bash(cd \"c:/Users/msham/Documents/one-stop-phone-shop\" && grep -n \"getProduct\\\\|fetchCustomProducts\\\\|useProducts\" src/routes/product.\\\\$id.tsx | head -20)",
+      "Read(//c/Users/msham/Documents/one-stop-phone-shop/src/routes/**)",
+      "Bash(node -e ' *)",
+      "Bash(npx eslint *)",
+      "Bash(npx vite *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(npx supabase *)"
+    ]
+  }
+}
