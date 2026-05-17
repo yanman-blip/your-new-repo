@@ -26,15 +26,21 @@ export function SiteHeader() {
     void hasAdminSession().then((result) => {
       if (mounted) setIsAdmin(result.ok);
     });
-    void supabase.auth.getSession().then(({ data }) => {
-      if (mounted) setIsAuthed(!!data.session?.user);
-    });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
-      if (mounted) setIsAuthed(!!session?.user);
-    });
+    let unsubscribe: (() => void) | undefined;
+    try {
+      void supabase.auth.getSession().then(({ data }) => {
+        if (mounted) setIsAuthed(!!data.session?.user);
+      });
+      const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+        if (mounted) setIsAuthed(!!session?.user);
+      });
+      unsubscribe = () => sub.subscription.unsubscribe();
+    } catch {
+      if (mounted) setIsAuthed(false);
+    }
     return () => {
       mounted = false;
-      sub.subscription.unsubscribe();
+      unsubscribe?.();
     };
   }, []);
 

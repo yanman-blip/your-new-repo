@@ -141,13 +141,101 @@ function getDecodedPathSegments(imagePath: string): string[] {
   }
 }
 
-function getProductFolderName(imagePath: string): string {
+function getProductImageRelativeSegments(imagePath: string): string[] {
   const parts = getDecodedPathSegments(imagePath);
-  return parts[0] ?? "";
+  const bucketIndex = parts.findIndex((part) => part === "product-images");
+  if (bucketIndex >= 0) return parts.slice(bucketIndex + 1);
+  return parts;
+}
+
+function toLookupToken(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[_\s]+/g, " ")
+    .replace(/[^a-z0-9 ]+/g, "")
+    .trim();
+}
+
+function getDecodedFilename(imagePath: string): string {
+  const parts = getDecodedPathSegments(imagePath);
+  return parts[parts.length - 1] ?? "";
+}
+
+function getProductImagesPublicBaseUrl(imagePath: string): string | null {
+  if (!/^https?:\/\//i.test(imagePath)) return null;
+  try {
+    const url = new URL(imagePath);
+    const marker = "/storage/v1/object/public/product-images/";
+    const markerIndex = url.pathname.indexOf(marker);
+    if (markerIndex === -1) return null;
+    return `${url.origin}/storage/v1/object/public/product-images`;
+  } catch {
+    return null;
+  }
+}
+
+function encodeStoragePath(rawPath: string): string {
+  return rawPath
+    .split("/")
+    .filter(Boolean)
+    .map((segment) => {
+      try {
+        return encodeURIComponent(decodeURIComponent(segment));
+      } catch {
+        return encodeURIComponent(segment);
+      }
+    })
+    .join("/");
+}
+
+function toPublicProductImageUrl(imagePath: string, baseUrl: string | null): string {
+  if (!imagePath) return imagePath;
+  if (/^https?:\/\//i.test(imagePath)) return imagePath;
+  if (!baseUrl) return imagePath;
+
+  const encodedPath = encodeStoragePath(imagePath.replace(/^\/+/, ""));
+  return `${baseUrl}/${encodedPath}`;
+}
+
+function resolveManifestProductFolderKey(imagePath: string): string {
+  const relativeParts = getProductImageRelativeSegments(imagePath);
+  const folderFromPath = relativeParts[0] ?? "";
+  if (!folderFromPath) return "";
+
+  const folderKeyCandidates = new Set<string>([
+    ...Object.keys(productFolderGalleryManifest),
+    ...Object.keys(productVariantManifest),
+  ]);
+
+  if (folderKeyCandidates.has(folderFromPath)) return folderFromPath;
+
+  const folderToken = toLookupToken(folderFromPath);
+  for (const key of folderKeyCandidates) {
+    if (toLookupToken(key) === folderToken) return key;
+  }
+
+  const filename = getDecodedFilename(imagePath);
+  if (!filename) return folderFromPath;
+
+  for (const [key, images] of Object.entries(productFolderGalleryManifest)) {
+    if (images.some((img) => getDecodedFilename(img) === filename)) return key;
+  }
+
+  for (const [key, variants] of Object.entries(productVariantManifest)) {
+    for (const images of Object.values(variants)) {
+      if (images.some((img) => getDecodedFilename(img) === filename)) return key;
+    }
+  }
+
+  return folderFromPath;
+}
+
+function getProductFolderName(imagePath: string): string {
+  return resolveManifestProductFolderKey(imagePath);
 }
 
 function detectColorFromImagePath(imagePath: string): string | null {
-  const parts = getDecodedPathSegments(imagePath);
+  const parts = getProductImageRelativeSegments(imagePath);
   if (parts.length < 3) return null;
   return toDisplayColorName(parts[1]);
 }
@@ -156,15 +244,16 @@ function ProductPage() {
   const { product } = Route.useLoaderData() as { product: Product };
   const { add, setOpen } = useCart();
   const [size, setSize] = useState(product.storage[0]);
+  const productImagesBaseUrl = getProductImagesPublicBaseUrl(product.image);
   const productFolder = getProductFolderName(product.image);
   const folderGallery = productFolderGalleryManifest[productFolder] ?? [];
   const folderVariants = productVariantManifest[productFolder] ?? {};
   const variantEntries = useMemo(
     () => Object.entries(folderVariants).map(([rawColor, images]) => ({
       color: toDisplayColorName(rawColor),
-      images,
+      images: images.map((imagePath) => toPublicProductImageUrl(imagePath, productImagesBaseUrl)),
     })),
-    [folderVariants],
+    [folderVariants, productImagesBaseUrl],
   );
 
   const fallbackColor = detectColorFromImagePath(product.image) ?? product.colors[0]?.name ?? "Default";
@@ -174,8 +263,8 @@ function ProductPage() {
   const activeGallery = useMemo(() => {
     const selectedVariant = variantEntries.find((v) => v.color.toLowerCase() === color.toLowerCase());
     if (selectedVariant && selectedVariant.images.length > 0) return selectedVariant.images;
-    if (product.gallery && product.gallery.length > 0) return product.gallery;
     if (folderGallery.length > 0) return folderGallery;
+    if (product.gallery && product.gallery.length > 0) return product.gallery;
     return [product.image];
   }, [color, folderGallery, product.gallery, product.image, variantEntries]);
 
