@@ -2,7 +2,18 @@ import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-ro
 import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, CheckCircle2, Clock3, RefreshCw } from "lucide-react";
 import { fetchOrders, updateOrderRecord, type OrderWorkflowStatus, type StoredOrder } from "@/lib/orders";
-import { createCustomProduct, deleteCustomProduct, fetchCustomProducts, getProducts, updateCustomProduct, type Collection, type Product } from "@/lib/products";
+import {
+  createCustomProduct,
+  deleteCustomProduct,
+  fetchCustomProducts,
+  flushPendingWrites,
+  getProducts,
+  hasPendingSync,
+  subscribeProductsRealtime,
+  updateCustomProduct,
+  type Collection,
+  type Product,
+} from "@/lib/products";
 import { hasAdminSession, signOutAdmin } from "@/lib/admin-auth";
 import { uploadProductImagesToStorage } from "@/lib/product-image-storage";
 
@@ -72,9 +83,14 @@ function AdminOrders() {
 
   useEffect(() => {
     void refresh();
+    void flushPendingWrites();
     void fetchCustomProducts().then(() => {
       setCustomProducts(getProducts());
     });
+    // Realtime: any product change (this tab, another admin tab, or the
+    // storefront's optimistic write) refreshes the admin product list.
+    const unsubscribe = subscribeProductsRealtime();
+    return unsubscribe;
   }, []);
 
   const approve = async (orderId: string) => {
@@ -216,18 +232,22 @@ function AdminOrders() {
     setProductMsg("");
   };
 
-  const removeProduct = (product: Product) => {
+  const removeProduct = async (product: Product) => {
     const ok = window.confirm(`Delete product "${product.name}"?`);
     if (!ok) return;
-    const deleted = deleteCustomProduct(product.id);
-    if (deleted) {
-      if (editingProductId === product.id) cancelEdit();
-      setProductMsg(`Product deleted: ${product.name}`);
-      refreshProducts();
-      return;
+    try {
+      const deleted = await deleteCustomProduct(product.id);
+      if (deleted) {
+        if (editingProductId === product.id) cancelEdit();
+        setProductMsg(`Product deleted from cloud: ${product.name}`);
+        refreshProducts();
+        return;
+      }
+      setProductMsg(`"${product.name}" was not found in the catalog.`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error.";
+      setProductMsg(`Could not delete "${product.name}". ${msg}`);
     }
-    // Base (catalog) products cannot be deleted — offer to edit instead
-    setProductMsg(`"${product.name}" is a catalog product and cannot be deleted. Use Edit to override its details.`);
   };
 
   return (
@@ -430,7 +450,24 @@ function AdminOrders() {
                   <div className="flex items-center gap-3 min-w-0">
                     <img src={product.image} alt={product.name} className="h-14 w-14 rounded-lg object-cover border border-border" />
                     <div className="min-w-0">
-                      <div className="font-medium truncate">{product.name}</div>
+                      <div className="flex items-center gap-2">
+                        <div className="font-medium truncate">{product.name}</div>
+                        {hasPendingSync(product.id) ? (
+                          <span
+                            title="Saved locally but not yet confirmed by the cloud. Will retry automatically."
+                            className="inline-flex items-center rounded-full border border-[#ffd8a8] bg-[#fff5e8] px-2 py-0.5 text-[10px] font-medium text-[#a85d00]"
+                          >
+                            Pending sync
+                          </span>
+                        ) : (
+                          <span
+                            title="Live in the cloud — visible to all customers."
+                            className="inline-flex items-center rounded-full border border-[#c4e8d2] bg-[#ecf8f1] px-2 py-0.5 text-[10px] font-medium text-[#1f7d57]"
+                          >
+                            Synced
+                          </span>
+                        )}
+                      </div>
                       <div className="text-xs text-muted-foreground">{product.brand} · ${product.price.toFixed(2)} · {product.id}</div>
                     </div>
                   </div>
@@ -444,7 +481,7 @@ function AdminOrders() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => removeProduct(product)}
+                      onClick={() => void removeProduct(product)}
                       className="rounded-lg border border-[#ffd1cc] bg-[#fff3f1] px-3 py-1.5 text-sm text-[#b42318] hover:opacity-90"
                     >
                       Delete

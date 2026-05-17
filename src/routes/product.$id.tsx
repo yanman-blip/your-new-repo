@@ -1,5 +1,5 @@
 import { createFileRoute, notFound, Link } from "@tanstack/react-router";
-import { getProduct, products, type Product } from "@/lib/products";
+import { fetchProductById, getProduct, products, type Product } from "@/lib/products";
 import { useCart } from "@/lib/cart";
 import { formatPrice, formatOldPrice } from "@/lib/format-price";
 import { productFolderGalleryManifest } from "@/lib/product-folder-galleries";
@@ -28,8 +28,14 @@ const colorClassMap: Record<string, string> = {
 };
 
 export const Route = createFileRoute("/product/$id")({
-  loader: ({ params }) => {
-    const product = getProduct(params.id);
+  loader: async ({ params }) => {
+    let product = getProduct(params.id);
+    if (!product) {
+      // Cache miss — fall back to cloud (admin may have created/edited this
+      // since the last cache fill). This makes direct product links work
+      // even on a first-time visit.
+      product = (await fetchProductById(params.id)) ?? undefined;
+    }
     if (!product) throw notFound();
     return { product: product as NonNullable<ReturnType<typeof getProduct>> };
   },
