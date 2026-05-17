@@ -2,7 +2,7 @@ import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-ro
 import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, CheckCircle2, Clock3, RefreshCw } from "lucide-react";
 import { fetchOrders, updateOrderRecord, type OrderWorkflowStatus, type StoredOrder } from "@/lib/orders";
-import { createCustomProduct, deleteCustomProduct, fetchCustomProducts, getCustomProducts, updateCustomProduct, type Collection, type Product } from "@/lib/products";
+import { createCustomProduct, deleteCustomProduct, fetchCustomProducts, getProducts, updateCustomProduct, type Collection, type Product } from "@/lib/products";
 import { hasAdminSession, signOutAdmin } from "@/lib/admin-auth";
 import { uploadProductImagesToStorage } from "@/lib/product-image-storage";
 
@@ -41,7 +41,7 @@ function statusBadgeClass(status: OrderWorkflowStatus) {
 function AdminOrders() {
   const navigate = useNavigate();
   const [orders, setOrders] = useState<StoredOrder[]>([]);
-  const [customProducts, setCustomProducts] = useState<Product[]>(() => getCustomProducts());
+  const [customProducts, setCustomProducts] = useState<Product[]>(() => getProducts());
   const [filter, setFilter] = useState<"all" | "pending" | "paid">("all");
   const [busyId, setBusyId] = useState<string | null>(null);
   const [productMsg, setProductMsg] = useState("");
@@ -68,12 +68,12 @@ function AdminOrders() {
     const next = await fetchOrders();
     setOrders(next);
   };
-  const refreshProducts = () => setCustomProducts(getCustomProducts());
+  const refreshProducts = () => setCustomProducts(getProducts());
 
   useEffect(() => {
     void refresh();
-    void fetchCustomProducts().then((remote) => {
-      if (remote.length > 0) setCustomProducts(remote);
+    void fetchCustomProducts().then(() => {
+      setCustomProducts(getProducts());
     });
   }, []);
 
@@ -88,7 +88,7 @@ function AdminOrders() {
     refresh();
   };
 
-  const saveProduct = () => {
+  const saveProduct = async () => {
     setProductMsg("");
     const name = productDraft.name.trim();
     const image = productDraft.image.trim();
@@ -115,35 +115,36 @@ function AdminOrders() {
       .map((s) => s.trim())
       .filter(Boolean);
 
-    if (editingProductId) {
-      const updated = updateCustomProduct(editingProductId, {
-        name,
-        brand: productDraft.brand,
-        price,
-        image,
-        gallery: uploadedGallery.length > 0 ? uploadedGallery : [image],
-        description: productDraft.description.trim() || name,
-        colors,
-        storage,
-      });
-      if (!updated) {
-        setProductMsg("Could not update product.");
-        return;
+    try {
+      if (editingProductId) {
+        const updated = await updateCustomProduct(editingProductId, {
+          name,
+          brand: productDraft.brand,
+          price,
+          image,
+          gallery: uploadedGallery.length > 0 ? uploadedGallery : [image],
+          description: productDraft.description.trim() || name,
+          colors,
+          storage,
+        });
+        setProductMsg(`Product updated and synced: ${updated.name}`);
+        setEditingProductId(null);
+      } else {
+        const created = await createCustomProduct({
+          name,
+          brand: productDraft.brand,
+          price,
+          image,
+          gallery: uploadedGallery.length > 0 ? uploadedGallery : [image],
+          description: productDraft.description.trim() || name,
+          colors,
+          storage,
+        });
+        setProductMsg(`Product added and synced to store: ${created.name}`);
       }
-      setProductMsg(`Product updated: ${updated.name}`);
-      setEditingProductId(null);
-    } else {
-      const created = createCustomProduct({
-        name,
-        brand: productDraft.brand,
-        price,
-        image,
-        gallery: uploadedGallery.length > 0 ? uploadedGallery : [image],
-        description: productDraft.description.trim() || name,
-        colors,
-        storage,
-      });
-      setProductMsg(`Product added: ${created.name}`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Unknown error saving product.";
+      setProductMsg(`⚠️ ${msg}`);
     }
 
     setProductDraft((prev) => ({
@@ -216,7 +217,7 @@ function AdminOrders() {
   };
 
   const removeProduct = (product: Product) => {
-    const ok = window.confirm(`Delete product \"${product.name}\"?`);
+    const ok = window.confirm(`Delete product "${product.name}"?`);
     if (!ok) return;
     const deleted = deleteCustomProduct(product.id);
     if (deleted) {
@@ -225,7 +226,8 @@ function AdminOrders() {
       refreshProducts();
       return;
     }
-    setProductMsg("Could not delete product.");
+    // Base (catalog) products cannot be deleted — offer to edit instead
+    setProductMsg(`"${product.name}" is a catalog product and cannot be deleted. Use Edit to override its details.`);
   };
 
   return (
@@ -413,12 +415,12 @@ function AdminOrders() {
       </section>
 
       <section className="mt-6 rounded-2xl border border-border bg-background p-5 md:p-6">
-        <h2 className="text-2xl font-semibold tracking-tight">Manage Added Products</h2>
-        <p className="mt-1 text-sm text-muted-foreground">Edit or delete products created from this admin panel.</p>
+        <h2 className="text-2xl font-semibold tracking-tight">Manage All Products</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Edit or delete any product in the store catalog.</p>
 
         {customProducts.length === 0 ? (
           <div className="mt-4 rounded-xl border border-border bg-surface p-4 text-sm text-muted-foreground">
-            No admin-added products yet.
+            No products found.
           </div>
         ) : (
           <div className="mt-4 grid gap-3">

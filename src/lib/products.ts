@@ -931,7 +931,7 @@ export function createCustomProduct(input: {
   colors?: { name: string; hex: string }[];
   storage?: string[];
   highlights?: string[];
-}) {
+}): Promise<Product> {
   const slug = input.name
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
@@ -979,6 +979,25 @@ export function createCustomProduct(input: {
   }
 
   return normalizedNext;
+  const customProducts = readCustomProducts();
+  writeCustomProducts([normalizedNext, ...customProducts]);
+  notifyProductsChanged();
+
+  const client = getOptionalSupabase();
+  if (client) {
+    const { error } = await client.from("products").upsert({
+      id: next.id,
+      name: next.name,
+      brand: next.brand,
+      price: next.price,
+      image: normalizedNext.image,
+      is_published: true,
+      payload: normalizedNext,
+    });
+    if (error) throw new Error(`Saved locally but failed to sync to cloud: ${error.message}`);
+  }
+
+  return normalizedNext;
 }
 
 export function getCustomProducts(): Product[] {
@@ -1000,12 +1019,14 @@ export function updateCustomProduct(
     storage?: string[];
     highlights?: string[];
   },
-): Product | null {
+): Promise<Product> {
   const customProducts = readCustomProducts();
   const index = customProducts.findIndex((p) => p.id === id);
-  if (index < 0) return null;
 
-  const prev = customProducts[index];
+  // Support editing base products: if not in customProducts yet, look in baseProducts
+  const prev = index >= 0 ? customProducts[index] : baseProducts.find((p) => p.id === id);
+  if (!prev) throw new Error(`Product not found: ${id}`);
+
   const next: Product = {
     ...prev,
     id,
@@ -1023,14 +1044,19 @@ export function updateCustomProduct(
   };
   const normalizedNext = normalizeProductImages(next);
 
-  const updated = [...customProducts];
-  updated[index] = normalizedNext;
-  writeCustomProducts(updated);
+  if (index >= 0) {
+    const updated = [...customProducts];
+    updated[index] = normalizedNext;
+    writeCustomProducts(updated);
+  } else {
+    // Base product promoted to custom — prepend so it overrides the base entry
+    writeCustomProducts([normalizedNext, ...customProducts]);
+  }
   notifyProductsChanged();
 
   const client = getOptionalSupabase();
   if (client) {
-    void client
+    const { error } = await client
       .from("products")
       .upsert({
         id: normalizedNext.id,
@@ -1041,6 +1067,7 @@ export function updateCustomProduct(
         is_published: true,
         payload: normalizedNext,
       });
+    if (error) throw new Error(`Saved locally but failed to sync to cloud: ${error.message}`);
   }
 
   return normalizedNext;
