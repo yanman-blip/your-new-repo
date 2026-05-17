@@ -3,6 +3,7 @@ import { useCart } from "@/lib/cart";
 import { useState } from "react";
 import { Trash2, ChevronLeft, MapPin, Truck, Minus, Plus, ShieldCheck } from "lucide-react";
 import { createOrderRecord, updateOrderRecord, type OrderWorkflowStatus, type PaymentMethodId } from "@/lib/orders";
+import { supabase } from "@/integrations/supabase/client";
 
 const paymentMethods: { id: PaymentMethodId; name: string; instructions: string }[] = [
   { id: "ecocash", name: "EcoCash", instructions: "Send payment to EcoCash number 0772 000 000 and use your order number as reference." },
