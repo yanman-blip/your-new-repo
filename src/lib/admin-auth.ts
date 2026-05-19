@@ -13,7 +13,7 @@ export async function hasAdminSession(): Promise<AdminSessionResult> {
 
     // Roles live in user_roles (separate from profiles to prevent privilege escalation).
     const { data, error } = await supabase
-      .from("user_roles" as any)
+      .from("user_roles")
       .select("role")
       .eq("user_id", session.user.id)
       .eq("role", "admin")

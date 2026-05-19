@@ -1,14 +1,6 @@
-import { supabase } from "@/integrations/supabase/client";
+import { getOptionalSupabase } from "@/integrations/supabase/optional-client";
 
 const PAYMENT_PROOFS_BUCKET = "payment-proofs";
-
-function getOptionalSupabase(): any | null {
-  try {
-    return supabase as any;
-  } catch {
-    return null;
-  }
-}
 
 function safeName(name: string) {
   return name

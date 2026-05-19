@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { getOptionalSupabase } from "@/integrations/supabase/optional-client";
 
 export type Collection = "Lace" | "Silk" | "Lounge" | "Everyday";
 
@@ -234,6 +234,7 @@ export const baseProducts: Product[] = [
     "image": "https://yqhcbasmpotpgxybfjzo.supabase.co/storage/v1/object/public/product-images/2_PCs_undercover_seductive_wear/black/1670032236228213049aa2af646d63c3bea1ce12a8_thumbnail_600x.jpg",
     "bg": "bg-[oklch(0.94_0.03_30)]",
     "accent": "text-[oklch(0.22_0.04_30)]",
+    "badge": "Best Seller",
     "storage": [
       "S",
       "M",
@@ -267,6 +268,7 @@ export const baseProducts: Product[] = [
     "image": "https://yqhcbasmpotpgxybfjzo.supabase.co/storage/v1/object/public/product-images/2pcs_Set_Dark_Aesthetic_Sexy_Lingerie_Set_3pcs_Women_Lace_Bra_And_Panty_Set_With_Underwire_And_No_Padding_Suitable_For_Outerwear_Create_A_Bad_Girl_Look/BLACK/17563681270439f097dcfeb878a6769bc9eab21392_thumbnail_600x.jpg",
     "bg": "bg-[oklch(0.94_0.03_30)]",
     "accent": "text-[oklch(0.22_0.04_30)]",
+    "badge": "Low Stock",
     "storage": [
       "S",
       "M",
@@ -1012,13 +1014,6 @@ function clearPendingDelete(id: string) {
   if (pendingDeletes.delete(id)) saveIdSet(DELETED_IDS_KEY, pendingDeletes);
 }
 
-function getOptionalSupabase(): any | null {
-  try {
-    return supabase as any;
-  } catch {
-    return null;
-  }
-}
 
 function readCustomProducts(): Product[] {
   if (typeof window === "undefined") return [];
@@ -1276,8 +1271,8 @@ export async function fetchCustomProducts(): Promise<Product[]> {
       if (error || !data) return readCustomProducts();
 
       const remote = data
-        .map((row: any) => sanitizeProduct(row?.payload))
-        .filter((item: Product | null): item is Product => !!item);
+        .map((row) => sanitizeProduct(row?.payload))
+        .filter((item): item is Product => !!item);
 
       const local = readCustomProducts();
 
@@ -1352,7 +1347,7 @@ export function subscribeProductsRealtime(): () => void {
   if (realtimeChannel) return () => {};
 
   const client = getOptionalSupabase();
-  if (!client || typeof client.channel !== "function") return () => {};
+  if (!client) return () => {};
 
   try {
     const channel = client

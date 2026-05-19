@@ -1,14 +1,6 @@
-import { supabase } from "@/integrations/supabase/client";
+import { getOptionalSupabase } from "@/integrations/supabase/optional-client";
 
 const PRODUCT_IMAGES_BUCKET = "product-images";
-
-function getOptionalSupabase(): any | null {
-  try {
-    return supabase as any;
-  } catch {
-    return null;
-  }
-}
 
 function safeName(name: string) {
   return name

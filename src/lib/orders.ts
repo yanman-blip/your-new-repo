@@ -1,5 +1,33 @@
-import { supabase } from "@/integrations/supabase/client";
+import { getOptionalSupabase } from "@/integrations/supabase/optional-client";
 import type { CartItem } from "@/lib/cart";
+
+export class OrderConstraintError extends Error {
+  readonly kind: "duplicate_proof" | "invalid_status_transition" | "unknown";
+  constructor(kind: OrderConstraintError["kind"], message: string) {
+    super(message);
+    this.name = "OrderConstraintError";
+    this.kind = kind;
+  }
+}
+
+function classifyDbError(err: { code?: string; message?: string } | null | undefined): OrderConstraintError | null {
+  if (!err) return null;
+  const code = err.code ?? "";
+  const message = err.message ?? "";
+  if (code === "23505" && /proof_file_name/i.test(message)) {
+    return new OrderConstraintError(
+      "duplicate_proof",
+      "This payment proof has already been used on another order.",
+    );
+  }
+  if (code === "23514" || /Invalid order status transition/i.test(message)) {
+    return new OrderConstraintError(
+      "invalid_status_transition",
+      message || "That status change isn't allowed from the order's current state.",
+    );
+  }
+  return null;
+}
 
 export type PaymentMethodId = "ecocash" | "innbucks" | "mukuru" | "bank-transfer" | "cash-on-delivery";
 
@@ -47,14 +75,6 @@ export type StoredOrder = {
 
 const ORDERS_STORAGE_KEY = "loftie-orders-v1";
 
-function getOptionalSupabase(): any | null {
-  try {
-    return supabase as any;
-  } catch {
-    return null;
-  }
-}
-
 function readLocalOrders(): StoredOrder[] {
   if (typeof window === "undefined") return [];
   try {
@@ -89,13 +109,19 @@ function makeOrderId() {
   return `order-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-function mapStoredOrder(row: any): StoredOrder | null {
-  const payload = row?.payload as StoredOrder | null;
-  if (!payload) return null;
+type OrderRowProjection = {
+  payload: unknown;
+  proof_file_name?: string | null;
+};
+
+function mapStoredOrder(row: OrderRowProjection | null | undefined): StoredOrder | null {
+  if (!row) return null;
+  const payload = row.payload as StoredOrder | null;
+  if (!payload || typeof payload !== "object") return null;
 
   return {
     ...payload,
-    proofFileName: payload.proofFileName ?? row?.proof_file_name ?? undefined,
+    proofFileName: payload.proofFileName ?? row.proof_file_name ?? undefined,
   };
 }
 
@@ -135,7 +161,7 @@ export async function createOrderRecord(input: Omit<StoredOrder, "id" | "created
     const { data: sessionData } = await client.auth.getSession();
     const userId = sessionData?.session?.user?.id ?? null;
 
-    await client.from("orders").insert({
+    const { error } = await client.from("orders").insert({
       id: order.id,
       user_id: userId,
       status: order.status,
@@ -148,7 +174,11 @@ export async function createOrderRecord(input: Omit<StoredOrder, "id" | "created
       proof_file_name: order.proofFileName ?? null,
       payload: order,
     });
-  } catch {
+    const classified = classifyDbError(error);
+    if (classified) throw classified;
+    // Other DB errors (connectivity, RLS) → keep local copy and stay silent.
+  } catch (err) {
+    if (err instanceof OrderConstraintError) throw err;
     // Graceful fallback: order is still persisted locally.
   }
 
@@ -175,7 +205,7 @@ export async function updateOrderRecord(orderId: string, patch: Partial<StoredOr
   const client = getOptionalSupabase();
   if (client) {
     try {
-      await client
+      const { error } = await client
         .from("orders")
         .update({
           status: next.status,
@@ -190,7 +220,14 @@ export async function updateOrderRecord(orderId: string, patch: Partial<StoredOr
           updated_at: next.updatedAt,
         })
         .eq("id", orderId);
-    } catch {
+      const classified = classifyDbError(error);
+      if (classified) {
+        // Roll the local cache back so the UI shows what's actually true.
+        upsertLocalOrder(existing);
+        throw classified;
+      }
+    } catch (err) {
+      if (err instanceof OrderConstraintError) throw err;
       // Keep local record as source of truth when DB is not ready.
     }
   }

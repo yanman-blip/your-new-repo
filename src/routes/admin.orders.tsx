@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Loader2, RefreshCw, Search } from "lucide-react";
 import {
   fetchOrders,
+  OrderConstraintError,
   updateOrderRecord,
   type OrderWorkflowStatus,
   type StoredOrder,
@@ -68,6 +69,7 @@ function AdminOrders() {
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const refresh = async () => {
     setLoading(true);
@@ -117,10 +119,24 @@ function AdminOrders() {
 
   const approve = async (orderId: string) => {
     setBusy(true);
-    const updated = await updateOrderRecord(orderId, { status: "paid" });
-    setBusy(false);
-    if (!updated) return;
-    await refresh();
+    setActionError(null);
+    try {
+      const updated = await updateOrderRecord(orderId, { status: "paid" });
+      if (!updated) {
+        setActionError("Order not found.");
+        return;
+      }
+      await refresh();
+    } catch (err) {
+      if (err instanceof OrderConstraintError) {
+        setActionError(err.message);
+      } else {
+        const msg = err instanceof Error ? err.message : "Could not approve order.";
+        setActionError(msg);
+      }
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -148,6 +164,22 @@ function AdminOrders() {
         <StatCard label="Awaiting approval" value={stats.awaitingApproval} tone="amber" />
         <StatCard label="Paid" value={stats.paid} tone="green" />
       </div>
+
+      {actionError && (
+        <div
+          role="alert"
+          className="mt-4 flex items-start justify-between gap-3 rounded-xl border border-[#ffd1cc] bg-[#fff3f1] px-3 py-2 text-sm text-[#b42318]"
+        >
+          <span>{actionError}</span>
+          <button
+            type="button"
+            onClick={() => setActionError(null)}
+            className="text-xs underline underline-offset-2 hover:opacity-80"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       <div className="mt-5 grid gap-5 lg:grid-cols-[260px_minmax(0,1fr)]">
         <aside className="space-y-4 rounded-2xl border border-border bg-background p-4">
