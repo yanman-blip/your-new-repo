@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ExternalLink } from "lucide-react";
 
 export const Route = createFileRoute("/admin/settings")({
   head: () => ({
@@ -19,32 +18,20 @@ function AdminSettings() {
       </header>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card title="Account" description="Your admin login. Manage in the Supabase dashboard.">
-          <DashboardLink
-            href="https://supabase.com/dashboard/project/yqhcbasmpotpgxybfjzo/auth/users"
-            label="Open Supabase users"
-          />
+        <Card title="Auth" description="Use your own Supabase Auth admin URL for users, roles, and providers.">
+          <Note text="Set Site URL and redirect URLs for production, preview, and localhost." />
         </Card>
 
-        <Card title="Database" description="Tables, RLS policies, and SQL editor.">
-          <DashboardLink
-            href="https://supabase.com/dashboard/project/yqhcbasmpotpgxybfjzo/editor"
-            label="Open Supabase tables"
-          />
+        <Card title="Database" description="Use your own SQL/admin tooling for schema, policies, and data.">
+          <Note text="Run all SQL files in supabase/migrations against your self-hosted database." />
         </Card>
 
-        <Card title="Storage" description="Product images and payment proofs.">
-          <DashboardLink
-            href="https://supabase.com/dashboard/project/yqhcbasmpotpgxybfjzo/storage/buckets"
-            label="Open Supabase storage"
-          />
+        <Card title="Storage" description="Configure product and payment-proof buckets on your own Supabase instance.">
+          <Note text="Confirm storage policies and CORS allow your web app domains." />
         </Card>
 
-        <Card title="Deployment" description="Logs and environment variables on Cloudflare.">
-          <DashboardLink
-            href="https://dash.cloudflare.com/"
-            label="Open Cloudflare dashboard"
-          />
+        <Card title="Deployment" description="Manage logs and environment variables in your own hosting provider.">
+          <Note text="Required vars: SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY (or SUPABASE_ANON_KEY), SUPABASE_SERVICE_ROLE_KEY." />
         </Card>
       </div>
 
@@ -73,15 +60,8 @@ function Card({
   );
 }
 
-function DashboardLink({ href, label }: { href: string; label: string }) {
+function Note({ text }: { text: string }) {
   return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noreferrer"
-      className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground underline underline-offset-4 hover:opacity-80"
-    >
-      {label} <ExternalLink className="h-3.5 w-3.5" />
-    </a>
+    <p className="text-sm text-foreground">{text}</p>
   );
 }
