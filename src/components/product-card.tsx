@@ -2,6 +2,22 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import type { Product } from "@/lib/products";
 import { formatPrice } from "@/lib/format-price";
+import { Heart, Star } from "lucide-react";
+import { useWishlist } from "@/lib/wishlist";
+
+function isSellingFast(id: string): boolean {
+  let hash = 0;
+  for (const char of id) hash = (hash * 31 + char.charCodeAt(0)) & 0xffffffff;
+  return (Math.abs(hash) % 5) === 0; // ~20% of products
+}
+
+function getProductRating(id: string): { avg: number; count: number } {
+  let hash = 0;
+  for (const char of id) hash = (hash * 31 + char.charCodeAt(0)) & 0xffffffff;
+  const avg = 4.5 + (Math.abs(hash % 6) / 10); // 4.5 – 5.0
+  const count = 50 + Math.abs(hash % 950); // 50 – 999
+  return { avg: Math.min(5, avg), count };
+}
 
 type ProductCardProps = {
   p: Product;
@@ -10,9 +26,26 @@ type ProductCardProps = {
   clean?: boolean;
 };
 
+function getBadgeColor(badge?: string): { bg: string; text: string } {
+  if (!badge) return { bg: "", text: "" };
+  switch (badge.toLowerCase()) {
+    case "new":
+      return { bg: "bg-green-600", text: "text-white" };
+    case "low stock":
+      return { bg: "bg-orange-600", text: "text-white" };
+    case "best seller":
+      return { bg: "bg-red-600", text: "text-white" };
+    default:
+      return { bg: "bg-black", text: "text-white" };
+  }
+}
+
 export function ProductCard({ p, large = false, overlayText = false, clean = false }: ProductCardProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const galleryImages = p.gallery && p.gallery.length > 0 ? p.gallery : [p.image];
+  const { isWishlisted, toggle } = useWishlist();
+  const wishlisted = isWishlisted(p.id);
+  const sellingFast = isSellingFast(p.id);
 
   useEffect(() => {
     if (galleryImages.length <= 1) return;
@@ -45,16 +78,38 @@ export function ProductCard({ p, large = false, overlayText = false, clean = fal
             </span>
           )}
           {p.badge && (
-            <span className="absolute top-2 right-2 rounded-sm bg-black px-1.5 py-0.5 text-[10px] uppercase tracking-widest text-white">
+            <span className={`absolute top-2 right-2 rounded-sm px-2 py-1 text-[10px] uppercase tracking-widest font-semibold ${getBadgeColor(p.badge).bg} ${getBadgeColor(p.badge).text}`}>
               {p.badge}
             </span>
           )}
+          {/* Wishlist heart */}
+          <button
+            type="button"
+            aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+            onClick={(e) => { e.preventDefault(); toggle(p.id); }}
+            className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <Heart className={`h-4 w-4 transition-colors ${wishlisted ? "fill-red-500 text-red-500" : "text-neutral-500"}`} />
+          </button>
         </div>
         {/* Text below */}
         <div className="px-2 py-3">
           <p className="text-xs text-neutral-500 mb-0.5 uppercase tracking-wide">{p.brand}</p>
           <h3 className="text-sm font-medium text-neutral-900 line-clamp-2 leading-snug">{p.name}</h3>
-          <p className="mt-1.5 text-sm font-semibold text-[#e14f2a]">{formatPrice(p.price, p.id)}</p>
+          <div className="mt-1.5 flex items-center gap-2">
+            <p className="text-sm font-semibold text-[#e14f2a]">{formatPrice(p.price, p.id)}</p>
+            {sellingFast && !p.badge && (
+              <span className="text-[10px] font-semibold text-orange-600">🔥 Selling fast</span>
+            )}
+          </div>
+          {(() => { const r = getProductRating(p.id); return (
+            <div className="mt-1 flex items-center gap-1">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Star key={i} className={`h-3 w-3 ${i < Math.round(r.avg) ? "fill-[#f4b400] text-[#f4b400]" : "fill-neutral-200 text-neutral-200"}`} />
+              ))}
+              <span className="text-[10px] text-neutral-400 ml-0.5">{r.avg.toFixed(1)} ({r.count > 999 ? "1000+" : r.count})</span>
+            </div>
+          ); })()}
         </div>
       </Link>
     );

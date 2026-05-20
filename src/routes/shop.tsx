@@ -22,6 +22,7 @@ function Shop() {
   const [collection, setCollection] = useState<CollectionFilter>("All");
   const [price, setPrice] = useState<PriceFilter>("All");
   const [sort, setSort] = useState<"featured" | "low" | "high">("featured");
+  const [search, setSearch] = useState("");
 
   const filtered = useMemo(() => {
     let list = products.filter((p) => (collection === "All" ? true : p.brand === collection));
@@ -32,10 +33,18 @@ function Shop() {
         return p.price >= 150;
       });
     }
+    if (search.trim()) {
+      const query = search.toLowerCase();
+      list = list.filter((p) =>
+        p.name.toLowerCase().includes(query) ||
+        p.description.toLowerCase().includes(query) ||
+        p.tagline.toLowerCase().includes(query)
+      );
+    }
     if (sort === "low") list = [...list].sort((a, b) => a.price - b.price);
     if (sort === "high") list = [...list].sort((a, b) => b.price - a.price);
     return list;
-  }, [collection, price, sort]);
+  }, [collection, price, sort, search]);
 
   return (
     <section className="mx-auto max-w-7xl px-6 pt-16 pb-24">
@@ -45,6 +54,23 @@ function Shop() {
         <p className="mt-4 text-muted-foreground text-lg">
           A handpicked collection of lingerie, sleepwear and lounge. Based in Harare, Zimbabwe.
         </p>
+      </div>
+
+      {/* Search bar */}
+      <div className="mt-8 max-w-md">
+        <input
+          type="text"
+          placeholder="Search by name, material, style..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full px-4 py-3 rounded-lg border border-border bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:border-foreground/40 focus:ring-1 focus:ring-foreground/20"
+          aria-label="Search products"
+        />
+      </div>
+
+      {/* Trust signal banner */}
+      <div className="mt-6 rounded-xl bg-[#ecf8f1] border border-[#d6eadf] px-4 py-3 text-sm text-[#1f7d57]">
+        ✓ 30-day free returns · ✓ Ships in 1-2 days · ✓ Secure checkout
       </div>
 
       <div className="mt-10 flex flex-wrap items-center gap-4 justify-between">

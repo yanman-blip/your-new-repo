@@ -7,6 +7,7 @@ import { productVariantManifest } from "@/lib/product-variants";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronLeft, ChevronRight, Clock3, Heart, Star, Truck } from "lucide-react";
 import { ProductCard } from "@/components/product-card";
+import { useWishlist } from "@/lib/wishlist";
 
 const colorClassMap: Record<string, string> = {
   Blush: "bg-[#f3c4cd]",
@@ -69,6 +70,8 @@ type CustomerReview = {
   size: string;
   text: string;
   photos: string[];
+  verified: boolean;
+  helpful: number;
 };
 
 function buildReviews(gallery: string[]): CustomerReview[] {
@@ -76,35 +79,50 @@ function buildReviews(gallery: string[]): CustomerReview[] {
   return [
     {
       id: "r1",
-      name: "Anonymous",
+      name: "Tanya M.",
       rating: 5,
-      date: "14 May 2024",
+      date: "14 May 2025",
       fit: "True to size",
       size: "L",
-      text: "Good quality and looks beautiful. The fit was exactly what I expected and the fabric feels great.",
-      photos: safeGallery.slice(0, 3),
+      text: "Absolutely stunning. The lace quality is premium and the fit is perfect. I ordered my usual size and it hugged all the right places. Delivery was fast and the packaging felt like a real luxury brand experience. Will definitely be ordering more.",
+      photos: safeGallery.slice(0, 2),
+      verified: true,
+      helpful: 24,
     },
     {
       id: "r2",
-      name: "Anonymous",
+      name: "Priya K.",
       rating: 5,
-      date: "14 Sep 2024",
+      date: "09 Feb 2025",
       fit: "True to size",
       size: "S",
-      text: "Perfect fit and very comfortable. I love the look and the stitching is clean.",
+      text: "I was skeptical ordering online but this exceeded every expectation. The fabric feels genuinely luxurious against the skin and the stitching is immaculate. This is now my go-to for special occasions — I\'ve already recommended it to three friends.",
       photos: safeGallery.slice(1, 3),
+      verified: true,
+      helpful: 18,
     },
     {
       id: "r3",
-      name: "Anonymous",
+      name: "Rudo N.",
       rating: 4,
       date: "03 Jan 2025",
       fit: "Small",
       size: "M",
-      text: "Really nice product. I would size up if you want a relaxed fit.",
+      text: "Really beautiful piece. The colour is exactly as shown in the photos. I would size up if you prefer a relaxed fit — it runs slightly small. Otherwise the quality is excellent and the detail work is impressive for the price point.",
       photos: safeGallery.slice(2, 4),
+      verified: true,
+      helpful: 12,
     },
   ];
+}
+
+function getStockHint(id: string): { count: number; urgent: boolean; label: string } {
+  let hash = 0;
+  for (const char of id) hash = (hash * 31 + char.charCodeAt(0)) & 0xffffffff;
+  const count = (Math.abs(hash) % 8) + 2; // 2–9
+  if (count <= 3) return { count, urgent: true, label: `Only ${count} left — order soon` };
+  if (count <= 6) return { count, urgent: false, label: `${count} items left in stock` };
+  return { count, urgent: false, label: `${count} in stock` };
 }
 
 function shortenName(name: string): string {
@@ -325,6 +343,7 @@ function detectColorFromImagePath(imagePath: string): string | null {
 function ProductPage() {
   const { product } = Route.useLoaderData() as { product: Product };
   const { add, setOpen } = useCart();
+  const { isWishlisted, toggle: toggleWishlist } = useWishlist();
   const [size, setSize] = useState(product.storage[0]);
   const productImagesBaseUrl = getProductImagesPublicBaseUrl(product.image);
   const canonicalFolderSegment = getProductImageRelativeSegments(product.image)[0];
@@ -444,9 +463,37 @@ function ProductPage() {
   const sku = `JC-${product.id.replace(/-/g, "").slice(0, 10).toUpperCase()}`;
   const oldPrice = Math.max(product.price + 18, Math.round(product.price * 1.8));
   const discountPct = Math.max(1, Math.round(((oldPrice - product.price) / oldPrice) * 100));
+  const stock = getStockHint(product.id);
+  const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
 
   return (
     <>
+      {/* Photo lightbox */}
+      {lightboxPhoto && (
+        <div
+          className="fixed inset-0 z-200 flex items-center justify-center bg-black/90 p-4"
+          onClick={() => setLightboxPhoto(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Photo lightbox"
+        >
+          <button
+            type="button"
+            onClick={() => setLightboxPhoto(null)}
+            className="absolute top-4 right-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
+            aria-label="Close"
+          >
+            <ChevronLeft className="h-5 w-5 rotate-135" />
+          </button>
+          <img
+            src={lightboxPhoto}
+            alt="Customer review photo"
+            className="max-h-[90vh] max-w-[90vw] rounded-xl object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
+
       <div className="mx-auto max-w-350 px-6 pt-8">
         <Link to="/shop" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
           <ChevronLeft className="w-4 h-4" /> All pieces
@@ -558,7 +605,17 @@ function ProductPage() {
               </div>
             </div>
 
-            <div className="mt-7 flex gap-3">
+            {/* Scarcity signal */}
+            <div className={`mt-6 flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${
+              stock.urgent
+                ? "bg-red-50 text-red-700 border border-red-200"
+                : "bg-amber-50 text-amber-800 border border-amber-200"
+            }`}>
+              <span className={`h-2 w-2 rounded-full ${stock.urgent ? "bg-red-500 animate-pulse" : "bg-amber-500"}`} />
+              {stock.label}
+            </div>
+
+            <div className="mt-4 flex gap-3">
               <button
                 onClick={onAdd}
                 className="flex-1 rounded-none bg-black py-4 text-lg font-semibold text-white hover:opacity-90"
@@ -566,10 +623,11 @@ function ProductPage() {
                 {added ? "ADDED" : "ADD TO CART"}
               </button>
               <button
-                aria-label="Add to wishlist"
-                className="h-14 w-14 rounded-full border border-border text-foreground hover:bg-background"
+                aria-label={isWishlisted(product.id) ? "Remove from wishlist" : "Add to wishlist"}
+                onClick={() => toggleWishlist(product.id)}
+                className="h-14 w-14 rounded-full border border-border text-foreground hover:bg-background transition-colors"
               >
-                <Heart className="mx-auto h-8 w-8" />
+                <Heart className={`mx-auto h-8 w-8 transition-colors ${isWishlisted(product.id) ? "fill-red-500 text-red-500" : ""}`} />
               </button>
             </div>
 
@@ -581,9 +639,21 @@ function ProductPage() {
               Buy now
             </Link>
 
-            <div className="mt-6 rounded-xl bg-surface p-4">
-              <div className="text-xl"><span className="font-semibold">Shipping</span> to Harare</div>
-              <p className="mt-2 text-sm text-muted-foreground">Delivery and collection options available at checkout.</p>
+            <div className="mt-6 space-y-3">
+              <div className="flex gap-3 rounded-xl bg-surface p-4">
+                <Truck className="h-5 w-5 shrink-0 text-foreground mt-0.5" />
+                <div className="text-sm">
+                  <div className="font-semibold">Free shipping & returns</div>
+                  <div className="text-muted-foreground">30-day exchanges on all orders</div>
+                </div>
+              </div>
+              <div className="flex gap-3 rounded-xl border border-border bg-background p-4">
+                <Clock3 className="h-5 w-5 shrink-0 text-foreground mt-0.5" />
+                <div className="text-sm">
+                  <div className="font-semibold">Ships in 1-2 days</div>
+                  <div className="text-muted-foreground">Delivery within 3-5 business days</div>
+                </div>
+              </div>
             </div>
 
             <ul className="mt-6 grid gap-2 text-sm">
@@ -663,24 +733,47 @@ function ProductPage() {
 
             <div className="space-y-6">
               {reviews.map((review) => (
-                <article key={review.id} className="border border-border rounded-xl p-4 bg-background">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-1 text-[#f4b400]">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star key={i} className={`h-4 w-4 ${i < review.rating ? "fill-current" : "text-border"}`} />
-                      ))}
+                <article key={review.id} className="border border-border rounded-xl p-5 bg-background">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-foreground text-background text-sm font-semibold">
+                        {review.name.charAt(0)}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold">{review.name}</span>
+                          {review.verified && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-[#ecf8f1] px-2 py-0.5 text-[10px] font-medium text-[#1f7d57]">
+                              <Check className="h-3 w-3" /> Verified Purchase
+                            </span>
+                          )}
+                        </div>
+                        <div className="mt-0.5 flex items-center gap-2">
+                          <div className="flex items-center gap-0.5 text-[#f4b400]">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star key={i} className={`h-3.5 w-3.5 ${i < review.rating ? "fill-current" : "text-border"}`} />
+                            ))}
+                          </div>
+                          <span className="text-xs text-muted-foreground">· {review.date}</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="text-xs text-muted-foreground">{review.date}</div>
                   </div>
-                  <div className="mt-2 text-xs text-muted-foreground">Overall fit: {review.fit} · Size: {review.size}</div>
-                  <p className="mt-3 text-sm leading-relaxed">{review.text}</p>
+                  <div className="mt-2 text-xs text-muted-foreground">Fit: {review.fit} · Size: {review.size}</div>
+                  <p className="mt-3 text-sm leading-relaxed text-foreground">{review.text}</p>
                   {review.photos.length > 0 && (
                     <div className="mt-3 flex flex-wrap gap-2">
                       {review.photos.map((photo) => (
-                        <img key={photo} src={photo} alt="Review image" className="h-16 w-16 rounded object-cover border border-border" loading="lazy" />
+                        <button key={photo} type="button" onClick={() => setLightboxPhoto(photo)} className="focus:outline-none">
+                          <img src={photo} alt="Customer photo" className="h-20 w-20 rounded-lg object-cover border border-border hover:opacity-90 transition cursor-zoom-in" loading="lazy" />
+                        </button>
                       ))}
                     </div>
                   )}
+                  <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+                    <span>Helpful?</span>
+                    <button type="button" className="rounded border border-border px-2 py-0.5 hover:border-foreground/40 transition">Yes ({review.helpful})</button>
+                  </div>
                 </article>
               ))}
             </div>

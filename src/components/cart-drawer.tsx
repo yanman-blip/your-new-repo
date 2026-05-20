@@ -1,9 +1,11 @@
 import { useCart } from "@/lib/cart";
 import { Link } from "@tanstack/react-router";
 import { X, Minus, Plus, ShoppingBag } from "lucide-react";
+import { products } from "@/lib/products";
+import { formatPrice } from "@/lib/format-price";
 
 export function CartDrawer() {
-  const { open, setOpen, detailed, subtotal, updateQty, remove, count } = useCart();
+  const { open, setOpen, detailed, subtotal, updateQty, remove, count, add } = useCart();
 
   return (
     <>
@@ -86,6 +88,47 @@ export function CartDrawer() {
 
         {detailed.length > 0 && (
           <footer className="border-t border-border px-6 py-5 space-y-3">
+            {/* Upsells */}
+            {(() => {
+              const cartIds = new Set(detailed.map((i) => i.productId));
+              const firstBrand = detailed[0]?.product.brand;
+              const suggestions = products
+                .filter((p) => !cartIds.has(p.id) && (firstBrand ? p.brand === firstBrand : true))
+                .slice(0, 2);
+              const fallback = suggestions.length > 0 ? suggestions : products.filter((p) => !cartIds.has(p.id)).slice(0, 2);
+              return fallback.length > 0 ? (
+                <div>
+                  <p className="text-[11px] uppercase tracking-widest text-muted-foreground mb-2">You might also like</p>
+                  <div className="flex gap-3">
+                    {fallback.map((p) => (
+                      <div key={p.id} className="flex flex-1 items-center gap-2">
+                        {p.image && (
+                          <img src={p.image} alt={p.name} className="h-12 w-12 rounded object-cover shrink-0" />
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-medium line-clamp-1 text-foreground">{p.name}</p>
+                          <p className="text-xs text-muted-foreground">{formatPrice(p.price, p.id)}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            add({
+                              productId: p.id,
+                              storage: p.storage[0] ?? "M",
+                              color: p.colors[0]?.name ?? "Default",
+                              qty: 1,
+                            })
+                          }
+                          className="shrink-0 text-xs px-2 py-1 rounded border border-border hover:bg-muted transition text-foreground"
+                        >
+                          + Add
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null;
+            })()}
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Subtotal</span>
               <span className="font-semibold">${subtotal.toLocaleString()}</span>
