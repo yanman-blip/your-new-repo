@@ -7,9 +7,9 @@ import { uploadProofToStorage } from "@/lib/proof-storage";
 
 const paymentMethods: { id: PaymentMethodId; name: string; instructions: string }[] = [
   { id: "ecocash", name: "EcoCash", instructions: "Send payment to EcoCash number 0782853304 and use your order number as reference." },
-  { id: "innbucks", name: "InnBucks", instructions: "Pay via InnBucks wallet to merchant ID INB-00218 and attach your order number." },
-  { id: "mukuru", name: "Mukuru", instructions: "Use Mukuru transfer to recipient WET LACE and include your order number in notes." },
-  { id: "bank-transfer", name: "Bank transfer", instructions: "Transfer to CBZ 2212334455, WET LACE. Use order number as payment reference." },
+  { id: "innbucks", name: "InnBucks", instructions: "Pay via InnBucks using 0782853304 and attach your order number." },
+  { id: "mukuru", name: "Mukuru", instructions: "Use Mukuru transfer to 0782853304 and include your order number in notes." },
+  { id: "bank-transfer", name: "Bank transfer", instructions: "Use 0782853304 as the payment reference for your bank transfer and include your order number." },
   { id: "cash-on-delivery", name: "Cash on delivery", instructions: "Pay cash when your order is delivered. Keep exact amount where possible." },
 ];
 
@@ -381,7 +381,7 @@ function Checkout() {
                       <div className="text-xs text-muted-foreground mt-1">{i.product.brand} · {i.storage} · {i.color}</div>
                     </div>
                     <div className="text-right shrink-0">
-                      <div className="font-semibold text-[#e14f2a]">{money(i.lineTotal)}</div>
+                      <div className="font-semibold text-[#bb3b53]">{money(i.lineTotal)}</div>
                       <div className="text-xs text-muted-foreground">{money(i.product.price)} ea</div>
                     </div>
                   </div>
@@ -511,7 +511,7 @@ function Checkout() {
             )}
             <div className="flex justify-between"><dt className="text-muted-foreground">{fulfillment === "delivery" ? "Shipping Fee" : "Collection"}</dt><dd>{fulfillment === "delivery" ? money(deliveryFee) : "FREE"}</dd></div>
             <div className="flex justify-between"><dt className="text-muted-foreground">Estimated tax</dt><dd>{money(tax)}</dd></div>
-            <div className="border-t border-border pt-3 flex justify-between font-semibold text-2xl text-[#e14f2a]">
+            <div className="border-t border-border pt-3 flex justify-between font-semibold text-2xl text-[#bb3b53]">
               <dt>Total</dt><dd>{money(total)}</dd>
             </div>
           </dl>

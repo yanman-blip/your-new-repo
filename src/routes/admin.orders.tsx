@@ -296,7 +296,7 @@ function AdminOrders() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-xl font-semibold text-[#e14f2a]">
+                      <div className="text-xl font-semibold text-[#bb3b53]">
                         ${order.total.toFixed(2)}
                       </div>
                       <div className="text-xs text-muted-foreground">
