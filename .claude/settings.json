@@ -13,7 +13,10 @@
       "Bash(git add *)",
       "Bash(git commit -m ' *)",
       "Bash(git push *)",
-      "Bash(npx supabase *)"
+      "Bash(npx supabase *)",
+      "Bash(npm install *)",
+      "Bash(git diff *)",
+      "Bash(gh api *)"
     ]
   }
 }

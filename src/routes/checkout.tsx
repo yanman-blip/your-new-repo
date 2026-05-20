@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCart } from "@/lib/cart";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Trash2, ChevronLeft, MapPin, Truck, Minus, Plus, ShieldCheck } from "lucide-react";
 import { createOrderRecord, updateOrderRecord, type OrderWorkflowStatus, type PaymentMethodId } from "@/lib/orders";
 import { uploadProofToStorage } from "@/lib/proof-storage";
@@ -31,10 +31,12 @@ function Checkout() {
   const [proofUploaded, setProofUploaded] = useState(false);
   const [proofFileName, setProofFileName] = useState("");
   const [proofUploading, setProofUploading] = useState(false);
+  const [placingOrder, setPlacingOrder] = useState(false);
   const [proofUploadError, setProofUploadError] = useState("");
   const [activeOrderId, setActiveOrderId] = useState<string | null>(null);
   const [orderStatus, setOrderStatus] = useState<OrderWorkflowStatus>("draft");
   const [orderError, setOrderError] = useState("");
+  const placingOrderRef = useRef(false);
   const [deliveryDetails, setDeliveryDetails] = useState({
     location: "Zimbabwe",
     firstName: "",
@@ -61,7 +63,16 @@ function Checkout() {
   const requiresProof = paymentMethod !== "cash-on-delivery";
 
   const handlePlaceOrder = async () => {
+    if (placingOrderRef.current) {
+      return;
+    }
+
     setOrderError("");
+
+    if (activeOrderId) {
+      setOrderError("This checkout already has an order. Refresh the page before placing a new one.");
+      return;
+    }
 
     if (fulfillment !== "delivery") {
       setAddressError("");
@@ -90,6 +101,8 @@ function Checkout() {
     setAddressError("");
 
     const nextStatus: OrderWorkflowStatus = requiresProof ? "awaiting_proof" : "awaiting_delivery_payment";
+    placingOrderRef.current = true;
+    setPlacingOrder(true);
 
     try {
       const created = await createOrderRecord({
@@ -120,6 +133,9 @@ function Checkout() {
       setProofUploadError("");
     } catch {
       setOrderError("Could not create order right now. Please try again.");
+    } finally {
+      placingOrderRef.current = false;
+      setPlacingOrder(false);
     }
   };
 
@@ -524,9 +540,10 @@ function Checkout() {
           <button
             type="button"
             onClick={() => void handlePlaceOrder()}
-            className="mt-5 w-full py-3.5 rounded-xl bg-black text-white text-base font-semibold hover:opacity-90 transition"
+            disabled={placingOrder || Boolean(activeOrderId)}
+            className="mt-5 w-full py-3.5 rounded-xl bg-black text-white text-base font-semibold hover:opacity-90 transition disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Place Order
+            {placingOrder ? "Placing order..." : activeOrderId ? "Order placed" : "Place Order"}
           </button>
 
           {orderPlaced && (
