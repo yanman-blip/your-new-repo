@@ -111,6 +111,12 @@ export function OrderDetailDrawer({
                 <SectionTitle>Totals</SectionTitle>
                 <div className="grid gap-1 text-sm">
                   <Row label="Subtotal" value={`$${order.subtotal.toFixed(2)}`} />
+                  {order.discountAmount && order.discountAmount > 0 ? (
+                    <Row
+                      label={order.couponCode ? `Discount (${order.couponCode})` : "Discount"}
+                      value={`-$${order.discountAmount.toFixed(2)}`}
+                    />
+                  ) : null}
                   <Row label="Delivery" value={`$${order.deliveryFee.toFixed(2)}`} />
                   <Row label="Tax" value={`$${order.tax.toFixed(2)}`} />
                   <Row

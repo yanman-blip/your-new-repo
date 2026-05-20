@@ -6,7 +6,7 @@ import { createOrderRecord, updateOrderRecord, type OrderWorkflowStatus, type Pa
 import { uploadProofToStorage } from "@/lib/proof-storage";
 
 const paymentMethods: { id: PaymentMethodId; name: string; instructions: string }[] = [
-  { id: "ecocash", name: "EcoCash", instructions: "Send payment to EcoCash number 0772 000 000 and use your order number as reference." },
+  { id: "ecocash", name: "EcoCash", instructions: "Send payment to EcoCash number 0782853304 and use your order number as reference." },
   { id: "innbucks", name: "InnBucks", instructions: "Pay via InnBucks wallet to merchant ID INB-00218 and attach your order number." },
   { id: "mukuru", name: "Mukuru", instructions: "Use Mukuru transfer to recipient WET LACE and include your order number in notes." },
   { id: "bank-transfer", name: "Bank transfer", instructions: "Transfer to CBZ 2212334455, WET LACE. Use order number as payment reference." },
@@ -24,7 +24,7 @@ export const Route = createFileRoute("/checkout")({
 });
 
 function Checkout() {
-  const { detailed, subtotal, remove, updateQty, count } = useCart();
+  const { detailed, subtotal, remove, updateQty, count, couponCode, setCouponCode, appliedCoupon, couponError, discountAmount } = useCart();
   const [fulfillment, setFulfillment] = useState<"collect" | "delivery">("collect");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId>("ecocash");
   const [orderPlaced, setOrderPlaced] = useState(false);
@@ -54,8 +54,8 @@ function Checkout() {
   });
   const [addressError, setAddressError] = useState("");
   const deliveryFee = fulfillment === "delivery" ? 5 : 0;
-  const tax = Math.round(subtotal * 0.08 * 100) / 100;
-  const total = subtotal + deliveryFee + tax;
+  const tax = Math.round((subtotal - discountAmount) * 0.08 * 100) / 100;
+  const total = subtotal - discountAmount + deliveryFee + tax;
 
   const selectedPayment = paymentMethods.find((m) => m.id === paymentMethod) ?? paymentMethods[0];
   const requiresProof = paymentMethod !== "cash-on-delivery";
@@ -100,6 +100,8 @@ function Checkout() {
         deliveryFee,
         tax,
         total,
+        couponCode: appliedCoupon?.code,
+        discountAmount: discountAmount > 0 ? discountAmount : undefined,
         items: detailed.map((i) => ({
           productId: i.productId,
           storage: i.storage,
@@ -401,7 +403,26 @@ function Checkout() {
           </section>
 
           <section className="rounded-2xl border border-border bg-background p-5 md:p-6">
-            <h2 className="text-2xl font-semibold tracking-tight">Payment Method</h2>
+            <h2 className="text-2xl font-semibold tracking-tight">Promo Code</h2>
+            <div className="mt-4 flex gap-2">
+              <input
+                type="text"
+                placeholder="Enter promo code (e.g. WELCOME10)"
+                value={couponCode}
+                onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                maxLength={20}
+                className="flex-1 rounded-lg border border-border bg-background px-3 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:border-foreground/40"
+                aria-label="Promo code"
+              />
+            </div>
+            {couponError && <p className="mt-2 text-xs text-[#b42318]">{couponError}</p>}
+            {appliedCoupon && (
+              <p className="mt-2 text-xs text-green-600 font-medium">✓ Coupon applied: {appliedCoupon.discount}% off</p>
+            )}
+            <p className="mt-3 text-xs text-muted-foreground">Try: WELCOME10 (10% off) or SAVE20 (20% off $50+)</p>
+          </section>
+
+          <section className="rounded-2xl border border-border bg-background p-5 md:p-6">
             <div className="mt-4 grid gap-2 md:grid-cols-2">
               {paymentMethods.map((method) => (
                 <label key={method.id} className={`flex items-center gap-3 rounded-xl border p-3 text-sm cursor-pointer transition ${paymentMethod === method.id ? "border-foreground bg-foreground/5" : "border-border bg-surface hover:border-foreground/40"}`}>
@@ -469,6 +490,9 @@ function Checkout() {
 
           <dl className="mt-5 space-y-2 text-sm">
             <div className="flex justify-between"><dt className="text-muted-foreground">Retail Price</dt><dd>{money(subtotal)}</dd></div>
+            {discountAmount > 0 && (
+              <div className="flex justify-between text-green-600 font-medium"><dt>Discount</dt><dd>-{money(discountAmount)}</dd></div>
+            )}
             <div className="flex justify-between"><dt className="text-muted-foreground">{fulfillment === "delivery" ? "Shipping Fee" : "Collection"}</dt><dd>{fulfillment === "delivery" ? money(deliveryFee) : "FREE"}</dd></div>
             <div className="flex justify-between"><dt className="text-muted-foreground">Estimated tax</dt><dd>{money(tax)}</dd></div>
             <div className="border-t border-border pt-3 flex justify-between font-semibold text-2xl text-[#e14f2a]">
@@ -478,6 +502,23 @@ function Checkout() {
 
           <div className="mt-5 rounded-xl border border-[#d6eadf] bg-[#ecf8f1] px-3 py-2 text-sm text-[#1f7d57] inline-flex items-center gap-2">
             <ShieldCheck className="h-4 w-4" /> Secure checkout
+          </div>
+
+          <div className="mt-4 space-y-3">
+            <div className="flex gap-3 text-sm text-muted-foreground">
+              <Truck className="h-4 w-4 shrink-0 mt-0.5" />
+              <div>
+                <div className="font-medium text-foreground">Free shipping & returns</div>
+                <div className="text-xs">30-day returns on all orders</div>
+              </div>
+            </div>
+            <div className="flex gap-3 text-sm text-muted-foreground">
+              <MapPin className="h-4 w-4 shrink-0 mt-0.5" />
+              <div>
+                <div className="font-medium text-foreground">{fulfillment === "delivery" ? "Delivery in 3-5 days" : "Ready to collect tomorrow"}</div>
+                <div className="text-xs">{fulfillment === "delivery" ? "To most locations in Zimbabwe" : "From our Harare store"}</div>
+              </div>
+            </div>
           </div>
 
           <button

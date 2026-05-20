@@ -50,6 +50,8 @@ export type StoredOrder = {
   deliveryFee: number;
   tax: number;
   total: number;
+  couponCode?: string;
+  discountAmount?: number;
   proofFileName?: string;
   proofFileUrl?: string;
   proofStoragePath?: string;
