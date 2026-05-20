@@ -1,5 +1,38 @@
 -- Order hardening: prevent proof-file reuse, enforce a valid status state
 -- machine, and add indexes used by the admin dashboard/orders queries.
+--
+-- Wrapped in a single transaction so it is all-or-nothing: if the duplicate
+-- proof guard below trips, nothing is applied and the DB is left untouched.
+
+begin;
+
+-- ---------------------------------------------------------------------------
+-- 0) Pre-flight guard. If two orders already share a proof_file_name, the
+--    unique index in step 1 would fail. Detect it up front and abort with a
+--    clear, actionable message naming the offending orders instead of leaving
+--    a half-applied migration behind.
+-- ---------------------------------------------------------------------------
+do $$
+declare
+  dup_count integer;
+  dup_list text;
+begin
+  select count(*), string_agg(distinct proof_file_name, ', ')
+    into dup_count, dup_list
+  from (
+    select proof_file_name
+    from public.orders
+    where proof_file_name is not null
+    group by proof_file_name
+    having count(*) > 1
+  ) d;
+
+  if coalesce(dup_count, 0) > 0 then
+    raise exception
+      'Cannot add unique proof index: % proof filename(s) are used by more than one order (%). Resolve these duplicates first.',
+      dup_count, dup_list;
+  end if;
+end $$;
 
 -- ---------------------------------------------------------------------------
 -- 1) Prevent the same payment-proof filename from being attached to more than
@@ -79,3 +112,5 @@ create trigger orders_enforce_status_transition
   before update of status on public.orders
   for each row
   execute function public.enforce_order_status_transition();
+
+commit;
