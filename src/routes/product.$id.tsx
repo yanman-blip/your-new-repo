@@ -556,15 +556,15 @@ function ProductPage() {
             </div>
 
             <div className="mt-5 flex items-end gap-3">
-              <span className="text-4xl font-semibold text-[#bb3b53]">{formatPrice(product.price, product.id)}</span>
-              <span className="rounded bg-[#ffe9dc] px-2 py-0.5 text-sm font-medium text-[#bb3b53]">Estimated -{discountPct}%</span>
+              <span className="text-4xl font-semibold text-[#e14f2a]">{formatPrice(product.price, product.id)}</span>
+              <span className="rounded bg-[#ffe9dc] px-2 py-0.5 text-sm font-medium text-[#e14f2a]">Estimated -{discountPct}%</span>
               <span className="text-lg text-muted-foreground line-through">{formatOldPrice(oldPrice, product.id)}</span>
-              <span className="ml-auto inline-flex items-center gap-1 text-sm text-[#bb3b53]"><Clock3 className="h-4 w-4" /> Last day</span>
+              <span className="ml-auto inline-flex items-center gap-1 text-sm text-[#e14f2a]"><Clock3 className="h-4 w-4" /> Last day</span>
             </div>
 
             <div className="mt-4 flex flex-wrap gap-2 text-sm">
               {["53% OFF: No Min. Buy", "51% OFF orders $31.64+", "35% OFF select items"].map((offer) => (
-                <span key={offer} className="rounded border border-[#ffb79f] bg-[#fff2ec] px-2 py-1 text-[#bb3b53]">{offer}</span>
+                <span key={offer} className="rounded border border-[#ffb79f] bg-[#fff2ec] px-2 py-1 text-[#e14f2a]">{offer}</span>
               ))}
             </div>
             <div className="mt-3 rounded border border-[#b9dcca] bg-[#e8f5ec] px-3 py-2 text-[#1f7d57]">Special Free Shipping Deal</div>
@@ -791,9 +791,9 @@ function ProductPage() {
                   <img src={p.image} alt={p.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
                 </div>
                 <div className="p-3">
-                  <div className="text-xs text-[#bb3b53]">-{Math.max(8, Math.min(60, Math.round(((p.price + 20 - p.price) / (p.price + 20)) * 100)))}% Last day</div>
+                  <div className="text-xs text-[#e14f2a]">-{Math.max(8, Math.min(60, Math.round(((p.price + 20 - p.price) / (p.price + 20)) * 100)))}% Last day</div>
                   <div className="mt-1 text-sm leading-tight">{shortenName(p.name)}</div>
-                  <div className="mt-1 text-xl font-semibold text-[#bb3b53]">{formatPrice(p.price, p.id)}</div>
+                  <div className="mt-1 text-xl font-semibold text-[#e14f2a]">{formatPrice(p.price, p.id)}</div>
                   <div className="text-xs text-muted-foreground">Estimated</div>
                 </div>
               </Link>

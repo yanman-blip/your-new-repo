@@ -381,7 +381,7 @@ function Checkout() {
                       <div className="text-xs text-muted-foreground mt-1">{i.product.brand} · {i.storage} · {i.color}</div>
                     </div>
                     <div className="text-right shrink-0">
-                      <div className="font-semibold text-[#bb3b53]">{money(i.lineTotal)}</div>
+                      <div className="font-semibold text-[#e14f2a]">{money(i.lineTotal)}</div>
                       <div className="text-xs text-muted-foreground">{money(i.product.price)} ea</div>
                     </div>
                   </div>
@@ -511,7 +511,7 @@ function Checkout() {
             )}
             <div className="flex justify-between"><dt className="text-muted-foreground">{fulfillment === "delivery" ? "Shipping Fee" : "Collection"}</dt><dd>{fulfillment === "delivery" ? money(deliveryFee) : "FREE"}</dd></div>
             <div className="flex justify-between"><dt className="text-muted-foreground">Estimated tax</dt><dd>{money(tax)}</dd></div>
-            <div className="border-t border-border pt-3 flex justify-between font-semibold text-2xl text-[#bb3b53]">
+            <div className="border-t border-border pt-3 flex justify-between font-semibold text-2xl text-[#e14f2a]">
               <dt>Total</dt><dd>{money(total)}</dd>
             </div>
           </dl>

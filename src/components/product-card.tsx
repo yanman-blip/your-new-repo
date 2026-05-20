@@ -62,10 +62,10 @@ export function ProductCard({ p, large = false, overlayText = false, clean = fal
       <Link
         to="/product/$id"
         params={{ id: p.id }}
-        className="group block w-full overflow-hidden rounded-xl border border-border bg-card transition-all hover:border-brand/40 hover:shadow-[0_8px_30px_-12px_oklch(0.52_0.15_12/0.5)]"
+        className="group block w-full overflow-hidden rounded-xl bg-white transition-shadow hover:shadow-md"
       >
         {/* Image */}
-        <div className="relative aspect-3/4 overflow-hidden bg-surface-2">
+        <div className="relative aspect-3/4 overflow-hidden bg-neutral-100">
           <img
             src={currentImage}
             alt={p.name}
@@ -73,7 +73,7 @@ export function ProductCard({ p, large = false, overlayText = false, clean = fal
             className="h-full w-full object-cover object-center transition-transform duration-700 group-hover:scale-[1.04]"
           />
           {p.brand && (
-            <span className="absolute top-2 left-2 rounded-sm bg-black/55 px-1.5 py-0.5 text-[10px] uppercase tracking-widest text-white/90 backdrop-blur-sm">
+            <span className="absolute top-2 left-2 rounded-sm bg-white/85 px-1.5 py-0.5 text-[10px] uppercase tracking-widest text-neutral-700">
               {p.brand}
             </span>
           )}
@@ -87,27 +87,27 @@ export function ProductCard({ p, large = false, overlayText = false, clean = fal
             type="button"
             aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
             onClick={(e) => { e.preventDefault(); toggle(p.id); }}
-            className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/55 shadow-sm backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
+            className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
           >
-            <Heart className={`h-4 w-4 transition-colors ${wishlisted ? "fill-brand text-brand" : "text-white/80"}`} />
+            <Heart className={`h-4 w-4 transition-colors ${wishlisted ? "fill-red-500 text-red-500" : "text-neutral-500"}`} />
           </button>
         </div>
         {/* Text below */}
         <div className="px-2 py-3">
-          <p className="text-xs text-muted-foreground mb-0.5 uppercase tracking-wide">{p.brand}</p>
-          <h3 className="text-sm font-medium text-foreground line-clamp-2 leading-snug">{p.name}</h3>
+          <p className="text-xs text-neutral-500 mb-0.5 uppercase tracking-wide">{p.brand}</p>
+          <h3 className="text-sm font-medium text-neutral-900 line-clamp-2 leading-snug">{p.name}</h3>
           <div className="mt-1.5 flex items-center gap-2">
-            <p className="text-sm font-semibold text-brand">{formatPrice(p.price, p.id)}</p>
+            <p className="text-sm font-semibold text-[#e14f2a]">{formatPrice(p.price, p.id)}</p>
             {sellingFast && !p.badge && (
-              <span className="text-[10px] font-semibold text-[#d98a3d]">🔥 Selling fast</span>
+              <span className="text-[10px] font-semibold text-orange-600">🔥 Selling fast</span>
             )}
           </div>
           {(() => { const r = getProductRating(p.id); return (
             <div className="mt-1 flex items-center gap-1">
               {Array.from({ length: 5 }).map((_, i) => (
-                <Star key={i} className={`h-3 w-3 ${i < Math.round(r.avg) ? "fill-[#d9a441] text-[#d9a441]" : "fill-white/15 text-white/15"}`} />
+                <Star key={i} className={`h-3 w-3 ${i < Math.round(r.avg) ? "fill-[#f4b400] text-[#f4b400]" : "fill-neutral-200 text-neutral-200"}`} />
               ))}
-              <span className="text-[10px] text-muted-foreground ml-0.5">{r.avg.toFixed(1)} ({r.count > 999 ? "1000+" : r.count})</span>
+              <span className="text-[10px] text-neutral-400 ml-0.5">{r.avg.toFixed(1)} ({r.count > 999 ? "1000+" : r.count})</span>
             </div>
           ); })()}
         </div>
