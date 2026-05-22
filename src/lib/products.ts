@@ -27,6 +27,39 @@ function normalizeCollection(value: unknown): Collection {
   return match ?? "Lace";
 }
 
+function normalizeSizeLabel(value: string): string {
+  const raw = value.trim();
+  if (!raw) return "";
+  const compact = raw.toLowerCase().replace(/\s+/g, " ");
+  if (compact === "one size" || compact === "onesize") return "One Size";
+  if (["xs", "s", "m", "l", "xl", "xxl", "xxxl"].includes(compact)) return compact.toUpperCase();
+  return raw;
+}
+
+function normalizeColorName(name: string): string {
+  const decoded = (() => {
+    try {
+      return decodeURIComponent(name);
+    } catch {
+      return name;
+    }
+  })();
+
+  const withoutHex = decoded.replace(/#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6,8})\b/g, " ");
+  const cleaned = withoutHex
+    .replace(/[_\-]+/g, " ")
+    .replace(/[^a-zA-Z\s]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!cleaned) return "Black";
+
+  return cleaned
+    .split(" ")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+}
+
 function normalizePath(rawPath: string): string {
   const [pathWithLeadingSlash, searchAndHash = ""] = rawPath.split(/(?=[?#])/);
   const hasLeadingSlash = pathWithLeadingSlash.startsWith("/");
@@ -104,7 +137,14 @@ function sanitizeProduct(input: unknown): Product | null {
   if (!image) return null;
 
   const storage = Array.isArray(candidate.storage)
-    ? candidate.storage.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+    ? Array.from(
+        new Set(
+          candidate.storage
+            .filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+            .map((item) => normalizeSizeLabel(item))
+            .filter((item) => item.length > 0),
+        ),
+      )
     : [];
 
   const colors = Array.isArray(candidate.colors)
@@ -116,7 +156,8 @@ function sanitizeProduct(input: unknown): Product | null {
             typeof (item as { name?: unknown }).name === "string" &&
             typeof (item as { hex?: unknown }).hex === "string",
         )
-        .map((item) => ({ name: item.name, hex: item.hex }))
+        .map((item) => ({ name: normalizeColorName(item.name), hex: item.hex }))
+        .filter((item) => item.name.length > 0)
     : [];
 
   const highlights = Array.isArray(candidate.highlights)

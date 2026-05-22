@@ -27,6 +27,9 @@ function Home() {
   const products = useProducts();
   const featuredId = "sleeveless-sexy-bandage-dress";
   const hero = products.find((product) => product.id === featuredId) ?? products[0];
+  const newDrops = products.filter((p) => p.badge?.toLowerCase() === "new").slice(0, 8);
+  const trending = products.slice(0, 8);
+  const salePicks = products.slice(8, 14);
   const [heroImageIndex, setHeroImageIndex] = useState(0);
   const heroGallery = hero?.gallery && hero.gallery.length > 0 ? hero.gallery : [hero?.image || ""];
 
@@ -101,6 +104,46 @@ function Home() {
         </div>
       </section>
 
+      <section className="mx-auto max-w-7xl px-6 py-10">
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border border-[#f2d8c7] bg-[#fff4ec] p-5">
+            <div className="text-xs uppercase tracking-[0.2em] text-[#b55f2f]">Hot Right Now</div>
+            <h3 className="mt-2 text-2xl font-semibold tracking-tight">Underwear & Sleepwear</h3>
+            <p className="mt-2 text-sm text-[#8f5f44]">Top-ranked lace and mesh picks with fast local delivery.</p>
+            <Link to="/shop" className="mt-4 inline-flex text-sm font-medium text-[#b55f2f] hover:underline">Explore trending</Link>
+          </div>
+          <div className="rounded-2xl border border-[#f1e4d2] bg-[#fff9f2] p-5">
+            <div className="text-xs uppercase tracking-[0.2em] text-[#8a6649]">Daily Deals</div>
+            <h3 className="mt-2 text-2xl font-semibold tracking-tight">Up to 53% Off</h3>
+            <p className="mt-2 text-sm text-[#84634a]">Limited-time markdowns on bestselling lingerie sets.</p>
+            <Link to="/shop" search={{ sort: "low" }} className="mt-4 inline-flex text-sm font-medium text-[#8a6649] hover:underline">Shop deals</Link>
+          </div>
+          <div className="rounded-2xl border border-[#e6dff3] bg-[#f5f2ff] p-5">
+            <div className="text-xs uppercase tracking-[0.2em] text-[#5f4fa5]">New In</div>
+            <h3 className="mt-2 text-2xl font-semibold tracking-tight">Fresh Drops</h3>
+            <p className="mt-2 text-sm text-[#5d528f]">New arrivals added regularly from your latest catalog uploads.</p>
+            <Link to="/shop" search={{ sort: "newest" }} className="mt-4 inline-flex text-sm font-medium text-[#5f4fa5] hover:underline">View new arrivals</Link>
+          </div>
+        </div>
+      </section>
+
+      {newDrops.length > 0 && (
+        <section className="mx-auto max-w-7xl px-6 pb-10">
+          <div className="mb-6 flex items-end justify-between">
+            <div>
+              <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">New Drops</h2>
+              <p className="mt-2 text-sm text-muted-foreground">Fresh catalog updates inspired by top-performing styles.</p>
+            </div>
+            <Link to="/shop" search={{ sort: "newest" }} className="hidden text-sm text-muted-foreground hover:text-foreground md:inline-flex">See all</Link>
+          </div>
+          <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
+            {newDrops.map((p) => (
+              <ProductCard key={p.id} p={p} clean />
+            ))}
+          </div>
+        </section>
+      )}
+
       <section className="mx-auto max-w-7xl px-6 py-20">
         <div className="mb-10 flex items-end justify-between">
           <div>
@@ -113,7 +156,22 @@ function Home() {
         </div>
 
         <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {products.map((p) => (
+          {trending.map((p) => (
+            <ProductCard key={p.id} p={p} clean />
+          ))}
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-6 pb-16">
+        <div className="mb-6 flex items-end justify-between">
+          <div>
+            <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">Deal Zone</h2>
+            <p className="mt-2 text-sm text-muted-foreground">High-conversion picks with promo-driven pricing cues.</p>
+          </div>
+          <Link to="/shop" search={{ sort: "low" }} className="hidden text-sm text-muted-foreground hover:text-foreground md:inline-flex">More deals</Link>
+        </div>
+        <div className="grid gap-4 grid-cols-2 md:grid-cols-3">
+          {salePicks.map((p) => (
             <ProductCard key={p.id} p={p} clean />
           ))}
         </div>

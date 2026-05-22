@@ -524,12 +524,14 @@ function ProductPage() {
 
   const related = products.filter((p) => p.id !== product.id && p.brand === product.brand).slice(0, 3);
   const alsoViewed = products.filter((p) => p.id !== product.id).slice(0, 10);
+  const bundleProducts = products.filter((p) => p.id !== product.id).slice(0, 2);
   const reviews = buildReviews(activeGallery);
   const averageRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
   const sku = `JC-${product.id.replace(/-/g, "").slice(0, 10).toUpperCase()}`;
   const oldPrice = Math.max(product.price + 18, Math.round(product.price * 1.8));
   const discountPct = Math.max(1, Math.round(((oldPrice - product.price) / oldPrice) * 100));
   const stock = getStockHint(product.id);
+  const bundleTotal = product.price + bundleProducts.reduce((sum, item) => sum + item.price, 0);
   const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
 
   return (
@@ -848,6 +850,52 @@ function ProductPage() {
           </div>
         </div>
       </section>
+
+      {bundleProducts.length > 0 && (
+        <section className="mx-auto max-w-350 px-6 pb-12">
+          <div className="rounded-xl border border-border bg-background p-5 md:p-6">
+            <h2 className="text-2xl font-semibold tracking-tight">Frequently Bought Together</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Complete the look with this high-converting pairing set.</p>
+
+            <div className="mt-4 grid gap-3 md:grid-cols-3">
+              {[product, ...bundleProducts].map((item) => (
+                <div key={item.id} className="rounded-lg border border-border p-3">
+                  <div className="aspect-3/4 overflow-hidden rounded-md bg-muted">
+                    <img src={item.image} alt={item.name} className="h-full w-full object-cover" loading="lazy" onError={handleImageLoadError} />
+                  </div>
+                  <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{shortenName(item.name)}</p>
+                  <p className="mt-1 text-sm font-semibold text-[#e14f2a]">{formatPrice(item.price, item.id)}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-surface px-4 py-3">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">Bundle Total</p>
+                <p className="text-2xl font-semibold text-[#e14f2a]">{formatPrice(bundleTotal, product.id)}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  add({ productId: product.id, storage: size, color, qty: 1 });
+                  for (const item of bundleProducts) {
+                    add({
+                      productId: item.id,
+                      storage: item.storage[0] ?? "One Size",
+                      color: item.colors[0]?.name ?? "Default",
+                      qty: 1,
+                    });
+                  }
+                  setOpen(true);
+                }}
+                className="rounded-full bg-foreground px-5 py-2.5 text-sm font-semibold text-background hover:opacity-90"
+              >
+                Add bundle to bag
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
 
       {alsoViewed.length > 0 && (
         <section className="mx-auto max-w-350 px-6 pb-16">

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { type Collection } from "@/lib/products";
 import { ProductCard } from "@/components/product-card";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useProducts } from "@/lib/use-products";
 import {
   Drawer,
@@ -216,6 +216,7 @@ function Shop() {
   const [selectedBadges, setSelectedBadges] = useState<string[]>(parseFacetParam(searchParams.badges));
   const [maxVisible, setMaxVisible] = useState(16);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   const availableSizes = useMemo(() => {
     const allSizes = new Set<string>();
@@ -327,6 +328,23 @@ function Shop() {
   useEffect(() => {
     setMaxVisible(16);
   }, [collection, price, sort, search, selectedSizes, selectedColors, selectedBadges]);
+
+  useEffect(() => {
+    const target = loadMoreRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (!entry?.isIntersecting) return;
+        setMaxVisible((current) => (current < filtered.length ? current + 16 : current));
+      },
+      { rootMargin: "300px 0px" },
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [filtered.length]);
 
   const visibleProducts = filtered.slice(0, maxVisible);
   const hasMore = visibleProducts.length < filtered.length;
@@ -454,7 +472,7 @@ function Shop() {
           </div>
 
           {hasMore && (
-            <div className="mt-8 flex justify-center">
+            <div className="mt-8 flex justify-center" ref={loadMoreRef}>
               <button
                 type="button"
                 onClick={() => setMaxVisible((v) => v + 16)}
