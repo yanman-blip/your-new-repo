@@ -4,7 +4,7 @@ import { useCart } from "@/lib/cart";
 import { formatPrice, formatOldPrice } from "@/lib/format-price";
 import { productFolderGalleryManifest } from "@/lib/product-folder-galleries";
 import { productVariantManifest } from "@/lib/product-variants";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type SyntheticEvent } from "react";
 import { Check, ChevronLeft, ChevronRight, Clock3, Heart, Star, Truck } from "lucide-react";
 import { ProductCard } from "@/components/product-card";
 import { useWishlist } from "@/lib/wishlist";
@@ -239,6 +239,59 @@ function toPublicProductImageUrl(
   return `${baseUrl}/${encodedPath}`;
 }
 
+function toNormalizedProductFolderImageUrl(imageUrl: string): string | null {
+  if (!/^https?:\/\//i.test(imageUrl)) return null;
+
+  try {
+    const parsed = new URL(imageUrl);
+    const parts = parsed.pathname.split("/").filter(Boolean);
+    const bucketIndex = parts.findIndex((part) => part === "product-images");
+    if (bucketIndex < 0 || !parts[bucketIndex + 1]) return null;
+
+    const decodedFolder = decodeURIComponent(parts[bucketIndex + 1]);
+    const normalizedFolder = decodedFolder
+      .replace(/[^A-Za-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "");
+
+    if (!normalizedFolder || normalizedFolder === decodedFolder) return null;
+
+    parts[bucketIndex + 1] = normalizedFolder;
+    const encodedPath = encodeStoragePath(parts.join("/"));
+    return `${parsed.origin}/${encodedPath}`;
+  } catch {
+    return null;
+  }
+}
+
+function tryImageNormalizedFallback(img: HTMLImageElement): boolean {
+  const currentSrc = img.currentSrc || img.src;
+  if (!currentSrc) return false;
+
+  const triedNormalizedFallback = img.dataset.normalizedFallbackApplied === "1";
+  if (triedNormalizedFallback) return false;
+
+  const normalizedUrl = toNormalizedProductFolderImageUrl(currentSrc);
+  img.dataset.normalizedFallbackApplied = "1";
+  if (normalizedUrl && normalizedUrl !== currentSrc) {
+    img.src = normalizedUrl;
+    return true;
+  }
+
+  return false;
+}
+
+function applyImagePlaceholder(img: HTMLImageElement) {
+  if (img.dataset.placeholderApplied === "1") return;
+  img.dataset.placeholderApplied = "1";
+  img.src = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+}
+
+function handleImageLoadError(event: SyntheticEvent<HTMLImageElement>) {
+  const img = event.currentTarget;
+  if (tryImageNormalizedFallback(img)) return;
+  applyImagePlaceholder(img);
+}
+
 function buildAbsoluteImageByFilename(images: string[]): Map<string, string> {
   const byFilename = new Map<string, string>();
   for (const image of images) {
@@ -432,6 +485,19 @@ function ProductPage() {
     });
   };
 
+  const handleMainImageError = (event: SyntheticEvent<HTMLImageElement>) => {
+    const img = event.currentTarget;
+    if (tryImageNormalizedFallback(img)) return;
+
+    const fallback = activeGallery.find((candidate) => candidate !== selectedImage);
+    if (fallback && fallback !== selectedImage) {
+      setSelectedImage(fallback);
+      return;
+    }
+
+    applyImagePlaceholder(img);
+  };
+
   const selectedIndex = Math.max(0, activeGallery.indexOf(selectedImage));
 
   const onTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
@@ -490,6 +556,7 @@ function ProductPage() {
             alt="Customer review photo"
             className="max-h-[90vh] max-w-[90vw] rounded-xl object-contain"
             onClick={(e) => e.stopPropagation()}
+            onError={handleImageLoadError}
           />
         </div>
       )}
@@ -509,7 +576,7 @@ function ProductPage() {
                 aria-label={`View image ${idx + 1}`}
                 className={`overflow-hidden rounded-md border ${selectedImage === img ? "border-foreground" : "border-border"}`}
               >
-                <img src={img} alt={product.name} className="h-20 w-full object-cover" loading="lazy" />
+                <img src={img} alt={product.name} className="h-20 w-full object-cover" loading="lazy" onError={handleImageLoadError} />
               </button>
             ))}
           </aside>
@@ -523,6 +590,7 @@ function ProductPage() {
               src={selectedImage}
               alt={product.name}
               className="block h-auto w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+              onError={handleMainImageError}
             />
             <button
               onClick={showPrevImage}
@@ -686,7 +754,7 @@ function ProductPage() {
               aria-label={`View image ${idx + 1}`}
               className={`overflow-hidden rounded-md border ${selectedImage === img ? "border-foreground" : "border-border"}`}
             >
-              <img src={img} alt={product.name} className="h-20 w-full object-cover" loading="lazy" />
+              <img src={img} alt={product.name} className="h-20 w-full object-cover" loading="lazy" onError={handleImageLoadError} />
             </button>
           ))}
         </div>
@@ -765,7 +833,7 @@ function ProductPage() {
                     <div className="mt-3 flex flex-wrap gap-2">
                       {review.photos.map((photo) => (
                         <button key={photo} type="button" onClick={() => setLightboxPhoto(photo)} className="focus:outline-none">
-                          <img src={photo} alt="Customer photo" className="h-20 w-20 rounded-lg object-cover border border-border hover:opacity-90 transition cursor-zoom-in" loading="lazy" />
+                          <img src={photo} alt="Customer photo" className="h-20 w-20 rounded-lg object-cover border border-border hover:opacity-90 transition cursor-zoom-in" loading="lazy" onError={handleImageLoadError} />
                         </button>
                       ))}
                     </div>
@@ -788,7 +856,7 @@ function ProductPage() {
             {alsoViewed.map((p) => (
               <Link key={p.id} to="/product/$id" params={{ id: p.id }} className="group rounded-lg border border-border overflow-hidden bg-background hover:shadow-md transition">
                 <div className="aspect-3/4 overflow-hidden">
-                  <img src={p.image} alt={p.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" />
+                  <img src={p.image} alt={p.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" onError={handleImageLoadError} />
                 </div>
                 <div className="p-3">
                   <div className="text-xs text-[#e14f2a]">-{Math.max(8, Math.min(60, Math.round(((p.price + 20 - p.price) / (p.price + 20)) * 100)))}% Last day</div>

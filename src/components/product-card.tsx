@@ -2,8 +2,17 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import type { Product } from "@/lib/products";
 import { formatPrice } from "@/lib/format-price";
-import { Heart, Star } from "lucide-react";
+import { Eye, Heart, Star } from "lucide-react";
 import { useWishlist } from "@/lib/wishlist";
+import { useCart } from "@/lib/cart";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 function isSellingFast(id: string): boolean {
   let hash = 0;
@@ -17,6 +26,13 @@ function getProductRating(id: string): { avg: number; count: number } {
   const avg = 4.5 + (Math.abs(hash % 6) / 10); // 4.5 – 5.0
   const count = 50 + Math.abs(hash % 950); // 50 – 999
   return { avg: Math.min(5, avg), count };
+}
+
+function getSalePercent(id: string): number {
+  let hash = 0;
+  for (const char of id) hash = (hash * 33 + char.charCodeAt(0)) & 0xffffffff;
+  const discountBands = [12, 18, 25, 30, 35];
+  return discountBands[Math.abs(hash) % discountBands.length];
 }
 
 type ProductCardProps = {
@@ -42,10 +58,18 @@ function getBadgeColor(badge?: string): { bg: string; text: string } {
 
 export function ProductCard({ p, large = false, overlayText = false, clean = false }: ProductCardProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [quickViewOpen, setQuickViewOpen] = useState(false);
+  const [quickSize, setQuickSize] = useState(p.storage[0] ?? "One Size");
+  const [quickColor, setQuickColor] = useState(p.colors[0]?.name ?? "Default");
   const galleryImages = p.gallery && p.gallery.length > 0 ? p.gallery : [p.image];
   const { isWishlisted, toggle } = useWishlist();
+  const { add, setOpen } = useCart();
   const wishlisted = isWishlisted(p.id);
   const sellingFast = isSellingFast(p.id);
+  const salePercent = getSalePercent(p.id);
+  const compareAt = Math.round((p.price / (1 - salePercent / 100)) * 100) / 100;
+  const primaryColor = p.colors[0]?.name ?? "Default";
+  const primarySize = p.storage[0] ?? "One Size";
 
   useEffect(() => {
     if (galleryImages.length <= 1) return;
@@ -59,59 +83,168 @@ export function ProductCard({ p, large = false, overlayText = false, clean = fal
 
   if (clean) {
     return (
-      <Link
-        to="/product/$id"
-        params={{ id: p.id }}
-        className="group block w-full overflow-hidden rounded-xl bg-white transition-shadow hover:shadow-md"
-      >
-        {/* Image */}
-        <div className="relative aspect-3/4 overflow-hidden bg-neutral-100">
-          <img
-            src={currentImage}
-            alt={p.name}
-            loading="lazy"
-            className="h-full w-full object-cover object-center transition-transform duration-700 group-hover:scale-[1.04]"
-          />
-          {p.brand && (
-            <span className="absolute top-2 left-2 rounded-sm bg-white/85 px-1.5 py-0.5 text-[10px] uppercase tracking-widest text-neutral-700">
-              {p.brand}
-            </span>
-          )}
-          {p.badge && (
-            <span className={`absolute top-2 right-2 rounded-sm px-2 py-1 text-[10px] uppercase tracking-widest font-semibold ${getBadgeColor(p.badge).bg} ${getBadgeColor(p.badge).text}`}>
-              {p.badge}
-            </span>
-          )}
-          {/* Wishlist heart */}
-          <button
-            type="button"
-            aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
-            onClick={(e) => { e.preventDefault(); toggle(p.id); }}
-            className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
-          >
-            <Heart className={`h-4 w-4 transition-colors ${wishlisted ? "fill-red-500 text-red-500" : "text-neutral-500"}`} />
-          </button>
-        </div>
-        {/* Text below */}
-        <div className="px-2 py-3">
-          <p className="text-xs text-neutral-500 mb-0.5 uppercase tracking-wide">{p.brand}</p>
-          <h3 className="text-sm font-medium text-neutral-900 line-clamp-2 leading-snug">{p.name}</h3>
-          <div className="mt-1.5 flex items-center gap-2">
-            <p className="text-sm font-semibold text-[#e14f2a]">{formatPrice(p.price, p.id)}</p>
-            {sellingFast && !p.badge && (
-              <span className="text-[10px] font-semibold text-orange-600">🔥 Selling fast</span>
-            )}
-          </div>
-          {(() => { const r = getProductRating(p.id); return (
-            <div className="mt-1 flex items-center gap-1">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star key={i} className={`h-3 w-3 ${i < Math.round(r.avg) ? "fill-[#f4b400] text-[#f4b400]" : "fill-neutral-200 text-neutral-200"}`} />
-              ))}
-              <span className="text-[10px] text-neutral-400 ml-0.5">{r.avg.toFixed(1)} ({r.count > 999 ? "1000+" : r.count})</span>
+      <>
+        <Link
+          to="/product/$id"
+          params={{ id: p.id }}
+          className="group block w-full overflow-hidden rounded-xl bg-white transition-shadow hover:shadow-md"
+        >
+          {/* Image */}
+          <div className="relative aspect-3/4 overflow-hidden bg-neutral-100">
+            <img
+              src={currentImage}
+              alt={p.name}
+              loading="lazy"
+              className="h-full w-full object-cover object-center transition-transform duration-700 group-hover:scale-[1.04]"
+            />
+            <div className="absolute top-2 left-2 flex flex-wrap gap-1.5">
+              <span className="rounded-sm bg-[#1f1f1f]/85 px-1.5 py-0.5 text-[10px] uppercase tracking-widest text-white">
+                -{salePercent}%
+              </span>
+              {p.brand && (
+                <span className="rounded-sm bg-white/85 px-1.5 py-0.5 text-[10px] uppercase tracking-widest text-neutral-700">
+                  {p.brand}
+                </span>
+              )}
             </div>
-          ); })()}
-        </div>
-      </Link>
+            {p.badge && (
+              <span className={`absolute top-2 right-2 rounded-sm px-2 py-1 text-[10px] uppercase tracking-widest font-semibold ${getBadgeColor(p.badge).bg} ${getBadgeColor(p.badge).text}`}>
+                {p.badge}
+              </span>
+            )}
+            {sellingFast && (
+              <span className="absolute bottom-2 left-2 rounded-sm bg-[#fff3e8] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[#bb5a2b]">
+                Selling fast
+              </span>
+            )}
+            {/* Wishlist heart */}
+            <button
+              type="button"
+              aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+              onClick={(e) => { e.preventDefault(); toggle(p.id); }}
+              className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <Heart className={`h-4 w-4 transition-colors ${wishlisted ? "fill-red-500 text-red-500" : "text-neutral-500"}`} />
+            </button>
+
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                add({ productId: p.id, storage: primarySize, color: primaryColor, qty: 1 });
+                setOpen(true);
+              }}
+              className="absolute inset-x-3 bottom-3 rounded-full bg-white/95 px-3 py-2 text-xs font-semibold text-neutral-900 opacity-0 shadow-sm transition-opacity group-hover:opacity-100"
+            >
+              Quick add
+            </button>
+
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                setQuickViewOpen(true);
+              }}
+              className="absolute right-2 top-10 inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/90 opacity-0 transition-opacity group-hover:opacity-100"
+              aria-label="Quick view"
+            >
+              <Eye className="h-4 w-4 text-neutral-700" />
+            </button>
+          </div>
+          {/* Text below */}
+          <div className="px-2 py-3">
+            <p className="text-xs text-neutral-500 mb-0.5 uppercase tracking-wide">{p.brand}</p>
+            <h3 className="text-sm font-medium text-neutral-900 line-clamp-2 leading-snug">{p.name}</h3>
+            <div className="mt-1.5 flex items-center gap-2">
+              <p className="text-sm font-semibold text-[#e14f2a]">{formatPrice(p.price, p.id)}</p>
+              <p className="text-xs text-neutral-400 line-through">{formatPrice(compareAt, p.id)}</p>
+              <span className="text-[10px] font-semibold text-[#b6552f]">-{salePercent}%</span>
+            </div>
+
+            <div className="mt-1 flex items-center gap-1.5">
+              {p.colors.slice(0, 4).map((color) => (
+                <span key={color.name} className="rounded-full border border-neutral-200 bg-neutral-100 px-1.5 py-0.5 text-[10px] text-neutral-600">
+                  {color.name}
+                </span>
+              ))}
+              {p.colors.length > 4 && <span className="text-[10px] text-neutral-400">+{p.colors.length - 4}</span>}
+            </div>
+
+            {(() => { const r = getProductRating(p.id); return (
+              <div className="mt-1 flex items-center gap-1">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star key={i} className={`h-3 w-3 ${i < Math.round(r.avg) ? "fill-[#f4b400] text-[#f4b400]" : "fill-neutral-200 text-neutral-200"}`} />
+                ))}
+                <span className="text-[10px] text-neutral-400 ml-0.5">{r.avg.toFixed(1)} ({r.count > 999 ? "1000+" : r.count})</span>
+              </div>
+            ); })()}
+          </div>
+        </Link>
+
+        <Dialog open={quickViewOpen} onOpenChange={setQuickViewOpen}>
+          <DialogContent className="max-w-xl">
+            <DialogHeader>
+              <DialogTitle>{p.name}</DialogTitle>
+              <DialogDescription>{p.tagline}</DialogDescription>
+            </DialogHeader>
+
+            <div className="grid gap-4 md:grid-cols-[200px_1fr]">
+              <div className="aspect-3/4 overflow-hidden rounded-lg bg-muted">
+                <img src={currentImage} alt={p.name} className="h-full w-full object-cover" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <p className="text-base font-semibold text-[#e14f2a]">{formatPrice(p.price, p.id)}</p>
+                  <p className="text-sm text-neutral-400 line-through">{formatPrice(compareAt, p.id)}</p>
+                  <span className="text-xs font-semibold text-[#b6552f]">-{salePercent}%</span>
+                </div>
+
+                <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Color</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {p.colors.map((color) => (
+                    <button
+                      key={color.name}
+                      type="button"
+                      onClick={() => setQuickColor(color.name)}
+                      className={`rounded-full border px-3 py-1 text-xs ${quickColor === color.name ? "border-foreground bg-foreground text-background" : "border-border"}`}
+                    >
+                      {color.name}
+                    </button>
+                  ))}
+                </div>
+
+                <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Size</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {p.storage.map((size) => (
+                    <button
+                      key={size}
+                      type="button"
+                      onClick={() => setQuickSize(size)}
+                      className={`min-w-10 rounded-md border px-2 py-1 text-xs ${quickSize === size ? "border-foreground bg-foreground text-background" : "border-border"}`}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <button
+                type="button"
+                onClick={() => {
+                  add({ productId: p.id, storage: quickSize, color: quickColor, qty: 1 });
+                  setOpen(true);
+                  setQuickViewOpen(false);
+                }}
+                className="w-full rounded-full bg-foreground px-4 py-2.5 text-sm font-semibold text-background"
+              >
+                Add to bag
+              </button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </>
     );
   }
 
