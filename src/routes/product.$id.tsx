@@ -8,6 +8,7 @@ import { useEffect, useMemo, useRef, useState, type SyntheticEvent } from "react
 import { Check, ChevronLeft, ChevronRight, Clock3, Heart, Star, Truck } from "lucide-react";
 import { ProductCard } from "@/components/product-card";
 import { useWishlist } from "@/lib/wishlist";
+import { markProductRecentlyViewed, useRecentlyViewedProducts } from "@/lib/recently-viewed";
 
 const colorClassMap: Record<string, string> = {
   Blush: "bg-[#f3c4cd]",
@@ -395,6 +396,8 @@ function detectColorFromImagePath(imagePath: string): string | null {
 
 function ProductPage() {
   const { product } = Route.useLoaderData() as { product: Product };
+  const recentlyViewedRaw = useRecentlyViewedProducts(8);
+  const recentlyViewed = recentlyViewedRaw.filter((p) => p.id !== product.id).slice(0, 4);
   const { add, setOpen } = useCart();
   const { isWishlisted, toggle: toggleWishlist } = useWishlist();
   const [size, setSize] = useState(product.storage[0]);
@@ -459,6 +462,10 @@ function ProductPage() {
   useEffect(() => {
     setColor(initialColor);
   }, [initialColor, product.id]);
+
+  useEffect(() => {
+    markProductRecentlyViewed(product.id);
+  }, [product.id]);
 
   useEffect(() => {
     setSelectedImage((current) => {
@@ -923,6 +930,15 @@ function ProductPage() {
           <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-6">More from {product.brand}</h2>
           <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {related.map((p) => <ProductCard key={p.id} p={p} clean />)}
+          </div>
+        </section>
+      )}
+
+      {recentlyViewed.length > 0 && (
+        <section className="mx-auto max-w-350 px-6 pb-16">
+          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-6">Your Recently Viewed</h2>
+          <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {recentlyViewed.map((p) => <ProductCard key={p.id} p={p} clean />)}
           </div>
         </section>
       )}

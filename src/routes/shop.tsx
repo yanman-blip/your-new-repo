@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/drawer";
 import { SlidersHorizontal } from "lucide-react";
 import { z } from "zod";
+import { useRecentlyViewedProducts } from "@/lib/recently-viewed";
 
 export const Route = createFileRoute("/shop")({
   validateSearch: z.object({
@@ -194,6 +195,7 @@ function FacetPanel({
 
 function Shop() {
   const products = useProducts();
+  const recentlyViewed = useRecentlyViewedProducts(6);
   const searchParams = Route.useSearch();
   const navigate = Route.useNavigate();
 
@@ -378,6 +380,20 @@ function Shop() {
           aria-label="Search products"
         />
       </div>
+
+      {recentlyViewed.length > 0 && (
+        <div className="mt-6 rounded-xl border border-border bg-background p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Continue Shopping</h2>
+            <span className="text-xs text-muted-foreground">Based on your recent views</span>
+          </div>
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+            {recentlyViewed.map((p) => (
+              <ProductCard key={`recent-${p.id}`} p={p} clean />
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
         <aside className="hidden h-fit rounded-2xl border border-border bg-background p-4 lg:block lg:sticky lg:top-20">

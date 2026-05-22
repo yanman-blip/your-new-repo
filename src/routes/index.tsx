@@ -3,6 +3,7 @@ import { ProductCard } from "@/components/product-card";
 import { ArrowRight, Truck, Heart, RefreshCw, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useProducts } from "@/lib/use-products";
+import { useRecentlyViewedProducts } from "@/lib/recently-viewed";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -25,6 +26,7 @@ export const Route = createFileRoute("/")({
 
 function Home() {
   const products = useProducts();
+  const recentlyViewed = useRecentlyViewedProducts(8);
   const featuredId = "sleeveless-sexy-bandage-dress";
   const hero = products.find((product) => product.id === featuredId) ?? products[0];
   const newDrops = products.filter((p) => p.badge?.toLowerCase() === "new").slice(0, 8);
@@ -138,6 +140,23 @@ function Home() {
           </div>
           <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
             {newDrops.map((p) => (
+              <ProductCard key={p.id} p={p} clean />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {recentlyViewed.length > 0 && (
+        <section className="mx-auto max-w-7xl px-6 pb-10">
+          <div className="mb-6 flex items-end justify-between">
+            <div>
+              <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">Because You Viewed</h2>
+              <p className="mt-2 text-sm text-muted-foreground">Your browsing history, instantly turned into quick picks.</p>
+            </div>
+            <Link to="/shop" className="hidden text-sm text-muted-foreground hover:text-foreground md:inline-flex">Shop all</Link>
+          </div>
+          <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
+            {recentlyViewed.map((p) => (
               <ProductCard key={p.id} p={p} clean />
             ))}
           </div>
