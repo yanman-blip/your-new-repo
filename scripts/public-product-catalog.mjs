@@ -55,6 +55,20 @@ function inferBrand(name) {
   return "Lace";
 }
 
+function inferProductType(name) {
+  const lower = name.toLowerCase();
+  const has = (pattern) => pattern.test(lower);
+
+  const isBraPantSet = has(/(bra).*(pant|panty|thong)|set|2pcs|3pcs/);
+  const isNightWear = has(/night|sleep|nightwear|babydoll|dress/);
+  const isSexy = has(/sexy|lingerie|romantic|party|club|valentine/);
+
+  if (isNightWear && isSexy) return "Sexy Night Wear";
+  if (isBraPantSet) return "Bra & Pant";
+  if (isNightWear) return "Night Wear";
+  return "Sexy Lingerie";
+}
+
 function inferPrice(name) {
   return 12 + (hashValue(name) % 7);
 }
@@ -143,6 +157,7 @@ export async function buildPublicProductCatalog(publicRoot) {
       id: slugify(productName),
       name: productName,
       brand: inferBrand(productName),
+      productType: inferProductType(productName),
       price: inferPrice(productName),
       image: primaryGallery[0],
       gallery: primaryGallery,

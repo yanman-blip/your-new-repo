@@ -7,11 +7,12 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import type { Collection, ProductSizeFit } from "@/lib/products";
+import type { Collection, ProductGroup, ProductSizeFit } from "@/lib/products";
 
 export type ProductDraftValue = {
   name: string;
   brand: Collection;
+  productType: ProductGroup;
   price: string;
   image: string;
   description: string;
@@ -131,6 +132,22 @@ export function ProductEditPanel({ mode, initial, onClose, onSave, onUpload }: P
                 </select>
               </Field>
 
+              <Field label="Product Group *">
+                <select
+                  title="Product group"
+                  value={draft.productType}
+                  onChange={(e) =>
+                    setDraft((p) => ({ ...p, productType: e.target.value as ProductGroup }))
+                  }
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm"
+                >
+                  <option value="Night Wear">Night Wear</option>
+                  <option value="Bra & Pant">Bra & Pant</option>
+                  <option value="Sexy Lingerie">Sexy Lingerie</option>
+                  <option value="Sexy Night Wear">Sexy Night Wear</option>
+                </select>
+              </Field>
+
               <Field label="Price *">
                 <input
                   type="number"
@@ -215,7 +232,10 @@ export function ProductEditPanel({ mode, initial, onClose, onSave, onUpload }: P
               />
             </Field>
 
-            <Field label="Colors" hint="Comma-separated. Format: name:hex">
+            <Field
+              label="Colors"
+              hint="Differentiate color variants using labels + hex, e.g. Black:#1c1c1e, Pink:#f3c4cd, White:#f5f3ee"
+            >
               <input
                 value={draft.colors}
                 onChange={(e) => setDraft((p) => ({ ...p, colors: e.target.value }))}

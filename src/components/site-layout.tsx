@@ -40,7 +40,7 @@ const nav: NavItem[] = [
   {
     to: "/collections/$slug",
     label: "Bra & Pant",
-    params: { slug: getProductTypeSlug("Bra & Pant Set") },
+    params: { slug: getProductTypeSlug("Bra & Pant") },
   },
   {
     to: "/collections/$slug",

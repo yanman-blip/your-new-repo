@@ -2,17 +2,13 @@ import type { Product } from "@/lib/products";
 
 export type ProductTypeFilter =
   | "Night Wear"
-  | "Bra & Pant Set"
-  | "Bra"
-  | "Pant"
+  | "Bra & Pant"
   | "Sexy Lingerie"
   | "Sexy Night Wear";
 
 export const requestedProductTypes: ProductTypeFilter[] = [
   "Night Wear",
-  "Bra & Pant Set",
-  "Bra",
-  "Pant",
+  "Bra & Pant",
   "Sexy Lingerie",
   "Sexy Night Wear",
 ];
@@ -35,29 +31,13 @@ export const productTypeLandingContent: Record<
       "Babydolls, slips, dresses and soft night styles curated for evenings, gifting and lounge-to-bedroom dressing.",
     badge: "Soft-touch edit",
   },
-  "Bra & Pant Set": {
+  "Bra & Pant": {
     slug: "bra-and-pant-set",
     eyebrow: "Matched sets",
     title: "Bra and pant sets that do the work for you.",
     description:
       "Coordinated two-piece and three-piece lingerie sets with an instant styled look and less guesswork.",
     badge: "Set dressing",
-  },
-  Bra: {
-    slug: "bra",
-    eyebrow: "Support first",
-    title: "Bras with shape, lift and attitude.",
-    description:
-      "Statement bras, lace cups and going-out tops with enough structure to style on their own or under layers.",
-    badge: "Top drawer",
-  },
-  Pant: {
-    slug: "pant",
-    eyebrow: "Base layer",
-    title: "Pants and panties with the right finish.",
-    description:
-      "Thongs, briefs and statement bottoms selected for fit, detail and easy pairing with the rest of the edit.",
-    badge: "Everyday to after-dark",
   },
   "Sexy Lingerie": {
     slug: "sexy-lingerie",
@@ -77,9 +57,13 @@ export const productTypeLandingContent: Record<
   },
 };
 
-type ProductTaxonomyInput = Pick<Product, "name" | "attributes">;
+type ProductTaxonomyInput = Pick<Product, "name" | "attributes" | "productType">;
 
 export function inferProductTypes(product: ProductTaxonomyInput): ProductTypeFilter[] {
+  if (product.productType && requestedProductTypes.includes(product.productType)) {
+    return [product.productType];
+  }
+
   const lowerName = product.name.toLowerCase();
   const styles = (product.attributes?.styles ?? []).map((style) => style.toLowerCase());
   const occasions = (product.attributes?.occasions ?? []).map((occasion) => occasion.toLowerCase());
@@ -91,15 +75,14 @@ export function inferProductTypes(product: ProductTaxonomyInput): ProductTypeFil
     words.some((word) => occasions.some((occasion) => occasion.includes(word)));
 
   const inferred: ProductTypeFilter[] = [];
-  if (has(["night", "sleep", "nightwear", "babydoll"]) || hasStyle(["dress"]))
-    inferred.push("Night Wear");
+  if (has(["night", "sleep", "nightwear", "babydoll"]) || hasStyle(["dress"])) {
+    inferred.push(has(["sexy", "lingerie"]) ? "Sexy Night Wear" : "Night Wear");
+  }
   if (
     has(["bra", "panty", "set", "2pcs", "3pcs"]) &&
     (has(["set", "2pcs", "3pcs"]) || hasStyle(["set"]))
   )
-    inferred.push("Bra & Pant Set");
-  if (has(["bra", "bralette"]) || hasStyle(["bra"])) inferred.push("Bra");
-  if (has(["pant", "panty", "thong"]) || hasStyle(["panty"])) inferred.push("Pant");
+    inferred.push("Bra & Pant");
   if (has(["sexy", "lingerie"]) || hasOccasion(["romantic", "party"]))
     inferred.push("Sexy Lingerie");
   if (
@@ -117,6 +100,7 @@ export function getProductTypeSlug(type: ProductTypeFilter): string {
 }
 
 export function getProductTypeFromSlug(slug: string): ProductTypeFilter | null {
+  if (slug === "bra-and-pant") return "Bra & Pant";
   const entry = requestedProductTypes.find((type) => productTypeLandingContent[type].slug === slug);
   return entry ?? null;
 }

@@ -4,6 +4,8 @@ import { publicGeneratedProducts } from "@/lib/public-products.generated";
 
 export type Collection = "Lace" | "Silk" | "Lounge" | "Everyday";
 
+export type ProductGroup = "Night Wear" | "Bra & Pant" | "Sexy Lingerie" | "Sexy Night Wear";
+
 export type ProductCoverage = "Sheer" | "Semi-Sheer" | "Opaque";
 
 export type ProductAttributes = {
@@ -31,6 +33,7 @@ export type Product = {
   id: string;
   name: string;
   brand: Collection; // collection label, kept as `brand` for compatibility
+  productType?: ProductGroup;
   tagline: string;
   description: string;
   price: number;
@@ -52,6 +55,26 @@ function normalizeCollection(value: unknown): Collection {
   if (typeof value !== "string") return "Lace";
   const match = KNOWN_COLLECTIONS.find((collection) => collection.toLowerCase() === value.toLowerCase());
   return match ?? "Lace";
+}
+
+function normalizeProductGroup(value: unknown): ProductGroup {
+  const raw = typeof value === "string" ? value.trim().toLowerCase() : "";
+  if (raw === "night wear" || raw === "nightwear") return "Night Wear";
+  if (raw === "bra & pant" || raw === "bra and pant" || raw === "bra & pant set") return "Bra & Pant";
+  if (raw === "sexy night wear" || raw === "sexy nightwear") return "Sexy Night Wear";
+  return "Sexy Lingerie";
+}
+
+function inferProductGroupFromName(name: string): ProductGroup {
+  const lower = name.toLowerCase();
+  const isNightWear = /(night|sleep|nightwear|babydoll|dress)/.test(lower);
+  const isSexy = /(sexy|lingerie|romantic|party|club|valentine)/.test(lower);
+  const isBraPant = /(bra).*(pant|panty|thong)|set|2pcs|3pcs/.test(lower);
+
+  if (isNightWear && isSexy) return "Sexy Night Wear";
+  if (isBraPant) return "Bra & Pant";
+  if (isNightWear) return "Night Wear";
+  return "Sexy Lingerie";
 }
 
 function normalizeSizeLabel(value: string): string {
@@ -370,6 +393,7 @@ function sanitizeProduct(input: unknown): Product | null {
     id,
     name,
     brand: normalizeCollection(candidate.brand),
+    productType: normalizeProductGroup(candidate.productType ?? inferProductGroupFromName(name)),
     tagline: baseTagline,
     description: baseDescription,
     price,
@@ -1321,6 +1345,7 @@ export function getServerProducts(): Product[] {
 export async function createCustomProduct(input: {
   name: string;
   brand: Collection;
+  productType: ProductGroup;
   price: number;
   image: string;
   gallery?: string[];
@@ -1343,6 +1368,7 @@ export async function createCustomProduct(input: {
     id,
     name: input.name,
     brand: input.brand,
+    productType: input.productType,
     price: input.price,
     image: input.image,
     gallery: input.gallery && input.gallery.length > 0 ? input.gallery : [input.image],
@@ -1403,6 +1429,7 @@ export async function updateCustomProduct(
   input: {
     name: string;
     brand: Collection;
+    productType: ProductGroup;
     price: number;
     image: string;
     gallery?: string[];
@@ -1427,6 +1454,7 @@ export async function updateCustomProduct(
     id,
     name: input.name,
     brand: input.brand,
+    productType: input.productType,
     price: input.price,
     image: input.image,
     gallery: input.gallery && input.gallery.length > 0 ? input.gallery : [input.image],

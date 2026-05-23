@@ -8,6 +8,7 @@ import {
   flushPendingWrites,
   getProducts,
   hasPendingSync,
+  type ProductGroup,
   subscribeProducts,
   subscribeProductsRealtime,
   updateCustomProduct,
@@ -33,6 +34,7 @@ type StatusFilter = "all" | "synced" | "pending";
 const emptyDraft: ProductDraftValue = {
   name: "",
   brand: "Lace",
+  productType: "Sexy Lingerie",
   price: "",
   image: "",
   description: "",
@@ -69,6 +71,7 @@ function AdminProducts() {
   const [products, setProducts] = useState<Product[]>(() => getProducts());
   const [search, setSearch] = useState("");
   const [brand, setBrand] = useState<"All" | Collection>("All");
+  const [group, setGroup] = useState<"All" | ProductGroup>("All");
   const [status, setStatus] = useState<StatusFilter>("all");
   const [sort, setSort] = useState<SortKey>("updated");
   const [page, setPage] = useState(1);
@@ -100,6 +103,9 @@ function AdminProducts() {
     if (brand !== "All") {
       next = next.filter((p) => p.brand === brand);
     }
+    if (group !== "All") {
+      next = next.filter((p) => (p.productType ?? "Sexy Lingerie") === group);
+    }
     if (status === "synced") {
       next = next.filter((p) => !hasPendingSync(p.id));
     } else if (status === "pending") {
@@ -112,7 +118,7 @@ function AdminProducts() {
     // "updated" sort keeps the existing order from getProducts() which is
     // already updated-desc thanks to fetchCustomProducts ordering.
     return next;
-  }, [products, search, brand, status, sort]);
+  }, [products, search, brand, group, status, sort]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
@@ -192,6 +198,7 @@ function AdminProducts() {
     const payload = {
       name,
       brand: draft.brand,
+      productType: draft.productType,
       price: priceNum,
       image,
       gallery,
@@ -252,7 +259,7 @@ function AdminProducts() {
         </button>
       </header>
 
-      <div className="mb-4 grid gap-3 rounded-2xl border border-border bg-background p-4 md:grid-cols-[1fr_auto_auto_auto]">
+      <div className="mb-4 grid gap-3 rounded-2xl border border-border bg-background p-4 md:grid-cols-[1fr_auto_auto_auto_auto]">
         <label className="relative block">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
@@ -273,6 +280,15 @@ function AdminProducts() {
             setPage(1);
           }}
           options={["All", "Lace", "Silk", "Lounge", "Everyday"]}
+        />
+        <FilterSelect
+          label="Group"
+          value={group}
+          onChange={(v) => {
+            setGroup(v as "All" | ProductGroup);
+            setPage(1);
+          }}
+          options={["All", "Night Wear", "Bra & Pant", "Sexy Lingerie", "Sexy Night Wear"]}
         />
         <FilterSelect
           label="Status"
@@ -507,6 +523,7 @@ function productToDraft(product: Product): ProductDraftValue {
   return {
     name: product.name,
     brand: product.brand,
+    productType: product.productType ?? "Sexy Lingerie",
     price: product.price.toString(),
     image: product.image,
     description: product.description,
