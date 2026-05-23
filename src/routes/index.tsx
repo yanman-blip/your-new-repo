@@ -96,7 +96,7 @@ function Home() {
       {
         tag: "New In",
         heading: "The Lace Edit",
-        sub: "Considered new pieces in silk, mesh and fine lace — handpicked weekly.",
+        sub: "Considered new pieces in silk, mesh and fine lace. Handpicked weekly.",
         cta: "Discover",
         sortKey: "newest" as const,
         image: pickImage(newProduct),

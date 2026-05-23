@@ -244,7 +244,7 @@ export function SiteFooter() {
             Wet Lace
           </div>
           <p className="text-muted-foreground italic font-display">
-            Considered lingerie, sleepwear and lounge — handpicked from each season for the ones who don't behave.
+            Considered lingerie, sleepwear and lounge. Handpicked from each season for the ones who don't behave.
           </p>
         </div>
         {footerSections.map((section) => (

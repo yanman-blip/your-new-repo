@@ -3,13 +3,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 export const Route = createFileRoute("/story")({
   head: () => ({
     meta: [
-      { title: "Our Story — Wet Lace" },
+      { title: "Our Story | Wet Lace" },
       {
         name: "description",
         content:
           "Wet Lace is a Harare-based lingerie house bringing considered pieces in lace, silk and mesh to women across Zimbabwe and the region.",
       },
-      { property: "og:title", content: "Our Story — Wet Lace" },
+      { property: "og:title", content: "Our Story | Wet Lace" },
       {
         property: "og:description",
         content:
@@ -62,13 +62,13 @@ function Story() {
         </div>
         <div className="mt-10 space-y-6 text-base leading-relaxed text-foreground/80 md:text-lg">
           <p>
-            For too long, women here have had to compromise — settle for what's on the shelf, or
-            wait weeks for a parcel to arrive from abroad. We saw an opening: bring the pieces women
-            actually want to their doorstep, fast, and with the care they deserve.
+            For too long, women here have had to compromise, settling for what's on the shelf or
+            waiting weeks for a parcel to arrive from abroad. We saw an opening: bring the pieces
+            women actually want to their doorstep, fast, and with the care they deserve.
           </p>
           <p>
             Every edit on our site is handpicked. We don't dump catalogues. We choose pieces we'd
-            wear ourselves, pieces with a story — a stitch of lace, a fall of silk, a colour that
+            wear ourselves, pieces with a story: a stitch of lace, a fall of silk, a colour that
             holds its own under low light.
           </p>
           <p className="font-display text-xl italic md:text-2xl">
@@ -127,13 +127,13 @@ function Story() {
             </h2>
             <div className="mt-6 space-y-5 text-base leading-relaxed text-foreground/80">
               <p>
-                We source from established workrooms in Guangzhou, Shantou and Istanbul — the same
-                ones supplying the brands you already know. The difference is what we choose, what
-                we reject, and the price we land at on the other side.
+                We source from established workrooms in Guangzhou, Shantou and Istanbul. The same
+                workrooms supplying the brands you already know. The difference is what we choose,
+                what we reject, and the price we land at on the other side.
               </p>
               <p>
                 Each piece is checked before it ships. We handle returns and exchanges directly,
-                from Harare — no offshore service desk, no week-long waits.
+                from Harare. No offshore service desk, no week-long waits.
               </p>
             </div>
             <Link
