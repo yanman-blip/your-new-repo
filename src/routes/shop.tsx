@@ -1226,7 +1226,7 @@ function Shop() {
             )}
           </div>
 
-          <div className="grid gap-4 grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+          <div className="grid gap-4 grid-cols-2 md:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6">
             {visibleProducts.length === 0 ? (
               <div className="col-span-full text-center py-20 text-muted-foreground">
                 Nothing matches these filters.

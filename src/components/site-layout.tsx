@@ -94,7 +94,7 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background">
       <div className="bg-[#111] text-white">
-        <div className="mx-auto flex h-8 max-w-7xl items-center justify-center gap-3 px-6 text-[11px] font-medium uppercase tracking-[0.18em]">
+        <div className="mx-auto flex h-7 max-w-7xl items-center justify-center gap-2.5 px-6 text-[10px] font-medium uppercase tracking-[0.15em]">
           <span className="inline-flex items-center gap-1.5"><Truck className="h-3 w-3" /> Express 2&ndash;10 days</span>
           <span className="opacity-50">·</span>
           <span className="hidden sm:inline">Free delivery over $49</span>
@@ -104,7 +104,7 @@ export function SiteHeader() {
       </div>
 
       <div className="hidden border-b border-border/70 bg-[#fafafa] md:block">
-        <div className="mx-auto flex h-9 max-w-7xl items-center justify-end gap-6 px-6 text-xs text-muted-foreground">
+        <div className="mx-auto flex h-8 max-w-7xl items-center justify-end gap-5 px-6 text-[11px] text-muted-foreground">
           <span className="inline-flex items-center gap-1.5">
             <Headset className="h-3.5 w-3.5" /> Support
           </span>
@@ -117,7 +117,7 @@ export function SiteHeader() {
         </div>
       </div>
 
-      <div className="mx-auto grid h-16 max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-3 px-4 md:px-6">
+      <div className="mx-auto grid h-14 max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-2 px-4 md:px-6">
         <button
           aria-label="Menu"
           className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-border md:hidden"
@@ -127,7 +127,7 @@ export function SiteHeader() {
         </button>
 
         <Link to="/" className="justify-self-start md:justify-self-center">
-          <span className="text-xl font-bold uppercase tracking-[0.18em] md:text-2xl md:tracking-[0.22em]">
+          <span className="text-lg font-bold uppercase tracking-[0.15em] md:text-[1.35rem] md:tracking-[0.18em]">
             Wet Lace
           </span>
         </Link>
@@ -137,21 +137,21 @@ export function SiteHeader() {
           <Link
             to="/wishlist"
             aria-label="Wishlist"
-            className="hidden h-9 w-9 items-center justify-center rounded-md border border-border hover:text-foreground transition-colors md:inline-flex"
+            className="hidden h-8 w-8 items-center justify-center rounded-md border border-border hover:text-foreground transition-colors md:inline-flex"
           >
             <Heart className="h-4 w-4" />
           </Link>
           <Link
             to={isAuthed ? "/account/orders" : "/auth"}
             aria-label={isAuthed ? "My orders" : "Sign in"}
-            className="hidden h-9 w-9 items-center justify-center rounded-md border border-border hover:text-foreground transition-colors md:inline-flex"
+            className="hidden h-8 w-8 items-center justify-center rounded-md border border-border hover:text-foreground transition-colors md:inline-flex"
           >
             <User className="h-4 w-4" />
           </Link>
           <button
             aria-label="Bag"
             onClick={() => setCartOpen(true)}
-            className="relative inline-flex h-9 w-9 items-center justify-center rounded-md border border-border hover:text-foreground transition-colors"
+            className="relative inline-flex h-8 w-8 items-center justify-center rounded-md border border-border hover:text-foreground transition-colors"
           >
             <ShoppingBag className="h-4 w-4" />
             {count > 0 && (
@@ -164,14 +164,14 @@ export function SiteHeader() {
       </div>
 
       <div className="hidden border-t border-border/70 md:block">
-        <nav className="mx-auto flex h-12 max-w-7xl items-center gap-7 overflow-x-auto px-6 text-sm font-medium">
+        <nav className="mx-auto flex h-10 max-w-7xl items-center gap-6 overflow-x-auto px-6 text-[13px] font-medium">
           {visibleNav.map((n) => (
             <Link
               key={`${n.to}-${n.label}`}
               to={n.to}
               search={n.search}
               params={n.params}
-              className={`whitespace-nowrap border-b-2 py-3 transition-colors ${path === n.to ? "border-black text-black" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+              className={`whitespace-nowrap border-b-2 py-2.5 transition-colors ${path === n.to ? "border-black text-black" : "border-transparent text-muted-foreground hover:text-foreground"}`}
             >
               {n.label}
             </Link>

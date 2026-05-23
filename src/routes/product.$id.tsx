@@ -828,12 +828,12 @@ function ProductPage() {
         </div>
       )}
 
-      <div className="mx-auto max-w-350 px-6 pt-8">
+      <div className="mx-auto max-w-7xl px-5 pt-8">
         <Link to="/shop" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
           <ChevronLeft className="w-4 h-4" /> All pieces
         </Link>
       </div>
-      <section id="details" className="scroll-mt-28 mx-auto max-w-350 px-6 pt-4 pb-8">
+      <section id="details" className="scroll-mt-28 mx-auto max-w-7xl px-5 pt-4 pb-8">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#ffc9d2] bg-[#fff0f2] px-4 py-3 text-sm">
           <div className="flex items-center gap-2 text-[#c9123a]">
             <Clock3 className="h-4 w-4" />
@@ -865,8 +865,8 @@ function ProductPage() {
             You May Also Like
           </button>
         </div>
-        <div className="grid gap-6 lg:grid-cols-[88px_minmax(0,1fr)_460px]">
-          <aside className="hidden lg:flex lg:flex-col lg:gap-3">
+        <div className="grid gap-4 lg:grid-cols-[68px_minmax(0,1fr)_390px]">
+          <aside className="hidden lg:flex lg:flex-col lg:gap-2.5">
             {activeGallery.map((img, idx) => (
               <button
                 key={img}
@@ -874,43 +874,43 @@ function ProductPage() {
                 aria-label={`View image ${idx + 1}`}
                 className={`overflow-hidden rounded-md border ${selectedImage === img ? "border-foreground" : "border-border"}`}
               >
-                <img src={img} alt={product.name} className="h-20 w-full object-cover" loading="lazy" onError={handleImageLoadError} />
+                <img src={img} alt={product.name} className="h-16 w-full object-cover" loading="lazy" onError={handleImageLoadError} />
               </button>
             ))}
           </aside>
 
           <div
-            className="group relative self-start overflow-hidden rounded-xl border border-border"
+            className="group relative self-start overflow-hidden rounded-xl border border-border lg:max-h-[76vh]"
             onTouchStart={onTouchStart}
             onTouchEnd={onTouchEnd}
           >
             <img
               src={selectedImage}
               alt={product.name}
-              className="block h-auto w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+              className="block h-auto w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
               onError={handleMainImageError}
             />
             <button
               onClick={showPrevImage}
-              className="absolute left-4 top-1/2 -translate-y-1/2 h-11 w-11 rounded-full border border-border bg-background/90 text-foreground hover:bg-background"
+              className="absolute left-3 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full border border-border bg-background/90 text-foreground hover:bg-background"
               aria-label="Previous image"
             >
-              <ChevronLeft className="mx-auto h-5 w-5" />
+              <ChevronLeft className="mx-auto h-4 w-4" />
             </button>
             <button
               onClick={showNextImage}
-              className="absolute right-4 top-1/2 -translate-y-1/2 h-11 w-11 rounded-full border border-border bg-background/90 text-foreground hover:bg-background"
+              className="absolute right-3 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full border border-border bg-background/90 text-foreground hover:bg-background"
               aria-label="Next image"
             >
-              <ChevronRight className="mx-auto h-5 w-5" />
+              <ChevronRight className="mx-auto h-4 w-4" />
             </button>
-            <div className="absolute bottom-4 right-4 rounded-full bg-background/90 px-3 py-1 text-xs text-muted-foreground">
+            <div className="absolute bottom-3 right-3 rounded-full bg-background/90 px-2.5 py-0.5 text-[11px] text-muted-foreground">
               {selectedIndex + 1} / {activeGallery.length}
             </div>
           </div>
 
           <div className="lg:sticky lg:top-24 self-start">
-            <h1 className="text-3xl font-medium leading-tight">{product.name}</h1>
+            <h1 className="text-2xl font-medium leading-tight">{product.name}</h1>
             <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
               <span>SKU: {sku}</span>
               <div className="flex items-center gap-1 text-[#f4b400]">
@@ -921,10 +921,10 @@ function ProductPage() {
               <span className="text-[#f4b400]">(1000+ reviews)</span>
             </div>
 
-            <div className="mt-5 flex items-end gap-3">
-              <span className="text-4xl font-semibold text-[#fe2c55]">{formatPrice(product.price, product.id)}</span>
+            <div className="mt-4 flex items-end gap-2.5">
+              <span className="text-3xl font-semibold text-[#fe2c55]">{formatPrice(product.price, product.id)}</span>
               <span className="rounded bg-[#fff0f2] px-2 py-0.5 text-sm font-medium text-[#fe2c55]">Estimated -{discountPct}%</span>
-              <span className="text-lg text-muted-foreground line-through">{formatOldPrice(oldPrice, product.id)}</span>
+              <span className="text-base text-muted-foreground line-through">{formatOldPrice(oldPrice, product.id)}</span>
               <span className="ml-auto inline-flex items-center gap-1 text-sm text-[#fe2c55]"><Clock3 className="h-4 w-4" /> Last day</span>
             </div>
 
@@ -939,18 +939,18 @@ function ProductPage() {
               <span>Use code WET15 for extra savings on this item.</span>
             </div>
 
-            <div className="mt-6">
-              <div className="text-2xl font-semibold">Color: <span className="font-normal text-muted-foreground">{color}</span></div>
-              <div className="mt-3 flex flex-wrap gap-3">
+            <div className="mt-5">
+              <div className="text-xl font-semibold">Color: <span className="font-normal text-muted-foreground">{color}</span></div>
+              <div className="mt-3 flex flex-wrap gap-2.5">
                 {availableColors.map((c) => (
                   <button
                     key={c}
                     onClick={() => setColor(c)}
                     aria-label={c}
-                    className="group flex w-16 flex-col items-center gap-1"
+                    className="group flex w-14 flex-col items-center gap-1"
                   >
                     <span
-                      className={`h-12 w-12 rounded-md border-2 ${colorClassMap[c] ?? "bg-muted"} ${color === c ? "border-foreground" : "border-border"}`}
+                      className={`h-11 w-11 rounded-md border-2 ${colorClassMap[c] ?? "bg-muted"} ${color === c ? "border-foreground" : "border-border"}`}
                     />
                     <span className={`text-xs ${color === c ? "font-medium text-foreground" : "text-muted-foreground group-hover:text-foreground"}`}>
                       {c}
@@ -960,14 +960,14 @@ function ProductPage() {
               </div>
             </div>
 
-            <div className="mt-6">
-              <div className="mb-3 text-3xl font-semibold">Size</div>
-              <div className="flex flex-wrap gap-3">
+            <div className="mt-5">
+              <div className="mb-2.5 text-2xl font-semibold">Size</div>
+              <div className="flex flex-wrap gap-2.5">
                 {product.storage.map((s) => (
                   <button
                     key={s}
                     onClick={() => setSize(s)}
-                    className={`min-w-16 rounded-full border px-6 py-2 text-xl transition ${size === s ? "border-foreground bg-foreground text-background" : "border-border hover:border-foreground/40"}`}
+                    className={`min-w-14 rounded-full border px-5 py-1.5 text-lg transition ${size === s ? "border-foreground bg-foreground text-background" : "border-border hover:border-foreground/40"}`}
                   >
                     {s}
                   </button>
@@ -1072,6 +1072,41 @@ function ProductPage() {
               <div className="inline-flex items-center gap-1"><Heart className="h-4 w-4" /> Loved by Harare shoppers</div>
             </div>
           </div>
+
+          <section className="hidden rounded-xl border border-border bg-surface p-5 lg:col-span-2 lg:block">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-xl font-semibold tracking-tight">Customer Reviews ({reviewCountLabel})</h2>
+              <button
+                type="button"
+                onClick={() => scrollToSection("reviews")}
+                className="text-xs font-medium text-muted-foreground hover:text-foreground"
+              >
+                View all reviews
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-3">
+              {displayedReviews.slice(0, 3).map((review) => (
+                <article key={`preview-${review.id}`} className="rounded-lg border border-border bg-background p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="text-sm font-semibold text-foreground">{review.name}</div>
+                      <div className="mt-0.5 text-xs text-muted-foreground">{review.date}</div>
+                    </div>
+                    <div className="flex items-center gap-1 text-[#f4b400]">
+                      {Array.from({ length: 5 }).map((_, index) => (
+                        <Star
+                          key={`${review.id}-preview-star-${index}`}
+                          className={`h-3.5 w-3.5 ${index < review.rating ? "fill-current" : "fill-neutral-200 text-neutral-200"}`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{review.text}</p>
+                </article>
+              ))}
+            </div>
+          </section>
         </div>
 
         <div className="mt-4 grid grid-cols-4 gap-2 lg:hidden">
@@ -1088,7 +1123,7 @@ function ProductPage() {
         </div>
       </section>
 
-      <section id="reviews" className="scroll-mt-28 mx-auto max-w-350 px-6 py-12">
+      <section id="reviews" className="scroll-mt-28 mx-auto max-w-7xl px-5 py-8">
         <div className="rounded-xl border border-border bg-surface p-5 md:p-6">
           <div className="flex items-center justify-between gap-4">
             <h2 className="text-3xl font-semibold tracking-tight">Customer Reviews ({reviewCountLabel})</h2>
@@ -1339,7 +1374,7 @@ function ProductPage() {
       <div id="recommendations" className="scroll-mt-28" />
 
       {bundleProducts.length > 0 && (
-        <section className="mx-auto max-w-350 px-6 pb-12">
+        <section className="mx-auto max-w-7xl px-5 pb-12">
           <div className="rounded-xl border border-border bg-background p-5 md:p-6">
             <h2 className="text-2xl font-semibold tracking-tight">Frequently Bought Together</h2>
             <p className="mt-1 text-sm text-muted-foreground">Complete the look with this high-converting pairing set.</p>
@@ -1385,7 +1420,7 @@ function ProductPage() {
       )}
 
       {alsoViewed.length > 0 && (
-        <section className="mx-auto max-w-350 px-6 pb-16">
+        <section className="mx-auto max-w-7xl px-5 pb-16">
           <h2 className="text-4xl font-semibold tracking-tight mb-6">Customers Also Viewed</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {alsoViewed.map((p) => (
@@ -1412,7 +1447,7 @@ function ProductPage() {
       )}
 
       {styleMatches.length > 0 && (
-        <section className="mx-auto max-w-350 px-6 pb-16">
+        <section className="mx-auto max-w-7xl px-5 pb-16">
           <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-6">
             Similar {primaryStyle ? `${primaryStyle} Styles` : "Styles You May Like"}
           </h2>
@@ -1431,7 +1466,7 @@ function ProductPage() {
       )}
 
       {mixedRecommendations.length > 0 && (
-        <section className="mx-auto max-w-350 px-6 pb-16">
+        <section className="mx-auto max-w-7xl px-5 pb-16">
           <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-2">Recommended Next</h2>
           <p className="mb-6 text-sm text-muted-foreground">A mixed feed of style matches and bag complements.</p>
           {import.meta.env.DEV && (
@@ -1462,7 +1497,7 @@ function ProductPage() {
       )}
 
       {related.length > 0 && (
-        <section className="mx-auto max-w-350 px-6 py-12">
+        <section className="mx-auto max-w-7xl px-5 py-12">
           <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-6">More from {product.brand}</h2>
           <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {related.map((p) => (
@@ -1479,7 +1514,7 @@ function ProductPage() {
       )}
 
       {recentlyViewed.length > 0 && (
-        <section className="mx-auto max-w-350 px-6 pb-16">
+        <section className="mx-auto max-w-7xl px-5 pb-16">
           <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-6">Your Recently Viewed</h2>
           <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {recentlyViewed.map((p) => (
@@ -1496,7 +1531,7 @@ function ProductPage() {
       )}
 
       <div className="fixed inset-x-0 bottom-14 z-60 border-t border-border bg-background/95 px-3 py-2.5 backdrop-blur md:bottom-0 lg:hidden">
-        <div className="mx-auto flex max-w-350 items-center gap-2">
+        <div className="mx-auto flex max-w-7xl items-center gap-2 px-5">
           <button
             type="button"
             aria-label={isWishlisted(product.id) ? "Remove from wishlist" : "Add to wishlist"}
