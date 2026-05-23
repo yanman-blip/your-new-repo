@@ -14,12 +14,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
-function isSellingFast(id: string): boolean {
-  let hash = 0;
-  for (const char of id) hash = (hash * 31 + char.charCodeAt(0)) & 0xffffffff;
-  return (Math.abs(hash) % 5) === 0; // ~20% of products
-}
-
 function getProductRating(id: string): { avg: number; count: number } {
   let hash = 0;
   for (const char of id) hash = (hash * 31 + char.charCodeAt(0)) & 0xffffffff;
@@ -40,6 +34,8 @@ type ProductCardProps = {
   large?: boolean;
   overlayText?: boolean;
   clean?: boolean;
+  recommendationReason?: string;
+  onClick?: () => void;
 };
 
 function getBadgeColor(badge?: string): { bg: string; text: string } {
@@ -56,7 +52,36 @@ function getBadgeColor(badge?: string): { bg: string; text: string } {
   }
 }
 
-export function ProductCard({ p, large = false, overlayText = false, clean = false }: ProductCardProps) {
+function getColorSwatchClass(colorName: string): string {
+  const token = colorName.trim().toLowerCase();
+  switch (token) {
+    case "black":
+      return "bg-[#1c1c1e]";
+    case "white":
+      return "bg-[#f5f3ee]";
+    case "red":
+      return "bg-[#aa1b2a]";
+    case "pink":
+      return "bg-[#f3c4cd]";
+    case "burgundy":
+      return "bg-[#7b1f2b]";
+    case "blue":
+      return "bg-[#2c4f9e]";
+    case "green":
+      return "bg-[#4f6f52]";
+    case "grey":
+    case "gray":
+      return "bg-[#7d7d82]";
+    case "cream":
+      return "bg-[#ece4d6]";
+    case "brown":
+      return "bg-[#7a5230]";
+    default:
+      return "bg-neutral-300";
+  }
+}
+
+export function ProductCard({ p, large = false, overlayText = false, clean = false, recommendationReason, onClick }: ProductCardProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
   const [quickSize, setQuickSize] = useState(p.storage[0] ?? "One Size");
@@ -65,7 +90,6 @@ export function ProductCard({ p, large = false, overlayText = false, clean = fal
   const { isWishlisted, toggle } = useWishlist();
   const { add, setOpen } = useCart();
   const wishlisted = isWishlisted(p.id);
-  const sellingFast = isSellingFast(p.id);
   const salePercent = getSalePercent(p.id);
   const compareAt = Math.round((p.price / (1 - salePercent / 100)) * 100) / 100;
   const primaryColor = p.colors[0]?.name ?? "Default";
@@ -87,6 +111,7 @@ export function ProductCard({ p, large = false, overlayText = false, clean = fal
         <Link
           to="/product/$id"
           params={{ id: p.id }}
+          onClick={onClick}
           className="group block w-full overflow-hidden rounded-xl bg-white transition-shadow hover:shadow-md"
         >
           {/* Image */}
@@ -110,11 +135,6 @@ export function ProductCard({ p, large = false, overlayText = false, clean = fal
             {p.badge && (
               <span className={`absolute top-2 right-2 rounded-sm px-2 py-1 text-[10px] uppercase tracking-widest font-semibold ${getBadgeColor(p.badge).bg} ${getBadgeColor(p.badge).text}`}>
                 {p.badge}
-              </span>
-            )}
-            {sellingFast && (
-              <span className="absolute bottom-2 left-2 rounded-sm bg-[#fff3e8] px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[#bb5a2b]">
-                Selling fast
               </span>
             )}
             {/* Wishlist heart */}
@@ -153,21 +173,27 @@ export function ProductCard({ p, large = false, overlayText = false, clean = fal
           </div>
           {/* Text below */}
           <div className="px-2 py-3">
-            <p className="text-xs text-neutral-500 mb-0.5 uppercase tracking-wide">{p.brand}</p>
+            <p className="text-[10px] text-neutral-500 mb-0.5 uppercase tracking-[0.14em]">{p.brand}</p>
             <h3 className="text-sm font-medium text-neutral-900 line-clamp-2 leading-snug">{p.name}</h3>
-            <div className="mt-1.5 flex items-center gap-2">
-              <p className="text-sm font-semibold text-[#e14f2a]">{formatPrice(p.price, p.id)}</p>
+            {recommendationReason && (
+              <p className="mt-1 inline-flex rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-medium text-neutral-600">
+                {recommendationReason}
+              </p>
+            )}
+            <div className="mt-2 flex items-center gap-2">
+              <p className="text-sm font-semibold text-foreground">{formatPrice(p.price, p.id)}</p>
               <p className="text-xs text-neutral-400 line-through">{formatPrice(compareAt, p.id)}</p>
-              <span className="text-[10px] font-semibold text-[#b6552f]">-{salePercent}%</span>
             </div>
 
-            <div className="mt-1 flex items-center gap-1.5">
-              {p.colors.slice(0, 4).map((color) => (
-                <span key={color.name} className="rounded-full border border-neutral-200 bg-neutral-100 px-1.5 py-0.5 text-[10px] text-neutral-600">
-                  {color.name}
-                </span>
+            <div className="mt-1.5 flex items-center gap-1">
+              {p.colors.slice(0, 5).map((color) => (
+                <span
+                  key={color.name}
+                  title={color.name}
+                  className={`h-3.5 w-3.5 rounded-full border border-neutral-300 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.6)] ${getColorSwatchClass(color.name)}`}
+                />
               ))}
-              {p.colors.length > 4 && <span className="text-[10px] text-neutral-400">+{p.colors.length - 4}</span>}
+              {p.colors.length > 5 && <span className="ml-0.5 text-[10px] text-neutral-400">+{p.colors.length - 5}</span>}
             </div>
 
             {(() => { const r = getProductRating(p.id); return (
@@ -194,9 +220,9 @@ export function ProductCard({ p, large = false, overlayText = false, clean = fal
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <p className="text-base font-semibold text-[#e14f2a]">{formatPrice(p.price, p.id)}</p>
+                  <p className="text-base font-semibold text-[#fe2c55]">{formatPrice(p.price, p.id)}</p>
                   <p className="text-sm text-neutral-400 line-through">{formatPrice(compareAt, p.id)}</p>
-                  <span className="text-xs font-semibold text-[#b6552f]">-{salePercent}%</span>
+                  <span className="text-xs font-semibold text-[#fe2c55]">-{salePercent}%</span>
                 </div>
 
                 <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Color</p>

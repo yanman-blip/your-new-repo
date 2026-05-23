@@ -13,6 +13,7 @@ import {
   updateCustomProduct,
   type Collection,
   type Product,
+  type ProductSizeGuideMeasurement,
 } from "@/lib/products";
 import { uploadProductImagesToStorage } from "@/lib/product-image-storage";
 import { ProductEditPanel, type ProductDraftValue } from "@/components/admin/product-edit-panel";
@@ -37,8 +38,32 @@ const emptyDraft: ProductDraftValue = {
   description: "",
   colors: "Black:#1c1c1e",
   sizes: "S,M,L,XL",
+  sizeFit: "true-to-size",
+  sizeGuidance: "Most shoppers choose their usual size for this style.",
+  sizeChart: "S|80-86 cm|86-92 cm\nM|86-92 cm|92-98 cm\nL|92-98 cm|98-104 cm\nXL|98-104 cm|104-110 cm",
   gallery: [],
 };
+
+function parseSizeChart(raw: string): ProductSizeGuideMeasurement[] {
+  return raw
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const [sizeRaw, bustRaw, hipsRaw] = line.split("|").map((value) => value.trim());
+      return {
+        size: sizeRaw || "",
+        bust: bustRaw || "",
+        hips: hipsRaw || "",
+      };
+    })
+    .filter((entry) => entry.size && entry.bust && entry.hips)
+    .slice(0, 12);
+}
+
+function toSizeChartText(chart: ProductSizeGuideMeasurement[]): string {
+  return chart.map((entry) => `${entry.size}|${entry.bust}|${entry.hips}`).join("\n");
+}
 
 function AdminProducts() {
   const [products, setProducts] = useState<Product[]>(() => getProducts());
@@ -163,6 +188,7 @@ function AdminProducts() {
       .filter(Boolean);
 
     const gallery = draft.gallery.length > 0 ? draft.gallery : [image];
+    const parsedSizeChart = parseSizeChart(draft.sizeChart);
     const payload = {
       name,
       brand: draft.brand,
@@ -172,6 +198,11 @@ function AdminProducts() {
       description: draft.description.trim() || name,
       colors,
       storage,
+      sizeGuide: {
+        fit: draft.sizeFit,
+        guidance: draft.sizeGuidance.trim() || "Most shoppers choose their usual size for this style.",
+        chart: parsedSizeChart,
+      },
     };
 
     try {
@@ -356,7 +387,7 @@ function AdminProducts() {
                         <img
                           src={product.image}
                           alt={product.name}
-                          className="h-12 w-12 flex-shrink-0 rounded-md border border-border object-cover"
+                          className="h-12 w-12 shrink-0 rounded-md border border-border object-cover"
                           loading="lazy"
                         />
                         <div className="min-w-0">
@@ -481,6 +512,10 @@ function productToDraft(product: Product): ProductDraftValue {
     description: product.description,
     colors: product.colors.map((c) => `${c.name}:${c.hex}`).join(", "),
     sizes: product.storage.join(","),
+    sizeFit: product.sizeGuide?.fit ?? "true-to-size",
+    sizeGuidance:
+      product.sizeGuide?.guidance ?? "Most shoppers choose their usual size for this style.",
+    sizeChart: toSizeChartText(product.sizeGuide?.chart ?? []),
     gallery: product.gallery && product.gallery.length > 0 ? product.gallery : [product.image],
   };
 }

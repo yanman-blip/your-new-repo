@@ -2,13 +2,14 @@ import { createFileRoute, notFound, Link } from "@tanstack/react-router";
 import { fetchProductById, getProduct, products, type Product } from "@/lib/products";
 import { useCart } from "@/lib/cart";
 import { formatPrice, formatOldPrice } from "@/lib/format-price";
-import { productFolderGalleryManifest } from "@/lib/product-folder-galleries";
-import { productVariantManifest } from "@/lib/product-variants";
+import { resolvedProductFolderGalleryManifest, resolvedProductVariantManifest } from "@/lib/public-product-images";
 import { useEffect, useMemo, useRef, useState, type SyntheticEvent } from "react";
 import { Check, ChevronLeft, ChevronRight, Clock3, Heart, Star, Truck } from "lucide-react";
 import { ProductCard } from "@/components/product-card";
 import { useWishlist } from "@/lib/wishlist";
 import { markProductRecentlyViewed, useRecentlyViewedProducts } from "@/lib/recently-viewed";
+import { trackRecommendationClick, trackRecommendationImpression } from "@/lib/recommendation-analytics";
+import { createProductReview, fetchProductReviews, type ProductReviewFit } from "@/lib/product-reviews";
 
 const colorClassMap: Record<string, string> = {
   Blush: "bg-[#f3c4cd]",
@@ -75,6 +76,15 @@ type CustomerReview = {
   helpful: number;
 };
 
+type ReviewSort = "helpful" | "newest" | "highest" | "lowest";
+type ReviewFilter = "all" | "with-photos" | "5-star" | "4-star" | "true-to-size";
+
+function formatReviewDate(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+}
+
 function buildReviews(gallery: string[]): CustomerReview[] {
   const safeGallery = gallery.length > 0 ? gallery : ["/pexels-foundertips-5218948.jpg"];
   return [
@@ -126,8 +136,39 @@ function getStockHint(id: string): { count: number; urgent: boolean; label: stri
   return { count, urgent: false, label: `${count} in stock` };
 }
 
+function getLiveShoppersHint(id: string): number {
+  let hash = 0;
+  for (const char of id) hash = (hash * 37 + char.charCodeAt(0)) & 0xffffffff;
+  return (Math.abs(hash) % 14) + 7; // 7-20 shoppers
+}
+
+function formatCountdown(totalSeconds: number): string {
+  const safe = Math.max(0, totalSeconds);
+  const hours = Math.floor(safe / 3600).toString().padStart(2, "0");
+  const minutes = Math.floor((safe % 3600) / 60).toString().padStart(2, "0");
+  const seconds = Math.floor(safe % 60).toString().padStart(2, "0");
+  return `${hours}:${minutes}:${seconds}`;
+}
+
 function shortenName(name: string): string {
   return name.length > 32 ? `${name.slice(0, 29)}...` : name;
+}
+
+function getFitBreakdown(fit: "runs-small" | "true-to-size" | "runs-large") {
+  if (fit === "runs-small") return { small: 58, trueToSize: 35, large: 7 };
+  if (fit === "runs-large") return { small: 8, trueToSize: 40, large: 52 };
+  return { small: 12, trueToSize: 80, large: 8 };
+}
+
+function getFitWidthClass(percent: number): string {
+  if (percent >= 80) return "w-[80%]";
+  if (percent >= 58) return "w-[58%]";
+  if (percent >= 52) return "w-[52%]";
+  if (percent >= 40) return "w-[40%]";
+  if (percent >= 35) return "w-[35%]";
+  if (percent >= 12) return "w-[12%]";
+  if (percent >= 8) return "w-[8%]";
+  return "w-[7%]";
 }
 
 function toDisplayColorName(raw: string): string {
@@ -190,10 +231,18 @@ function getProductImagesPublicBaseUrl(imagePath: string): string | null {
   if (!/^https?:\/\//i.test(imagePath)) return null;
   try {
     const url = new URL(imagePath);
-    const marker = "/storage/v1/object/public/product-images/";
-    const markerIndex = url.pathname.indexOf(marker);
-    if (markerIndex === -1) return null;
-    return `${url.origin}/storage/v1/object/public/product-images`;
+    const objectMarker = "/storage/v1/object/public/product-images/";
+    const renderMarker = "/storage/v1/render/image/public/product-images/";
+
+    if (url.pathname.includes(renderMarker)) {
+      return `${url.origin}/storage/v1/render/image/public/product-images`;
+    }
+
+    if (url.pathname.includes(objectMarker)) {
+      return `${url.origin}/storage/v1/render/image/public/product-images`;
+    }
+
+    return null;
   } catch {
     return null;
   }
@@ -213,6 +262,23 @@ function encodeStoragePath(rawPath: string): string {
     .join("/");
 }
 
+function normalizeLocalPublicPath(rawPath: string): string {
+  const [pathWithLeadingSlash, searchAndHash = ""] = rawPath.split(/(?=[?#])/);
+  const hasLeadingSlash = pathWithLeadingSlash.startsWith("/");
+  const segments = pathWithLeadingSlash
+    .split("/")
+    .filter(Boolean)
+    .map((segment) => {
+      try {
+        return decodeURIComponent(segment);
+      } catch {
+        return segment;
+      }
+    });
+
+  return `${hasLeadingSlash ? "/" : ""}${segments.join("/")}${searchAndHash}`;
+}
+
 function toPublicProductImageUrl(
   imagePath: string,
   baseUrl: string | null,
@@ -220,6 +286,9 @@ function toPublicProductImageUrl(
 ): string {
   if (!imagePath) return imagePath;
   if (/^https?:\/\//i.test(imagePath)) return imagePath;
+  if (imagePath.startsWith("/")) {
+    return normalizeLocalPublicPath(imagePath);
+  }
   if (!baseUrl) return imagePath;
 
   const rawPath = imagePath.replace(/^\/+/, "");
@@ -237,7 +306,8 @@ function toPublicProductImageUrl(
   }
 
   const encodedPath = encodeStoragePath(segments.join("/"));
-  return `${baseUrl}/${encodedPath}`;
+  const delimiter = baseUrl.includes("?") ? "&" : "?";
+  return `${baseUrl}/${encodedPath}${delimiter}quality=85&width=1200`;
 }
 
 function toNormalizedProductFolderImageUrl(imageUrl: string): string | null {
@@ -284,7 +354,7 @@ function tryImageNormalizedFallback(img: HTMLImageElement): boolean {
 function applyImagePlaceholder(img: HTMLImageElement) {
   if (img.dataset.placeholderApplied === "1") return;
   img.dataset.placeholderApplied = "1";
-  img.src = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+  img.src = "/pexels-foundertips-5218948.jpg";
 }
 
 function handleImageLoadError(event: SyntheticEvent<HTMLImageElement>) {
@@ -312,9 +382,10 @@ function resolveVariantImageUrl(
 ): string {
   if (!imagePath) return imagePath;
   if (/^https?:\/\//i.test(imagePath)) return imagePath;
+  const isLocalPublicPath = imagePath.startsWith("/");
 
   const filename = getDecodedFilename(imagePath);
-  if (filename) {
+  if (filename && !isLocalPublicPath) {
     const knownAbsolute = absoluteByFilename.get(filename);
     if (knownAbsolute) return knownAbsolute;
   }
@@ -357,8 +428,8 @@ function resolveManifestProductFolderKey(imagePath: string): string {
   if (!folderFromPath) return "";
 
   const folderKeyCandidates = new Set<string>([
-    ...Object.keys(productFolderGalleryManifest),
-    ...Object.keys(productVariantManifest),
+    ...Object.keys(resolvedProductVariantManifest),
+    ...Object.keys(resolvedProductFolderGalleryManifest),
   ]);
 
   if (folderKeyCandidates.has(folderFromPath)) return folderFromPath;
@@ -371,11 +442,11 @@ function resolveManifestProductFolderKey(imagePath: string): string {
   const filename = getDecodedFilename(imagePath);
   if (!filename) return folderFromPath;
 
-  for (const [key, images] of Object.entries(productFolderGalleryManifest)) {
+  for (const [key, images] of Object.entries(resolvedProductFolderGalleryManifest)) {
     if (images.some((img) => getDecodedFilename(img) === filename)) return key;
   }
 
-  for (const [key, variants] of Object.entries(productVariantManifest)) {
+  for (const [key, variants] of Object.entries(resolvedProductVariantManifest)) {
     for (const images of Object.values(variants)) {
       if (images.some((img) => getDecodedFilename(img) === filename)) return key;
     }
@@ -396,9 +467,11 @@ function detectColorFromImagePath(imagePath: string): string | null {
 
 function ProductPage() {
   const { product } = Route.useLoaderData() as { product: Product };
+  const sizeGuide = product.sizeGuide;
+  const fitBreakdown = getFitBreakdown(sizeGuide?.fit ?? "true-to-size");
   const recentlyViewedRaw = useRecentlyViewedProducts(8);
   const recentlyViewed = recentlyViewedRaw.filter((p) => p.id !== product.id).slice(0, 4);
-  const { add, setOpen } = useCart();
+  const { add, setOpen, detailed } = useCart();
   const { isWishlisted, toggle: toggleWishlist } = useWishlist();
   const [size, setSize] = useState(product.storage[0]);
   const productImagesBaseUrl = getProductImagesPublicBaseUrl(product.image);
@@ -406,12 +479,12 @@ function ProductPage() {
   const productFolder = getProductFolderName(product.image);
   const folderGallery = useMemo(
     () =>
-      (productFolderGalleryManifest[productFolder] ?? []).map((imagePath) =>
+      (resolvedProductFolderGalleryManifest[productFolder] ?? []).map((imagePath) =>
         toPublicProductImageUrl(imagePath, productImagesBaseUrl, canonicalFolderSegment),
       ),
     [productFolder, productImagesBaseUrl, canonicalFolderSegment],
   );
-  const folderVariants = productVariantManifest[productFolder] ?? {};
+  const folderVariants = resolvedProductVariantManifest[productFolder] ?? {};
   const knownAbsoluteImagesByFilename = useMemo(
     () =>
       buildAbsoluteImageByFilename([
@@ -532,14 +605,199 @@ function ProductPage() {
   const related = products.filter((p) => p.id !== product.id && p.brand === product.brand).slice(0, 3);
   const alsoViewed = products.filter((p) => p.id !== product.id).slice(0, 10);
   const bundleProducts = products.filter((p) => p.id !== product.id).slice(0, 2);
-  const reviews = buildReviews(activeGallery);
-  const averageRating = reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
+  const primaryStyle = product.attributes?.styles?.[0];
+  const primaryFabric = product.attributes?.fabrics?.[0];
+  const styleMatches = products
+    .filter((p) => p.id !== product.id)
+    .filter((p) => {
+      if (primaryStyle && (p.attributes?.styles ?? []).includes(primaryStyle)) return true;
+      if (primaryFabric && (p.attributes?.fabrics ?? []).includes(primaryFabric)) return true;
+      return false;
+    })
+    .slice(0, 4);
+  const mixedRecommendations = useMemo(() => {
+    const inBagIds = new Set(detailed.map((item) => item.productId));
+    const bagBrands = new Set(detailed.map((item) => item.product.brand));
+
+    return products
+      .filter((candidate) => candidate.id !== product.id)
+      .filter((candidate) => !inBagIds.has(candidate.id))
+      .map((candidate) => {
+        let score = 0;
+        const reasons: string[] = [];
+        const candidateStyles = candidate.attributes?.styles ?? [];
+        const candidateFabrics = candidate.attributes?.fabrics ?? [];
+
+        if (primaryStyle && candidateStyles.includes(primaryStyle)) {
+          score += 24;
+          reasons.push(`Because you viewed ${primaryStyle.toLowerCase()} styles`);
+        }
+        if (primaryFabric && candidateFabrics.includes(primaryFabric)) {
+          score += 20;
+          reasons.push(`Matches your ${primaryFabric.toLowerCase()} preference`);
+        }
+        if (bagBrands.has(candidate.brand)) {
+          score += 18;
+          reasons.push("Pairs with items in your bag");
+        }
+        if (recentlyViewed.some((recent) => recent.brand === candidate.brand)) {
+          score += 8;
+          reasons.push("From brands you viewed");
+        }
+
+        return {
+          product: candidate,
+          score,
+          reason: reasons[0] ?? "Recommended for you",
+        };
+      })
+      .filter((entry) => entry.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 6);
+  }, [detailed, product.id, primaryFabric, primaryStyle, recentlyViewed]);
+  const [liveReviews, setLiveReviews] = useState<CustomerReview[]>([]);
+  const [loadingLiveReviews, setLoadingLiveReviews] = useState(false);
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewSubmitError, setReviewSubmitError] = useState("");
+  const [reviewSubmitSuccess, setReviewSubmitSuccess] = useState("");
+  const [reviewName, setReviewName] = useState("");
+  const [reviewRatingInput, setReviewRatingInput] = useState(5);
+  const [reviewFitInput, setReviewFitInput] = useState<ProductReviewFit>("True to size");
+  const [reviewSizeInput, setReviewSizeInput] = useState(product.storage[0] ?? "M");
+  const [reviewTextInput, setReviewTextInput] = useState("");
+  const [reviewPhotosInput, setReviewPhotosInput] = useState("");
+
+  const demoReviews = useMemo(() => buildReviews(activeGallery), [activeGallery]);
+  const reviews = useMemo(() => [...liveReviews, ...demoReviews], [liveReviews, demoReviews]);
+  const [reviewSort, setReviewSort] = useState<ReviewSort>("helpful");
+  const [reviewFilter, setReviewFilter] = useState<ReviewFilter>("all");
+
+  useEffect(() => {
+    let disposed = false;
+    setLoadingLiveReviews(true);
+    void fetchProductReviews(product.id)
+      .then((rows) => {
+        if (disposed) return;
+        const mapped: CustomerReview[] = rows.map((row) => ({
+          id: row.id,
+          name: row.reviewerName,
+          rating: row.rating,
+          date: formatReviewDate(row.createdAt),
+          fit: row.fit,
+          size: row.sizeLabel,
+          text: row.reviewText,
+          photos: row.photos,
+          verified: row.verifiedPurchase,
+          helpful: row.helpfulCount,
+        }));
+        setLiveReviews(mapped);
+      })
+      .catch(() => {
+        if (!disposed) setLiveReviews([]);
+      })
+      .finally(() => {
+        if (!disposed) setLoadingLiveReviews(false);
+      });
+
+    return () => {
+      disposed = true;
+    };
+  }, [product.id]);
+
+  const displayedReviews = useMemo(() => {
+    let list = [...reviews];
+
+    if (reviewFilter === "with-photos") {
+      list = list.filter((review) => review.photos.length > 0);
+    }
+    if (reviewFilter === "5-star") {
+      list = list.filter((review) => review.rating === 5);
+    }
+    if (reviewFilter === "4-star") {
+      list = list.filter((review) => review.rating === 4);
+    }
+    if (reviewFilter === "true-to-size") {
+      list = list.filter((review) => review.fit === "True to size");
+    }
+
+    if (reviewSort === "helpful") {
+      list.sort((a, b) => b.helpful - a.helpful);
+    }
+    if (reviewSort === "newest") {
+      list.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    }
+    if (reviewSort === "highest") {
+      list.sort((a, b) => b.rating - a.rating);
+    }
+    if (reviewSort === "lowest") {
+      list.sort((a, b) => a.rating - b.rating);
+    }
+
+    return list;
+  }, [reviews, reviewFilter, reviewSort]);
+  const averageRating = reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0;
   const sku = `JC-${product.id.replace(/-/g, "").slice(0, 10).toUpperCase()}`;
   const oldPrice = Math.max(product.price + 18, Math.round(product.price * 1.8));
   const discountPct = Math.max(1, Math.round(((oldPrice - product.price) / oldPrice) * 100));
   const stock = getStockHint(product.id);
+  const liveShoppers = getLiveShoppersHint(product.id);
   const bundleTotal = product.price + bundleProducts.reduce((sum, item) => sum + item.price, 0);
   const [lightboxPhoto, setLightboxPhoto] = useState<string | null>(null);
+  const reviewCountLabel = reviews.length >= 1000 ? "1000+" : String(reviews.length);
+  const initialDealSeconds = useMemo(() => {
+    let hash = 0;
+    for (const char of product.id) hash = (hash * 39 + char.charCodeAt(0)) & 0xffffffff;
+    return 4 * 3600 + (Math.abs(hash) % 7200); // 4h to 6h window
+  }, [product.id]);
+  const [dealSecondsLeft, setDealSecondsLeft] = useState(initialDealSeconds);
+
+  useEffect(() => {
+    setDealSecondsLeft(initialDealSeconds);
+  }, [initialDealSeconds]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setDealSecondsLeft((current) => Math.max(0, current - 1));
+    }, 1000);
+
+    return () => window.clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    for (const product of alsoViewed) {
+      trackRecommendationImpression("pdp-customers-also-viewed", product.id);
+    }
+  }, [alsoViewed]);
+
+  useEffect(() => {
+    for (const product of styleMatches) {
+      trackRecommendationImpression("pdp-style-matches", product.id);
+    }
+  }, [styleMatches]);
+
+  useEffect(() => {
+    for (const entry of mixedRecommendations) {
+      trackRecommendationImpression("pdp-mixed-next", entry.product.id);
+    }
+  }, [mixedRecommendations]);
+
+  useEffect(() => {
+    for (const product of related) {
+      trackRecommendationImpression("pdp-brand-more", product.id);
+    }
+  }, [related]);
+
+  useEffect(() => {
+    for (const product of recentlyViewed) {
+      trackRecommendationImpression("pdp-recently-viewed", product.id);
+    }
+  }, [recentlyViewed]);
+
+  const scrollToSection = (sectionId: string) => {
+    const target = document.getElementById(sectionId);
+    if (!target) return;
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
     <>
@@ -575,7 +833,38 @@ function ProductPage() {
           <ChevronLeft className="w-4 h-4" /> All pieces
         </Link>
       </div>
-      <section className="mx-auto max-w-350 px-6 py-8">
+      <section id="details" className="scroll-mt-28 mx-auto max-w-350 px-6 pt-4 pb-8">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#ffc9d2] bg-[#fff0f2] px-4 py-3 text-sm">
+          <div className="flex items-center gap-2 text-[#c9123a]">
+            <Clock3 className="h-4 w-4" />
+            <span className="font-semibold">Flash deal ends in {formatCountdown(dealSecondsLeft)}</span>
+          </div>
+          <div className="text-[#7a3a27]">Free returns in 30 days</div>
+        </div>
+
+        <div className="mb-5 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => scrollToSection("details")}
+            className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold hover:border-foreground/40"
+          >
+            Product Details
+          </button>
+          <button
+            type="button"
+            onClick={() => scrollToSection("reviews")}
+            className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold hover:border-foreground/40"
+          >
+            Reviews
+          </button>
+          <button
+            type="button"
+            onClick={() => scrollToSection("recommendations")}
+            className="rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold hover:border-foreground/40"
+          >
+            You May Also Like
+          </button>
+        </div>
         <div className="grid gap-6 lg:grid-cols-[88px_minmax(0,1fr)_460px]">
           <aside className="hidden lg:flex lg:flex-col lg:gap-3">
             {activeGallery.map((img, idx) => (
@@ -620,7 +909,7 @@ function ProductPage() {
             </div>
           </div>
 
-          <div>
+          <div className="lg:sticky lg:top-24 self-start">
             <h1 className="text-3xl font-medium leading-tight">{product.name}</h1>
             <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
               <span>SKU: {sku}</span>
@@ -633,18 +922,22 @@ function ProductPage() {
             </div>
 
             <div className="mt-5 flex items-end gap-3">
-              <span className="text-4xl font-semibold text-[#e14f2a]">{formatPrice(product.price, product.id)}</span>
-              <span className="rounded bg-[#ffe9dc] px-2 py-0.5 text-sm font-medium text-[#e14f2a]">Estimated -{discountPct}%</span>
+              <span className="text-4xl font-semibold text-[#fe2c55]">{formatPrice(product.price, product.id)}</span>
+              <span className="rounded bg-[#fff0f2] px-2 py-0.5 text-sm font-medium text-[#fe2c55]">Estimated -{discountPct}%</span>
               <span className="text-lg text-muted-foreground line-through">{formatOldPrice(oldPrice, product.id)}</span>
-              <span className="ml-auto inline-flex items-center gap-1 text-sm text-[#e14f2a]"><Clock3 className="h-4 w-4" /> Last day</span>
+              <span className="ml-auto inline-flex items-center gap-1 text-sm text-[#fe2c55]"><Clock3 className="h-4 w-4" /> Last day</span>
             </div>
 
             <div className="mt-4 flex flex-wrap gap-2 text-sm">
               {["53% OFF: No Min. Buy", "51% OFF orders $31.64+", "35% OFF select items"].map((offer) => (
-                <span key={offer} className="rounded border border-[#ffb79f] bg-[#fff2ec] px-2 py-1 text-[#e14f2a]">{offer}</span>
+                <span key={offer} className="rounded border border-[#ffc9d2] bg-[#fff0f2] px-2 py-1 text-[#fe2c55]">{offer}</span>
               ))}
             </div>
             <div className="mt-3 rounded border border-[#b9dcca] bg-[#e8f5ec] px-3 py-2 text-[#1f7d57]">Special Free Shipping Deal</div>
+            <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-[#ffc9d2] bg-[#fff0f2] px-3 py-2 text-xs text-[#c9123a]">
+              <span className="rounded-full bg-[#111] px-2 py-0.5 font-semibold text-white">Coupon</span>
+              <span>Use code WET15 for extra savings on this item.</span>
+            </div>
 
             <div className="mt-6">
               <div className="text-2xl font-semibold">Color: <span className="font-normal text-muted-foreground">{color}</span></div>
@@ -680,6 +973,29 @@ function ProductPage() {
                   </button>
                 ))}
               </div>
+              <div className="mt-3 rounded-xl border border-border bg-surface px-4 py-3 text-sm text-muted-foreground">
+                <div className="font-medium text-foreground">Sizing guidance</div>
+                <p className="mt-1">
+                  {sizeGuide?.guidance ?? "Most shoppers choose their usual size for this style."}
+                </p>
+              </div>
+
+              {sizeGuide?.chart && sizeGuide.chart.length > 0 && (
+                <div className="mt-3 overflow-hidden rounded-xl border border-border bg-background">
+                  <div className="grid grid-cols-3 border-b border-border bg-surface px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    <span>Size</span>
+                    <span>Bust</span>
+                    <span>Hips</span>
+                  </div>
+                  {sizeGuide.chart.map((row) => (
+                    <div key={row.size} className="grid grid-cols-3 border-b border-border/70 px-3 py-2 text-xs last:border-b-0">
+                      <span className="font-medium text-foreground">{row.size}</span>
+                      <span className="text-muted-foreground">{row.bust}</span>
+                      <span className="text-muted-foreground">{row.hips}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Scarcity signal */}
@@ -690,6 +1006,10 @@ function ProductPage() {
             }`}>
               <span className={`h-2 w-2 rounded-full ${stock.urgent ? "bg-red-500 animate-pulse" : "bg-amber-500"}`} />
               {stock.label}
+            </div>
+            <div className="mt-2 flex items-center gap-2 rounded-lg border border-[#efe6c3] bg-[#fffbe8] px-3 py-2 text-sm text-[#7c6a18]">
+              <span className="h-2 w-2 rounded-full bg-[#e0b400]" />
+              {liveShoppers} shoppers are viewing this right now
             </div>
 
             <div className="mt-4 flex gap-3">
@@ -707,13 +1027,12 @@ function ProductPage() {
                 <Heart className={`mx-auto h-8 w-8 transition-colors ${isWishlisted(product.id) ? "fill-red-500 text-red-500" : ""}`} />
               </button>
             </div>
-
             <Link
               to="/checkout"
               onClick={() => add({ productId: product.id, storage: size, color, qty: 1 })}
-              className="mt-3 inline-block text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
+              className="mt-3 inline-flex w-full items-center justify-center rounded-none border border-black bg-white py-3 text-sm font-semibold text-black hover:bg-black hover:text-white"
             >
-              Buy now
+              BUY NOW
             </Link>
 
             <div className="mt-6 space-y-3">
@@ -724,11 +1043,11 @@ function ProductPage() {
                   <div className="text-muted-foreground">30-day exchanges on all orders</div>
                 </div>
               </div>
-              <div className="flex gap-3 rounded-xl border border-border bg-background p-4">
-                <Clock3 className="h-5 w-5 shrink-0 text-foreground mt-0.5" />
+              <div className="flex gap-3 rounded-xl border border-[#ffc9d2] bg-[#fff0f2] p-4">
+                <Clock3 className="h-5 w-5 shrink-0 text-[#fe2c55] mt-0.5" />
                 <div className="text-sm">
-                  <div className="font-semibold">Ships in 1-2 days</div>
-                  <div className="text-muted-foreground">Delivery within 3-5 business days</div>
+                  <div className="font-semibold text-[#c9123a]">Delivers in 2&ndash;10 days</div>
+                  <div className="text-[#a40d2f]">Across Harare and major cities</div>
                 </div>
               </div>
             </div>
@@ -769,12 +1088,139 @@ function ProductPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-350 px-6 py-12">
+      <section id="reviews" className="scroll-mt-28 mx-auto max-w-350 px-6 py-12">
         <div className="rounded-xl border border-border bg-surface p-5 md:p-6">
           <div className="flex items-center justify-between gap-4">
-            <h2 className="text-3xl font-semibold tracking-tight">Customer Reviews (1000+)</h2>
+            <h2 className="text-3xl font-semibold tracking-tight">Customer Reviews ({reviewCountLabel})</h2>
             <button className="text-sm text-muted-foreground hover:text-foreground">View all</button>
           </div>
+
+          <form
+            className="mt-5 rounded-xl border border-border bg-background p-4"
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (submittingReview) return;
+
+              const name = reviewName.trim();
+              const text = reviewTextInput.trim();
+              const sizeValue = reviewSizeInput.trim();
+              if (!name || !text || !sizeValue) {
+                setReviewSubmitError("Please fill in your name, size, and review text.");
+                setReviewSubmitSuccess("");
+                return;
+              }
+
+              const photos = reviewPhotosInput
+                .split(",")
+                .map((value) => value.trim())
+                .filter(Boolean);
+
+              setSubmittingReview(true);
+              setReviewSubmitError("");
+              setReviewSubmitSuccess("");
+
+              void createProductReview({
+                productId: product.id,
+                reviewerName: name,
+                rating: reviewRatingInput,
+                fit: reviewFitInput,
+                sizeLabel: sizeValue,
+                reviewText: text,
+                photos,
+              })
+                .then((created) => {
+                  const review: CustomerReview = {
+                    id: created.id,
+                    name: created.reviewerName,
+                    rating: created.rating,
+                    date: formatReviewDate(created.createdAt),
+                    fit: created.fit,
+                    size: created.sizeLabel,
+                    text: created.reviewText,
+                    photos: created.photos,
+                    verified: created.verifiedPurchase,
+                    helpful: created.helpfulCount,
+                  };
+                  setLiveReviews((current) => [review, ...current]);
+                  setReviewName("");
+                  setReviewTextInput("");
+                  setReviewPhotosInput("");
+                  setReviewSubmitSuccess("Review posted. Thank you for sharing your experience.");
+                })
+                .catch(() => {
+                  setReviewSubmitError("Could not post your review right now. Please try again.");
+                })
+                .finally(() => {
+                  setSubmittingReview(false);
+                });
+            }}
+          >
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Write a review</h3>
+            <div className="mt-3 grid gap-3 md:grid-cols-2">
+              <input
+                value={reviewName}
+                onChange={(event) => setReviewName(event.target.value)}
+                placeholder="Your name"
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                aria-label="Reviewer name"
+              />
+              <input
+                value={reviewSizeInput}
+                onChange={(event) => setReviewSizeInput(event.target.value)}
+                placeholder="Size purchased"
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                aria-label="Purchased size"
+              />
+              <select
+                value={reviewRatingInput}
+                onChange={(event) => setReviewRatingInput(Number(event.target.value))}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                aria-label="Review rating"
+              >
+                <option value={5}>5 - Excellent</option>
+                <option value={4}>4 - Good</option>
+                <option value={3}>3 - Okay</option>
+                <option value={2}>2 - Poor</option>
+                <option value={1}>1 - Bad</option>
+              </select>
+              <select
+                value={reviewFitInput}
+                onChange={(event) => setReviewFitInput(event.target.value as ProductReviewFit)}
+                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                aria-label="Review fit"
+              >
+                <option value="True to size">True to size</option>
+                <option value="Small">Small</option>
+                <option value="Large">Large</option>
+              </select>
+            </div>
+            <textarea
+              value={reviewTextInput}
+              onChange={(event) => setReviewTextInput(event.target.value)}
+              placeholder="Tell other shoppers how it fits, feels, and looks..."
+              className="mt-3 min-h-24 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+              aria-label="Review text"
+            />
+            <input
+              value={reviewPhotosInput}
+              onChange={(event) => setReviewPhotosInput(event.target.value)}
+              placeholder="Optional photo URLs (comma separated)"
+              className="mt-3 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+              aria-label="Review photo URLs"
+            />
+            <div className="mt-3 flex items-center justify-between gap-3">
+              <button
+                type="submit"
+                disabled={submittingReview}
+                className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background disabled:opacity-60"
+              >
+                {submittingReview ? "Posting..." : "Post review"}
+              </button>
+              {loadingLiveReviews && <span className="text-xs text-muted-foreground">Refreshing reviews...</span>}
+            </div>
+            {reviewSubmitError && <p className="mt-2 text-xs text-[#b42318]">{reviewSubmitError}</p>}
+            {reviewSubmitSuccess && <p className="mt-2 text-xs text-[#1f7d57]">{reviewSubmitSuccess}</p>}
+          </form>
 
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <span className="text-5xl font-semibold leading-none">{averageRating.toFixed(2)}</span>
@@ -786,30 +1232,62 @@ function ProductPage() {
             <span className="text-sm text-muted-foreground">Review policy</span>
           </div>
 
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            {([
+              { id: "all", label: "All" },
+              { id: "with-photos", label: "With photos" },
+              { id: "5-star", label: "5 star" },
+              { id: "4-star", label: "4 star" },
+              { id: "true-to-size", label: "True to size" },
+            ] as { id: ReviewFilter; label: string }[]).map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setReviewFilter(item.id)}
+                className={`rounded-full border px-3 py-1 text-xs ${reviewFilter === item.id ? "border-foreground bg-foreground text-background" : "border-border"}`}
+              >
+                {item.label}
+              </button>
+            ))}
+
+            <select
+              value={reviewSort}
+              onChange={(event) => setReviewSort(event.target.value as ReviewSort)}
+              className="ml-auto rounded-full border border-border bg-background px-3 py-1.5 text-xs"
+              aria-label="Sort reviews"
+              title="Sort reviews"
+            >
+              <option value="helpful">Most helpful</option>
+              <option value="newest">Newest</option>
+              <option value="highest">Highest rating</option>
+              <option value="lowest">Lowest rating</option>
+            </select>
+          </div>
+
           <div className="mt-4 grid gap-6 border-t border-border pt-6 lg:grid-cols-[1fr_2fr]">
             <div>
               <div className="text-sm font-medium">Overall Fit</div>
               <div className="mt-3 space-y-3 text-sm">
                 <div className="grid grid-cols-[70px_1fr_40px] items-center gap-2">
                   <span>Small</span>
-                  <div className="h-1.5 rounded bg-border"><div className="h-1.5 w-[7%] rounded bg-foreground" /></div>
-                  <span>7%</span>
+                  <div className="h-1.5 rounded bg-border"><div className={`h-1.5 rounded bg-foreground ${getFitWidthClass(fitBreakdown.small)}`} /></div>
+                  <span>{fitBreakdown.small}%</span>
                 </div>
                 <div className="grid grid-cols-[70px_1fr_40px] items-center gap-2">
                   <span>True to size</span>
-                  <div className="h-1.5 rounded bg-border"><div className="h-1.5 w-[90%] rounded bg-foreground" /></div>
-                  <span>90%</span>
+                  <div className="h-1.5 rounded bg-border"><div className={`h-1.5 rounded bg-foreground ${getFitWidthClass(fitBreakdown.trueToSize)}`} /></div>
+                  <span>{fitBreakdown.trueToSize}%</span>
                 </div>
                 <div className="grid grid-cols-[70px_1fr_40px] items-center gap-2">
                   <span>Large</span>
-                  <div className="h-1.5 rounded bg-border"><div className="h-1.5 w-[3%] rounded bg-foreground" /></div>
-                  <span>3%</span>
+                  <div className="h-1.5 rounded bg-border"><div className={`h-1.5 rounded bg-foreground ${getFitWidthClass(fitBreakdown.large)}`} /></div>
+                  <span>{fitBreakdown.large}%</span>
                 </div>
               </div>
             </div>
 
             <div className="space-y-6">
-              {reviews.map((review) => (
+              {displayedReviews.map((review) => (
                 <article key={review.id} className="border border-border rounded-xl p-5 bg-background">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
@@ -858,6 +1336,8 @@ function ProductPage() {
         </div>
       </section>
 
+      <div id="recommendations" className="scroll-mt-28" />
+
       {bundleProducts.length > 0 && (
         <section className="mx-auto max-w-350 px-6 pb-12">
           <div className="rounded-xl border border-border bg-background p-5 md:p-6">
@@ -871,7 +1351,7 @@ function ProductPage() {
                     <img src={item.image} alt={item.name} className="h-full w-full object-cover" loading="lazy" onError={handleImageLoadError} />
                   </div>
                   <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{shortenName(item.name)}</p>
-                  <p className="mt-1 text-sm font-semibold text-[#e14f2a]">{formatPrice(item.price, item.id)}</p>
+                  <p className="mt-1 text-sm font-semibold text-[#fe2c55]">{formatPrice(item.price, item.id)}</p>
                 </div>
               ))}
             </div>
@@ -879,7 +1359,7 @@ function ProductPage() {
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-surface px-4 py-3">
               <div>
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Bundle Total</p>
-                <p className="text-2xl font-semibold text-[#e14f2a]">{formatPrice(bundleTotal, product.id)}</p>
+                <p className="text-2xl font-semibold text-[#fe2c55]">{formatPrice(bundleTotal, product.id)}</p>
               </div>
               <button
                 type="button"
@@ -909,17 +1389,73 @@ function ProductPage() {
           <h2 className="text-4xl font-semibold tracking-tight mb-6">Customers Also Viewed</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {alsoViewed.map((p) => (
-              <Link key={p.id} to="/product/$id" params={{ id: p.id }} className="group rounded-lg border border-border overflow-hidden bg-background hover:shadow-md transition">
+              <Link
+                key={p.id}
+                to="/product/$id"
+                params={{ id: p.id }}
+                onClick={() => trackRecommendationClick("pdp-customers-also-viewed", p.id)}
+                className="group rounded-lg border border-border overflow-hidden bg-background hover:shadow-md transition"
+              >
                 <div className="aspect-3/4 overflow-hidden">
                   <img src={p.image} alt={p.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" onError={handleImageLoadError} />
                 </div>
                 <div className="p-3">
-                  <div className="text-xs text-[#e14f2a]">-{Math.max(8, Math.min(60, Math.round(((p.price + 20 - p.price) / (p.price + 20)) * 100)))}% Last day</div>
+                  <div className="text-xs text-[#fe2c55]">-{Math.max(8, Math.min(60, Math.round(((p.price + 20 - p.price) / (p.price + 20)) * 100)))}% Last day</div>
                   <div className="mt-1 text-sm leading-tight">{shortenName(p.name)}</div>
-                  <div className="mt-1 text-xl font-semibold text-[#e14f2a]">{formatPrice(p.price, p.id)}</div>
+                  <div className="mt-1 text-xl font-semibold text-[#fe2c55]">{formatPrice(p.price, p.id)}</div>
                   <div className="text-xs text-muted-foreground">Estimated</div>
                 </div>
               </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {styleMatches.length > 0 && (
+        <section className="mx-auto max-w-350 px-6 pb-16">
+          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-6">
+            Similar {primaryStyle ? `${primaryStyle} Styles` : "Styles You May Like"}
+          </h2>
+          <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {styleMatches.map((p) => (
+              <ProductCard
+                key={`style-${p.id}`}
+                p={p}
+                clean
+                recommendationReason="Similar style"
+                onClick={() => trackRecommendationClick("pdp-style-matches", p.id)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {mixedRecommendations.length > 0 && (
+        <section className="mx-auto max-w-350 px-6 pb-16">
+          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-2">Recommended Next</h2>
+          <p className="mb-6 text-sm text-muted-foreground">A mixed feed of style matches and bag complements.</p>
+          {import.meta.env.DEV && (
+            <details className="mb-4 rounded-lg border border-border bg-surface px-4 py-3 text-xs text-muted-foreground">
+              <summary className="cursor-pointer font-medium text-foreground">Recommendation debug</summary>
+              <div className="mt-2 space-y-1">
+                {mixedRecommendations.map((entry) => (
+                  <div key={`debug-${entry.product.id}`} className="flex items-center justify-between gap-3">
+                    <span className="line-clamp-1">{entry.product.name}</span>
+                    <span className="shrink-0">score {entry.score} · {entry.reason}</span>
+                  </div>
+                ))}
+              </div>
+            </details>
+          )}
+          <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {mixedRecommendations.map((entry) => (
+              <ProductCard
+                key={`mixed-${entry.product.id}`}
+                p={entry.product}
+                clean
+                recommendationReason={entry.reason}
+                onClick={() => trackRecommendationClick("pdp-mixed-next", entry.product.id)}
+              />
             ))}
           </div>
         </section>
@@ -929,7 +1465,15 @@ function ProductPage() {
         <section className="mx-auto max-w-350 px-6 py-12">
           <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-6">More from {product.brand}</h2>
           <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {related.map((p) => <ProductCard key={p.id} p={p} clean />)}
+            {related.map((p) => (
+              <ProductCard
+                key={p.id}
+                p={p}
+                clean
+                recommendationReason="More from this brand"
+                onClick={() => trackRecommendationClick("pdp-brand-more", p.id)}
+              />
+            ))}
           </div>
         </section>
       )}
@@ -938,10 +1482,45 @@ function ProductPage() {
         <section className="mx-auto max-w-350 px-6 pb-16">
           <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-6">Your Recently Viewed</h2>
           <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            {recentlyViewed.map((p) => <ProductCard key={p.id} p={p} clean />)}
+            {recentlyViewed.map((p) => (
+              <ProductCard
+                key={p.id}
+                p={p}
+                clean
+                recommendationReason="Viewed recently"
+                onClick={() => trackRecommendationClick("pdp-recently-viewed", p.id)}
+              />
+            ))}
           </div>
         </section>
       )}
+
+      <div className="fixed inset-x-0 bottom-14 z-60 border-t border-border bg-background/95 px-3 py-2.5 backdrop-blur md:bottom-0 lg:hidden">
+        <div className="mx-auto flex max-w-350 items-center gap-2">
+          <button
+            type="button"
+            aria-label={isWishlisted(product.id) ? "Remove from wishlist" : "Add to wishlist"}
+            onClick={() => toggleWishlist(product.id)}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border"
+          >
+            <Heart className={`h-5 w-5 transition-colors ${isWishlisted(product.id) ? "fill-[#fe2c55] text-[#fe2c55]" : ""}`} />
+          </button>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-[11px] text-muted-foreground">{shortenName(product.name)}</div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-base font-bold text-[#fe2c55]">{formatPrice(product.price, product.id)}</span>
+              <span className="text-[11px] text-muted-foreground line-through">{formatOldPrice(oldPrice, product.id)}</span>
+            </div>
+          </div>
+          <button
+            onClick={onAdd}
+            className="flex-1 rounded-full bg-[#fe2c55] px-5 py-3 text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-[#c9123a]"
+          >
+            {added ? "✓ Added" : "Add to Bag"}
+          </button>
+        </div>
+      </div>
+      <div className="h-32 lg:hidden" />
     </>
   );
 }

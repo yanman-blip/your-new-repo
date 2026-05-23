@@ -152,3 +152,7 @@ export function useCart() {
   if (!ctx) throw new Error("useCart must be used within CartProvider");
   return ctx;
 }
+
+export function useOptionalCart() {
+  return useContext(CartContext);
+}

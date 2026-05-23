@@ -16,7 +16,17 @@
       "Bash(npx supabase *)",
       "Bash(npm install *)",
       "Bash(git diff *)",
-      "Bash(gh api *)"
+      "Bash(gh api *)",
+      "Bash(cd \"c:/Users/msham/Documents/one-stop-phone-shop\" && grep -rno '#f[0-9a-f]\\\\{5\\\\}\\\\|#e[0-9a-f]\\\\{5\\\\}\\\\|#ff[0-9a-f]\\\\{4\\\\}\\\\|#ecf8f1\\\\|#fff[0-9a-f]\\\\{3\\\\}\\\\|#1f7d57\\\\|#a85d00\\\\|#b42318\\\\|#c4e8d2\\\\|#ffd8a8\\\\|#ffd1cc\\\\|#d6eadf' src/routes/product.\\\\$id.tsx src/routes/checkout.tsx src/components/admin/order-detail-drawer.tsx src/routes/admin.orders.tsx src/routes/admin.products.tsx src/routes/admin.tsx src/components/admin/pending-sync-toast.tsx 2>/dev/null | sort | uniq -c | sort -rn | head -40)",
+      "Bash(sed -i 's/#f4b400/#d9a441/g' 'src/routes/product.$id.tsx')",
+      "Bash(git checkout *)",
+      "Bash(git stash *)",
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\('sharp:', p.dependencies?.sharp || p.devDependencies?.sharp || 'NOT INSTALLED'\\); console.log\\('Node:', process.version\\)\")",
+      "Bash(cd \"c:/Users/msham/Documents/one-stop-phone-shop\" && wc -l src/routes/product.\\\\$id.tsx)",
+      "Bash(node scripts/process-product-images.mjs --dry-run)",
+      "Bash(npm run *)",
+      "Bash(grep -v 'collections.$slug.tsx')",
+      "Read(//c/Users/msham/AppData/Local/Temp/claude/c--Users-msham-Documents-one-stop-phone-shop/46a03905-77d0-4cd7-9af8-f14923e9a28c/tasks/**)"
     ]
   }
 }

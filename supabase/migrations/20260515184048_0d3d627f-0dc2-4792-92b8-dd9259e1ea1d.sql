@@ -1,8 +1,19 @@
 
 -- ============ ROLES ============
-CREATE TYPE public.app_role AS ENUM ('admin', 'customer');
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_type t
+    JOIN pg_namespace n ON n.oid = t.typnamespace
+    WHERE n.nspname = 'public' AND t.typname = 'app_role'
+  ) THEN
+    CREATE TYPE public.app_role AS ENUM ('admin', 'customer');
+  END IF;
+END
+$$;
 
-CREATE TABLE public.user_roles (
+CREATE TABLE IF NOT EXISTS public.user_roles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   role public.app_role NOT NULL,
@@ -25,16 +36,19 @@ AS $$
   )
 $$;
 
+DROP POLICY IF EXISTS "Users can view their own roles" ON public.user_roles;
 CREATE POLICY "Users can view their own roles"
   ON public.user_roles FOR SELECT
   TO authenticated
   USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Admins can view all roles" ON public.user_roles;
 CREATE POLICY "Admins can view all roles"
   ON public.user_roles FOR SELECT
   TO authenticated
   USING (public.has_role(auth.uid(), 'admin'));
 
+DROP POLICY IF EXISTS "Admins can manage roles" ON public.user_roles;
 CREATE POLICY "Admins can manage roles"
   ON public.user_roles FOR ALL
   TO authenticated
@@ -43,11 +57,12 @@ CREATE POLICY "Admins can manage roles"
 
 -- Backwards-compat shim: existing admin-auth.ts queries profiles.role
 -- We keep a tiny profiles view so legacy code keeps working until refactored.
-CREATE TABLE public.profiles (
+CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users can view their own profile" ON public.profiles;
 CREATE POLICY "Users can view their own profile"
   ON public.profiles FOR SELECT TO authenticated
   USING (auth.uid() = id);
@@ -64,6 +79,7 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
@@ -81,7 +97,7 @@ END;
 $$;
 
 -- ============ PRODUCTS ============
-CREATE TABLE public.products (
+CREATE TABLE IF NOT EXISTS public.products (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   brand TEXT NOT NULL,
@@ -95,22 +111,25 @@ CREATE TABLE public.products (
 
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Anyone can view published products" ON public.products;
 CREATE POLICY "Anyone can view published products"
   ON public.products FOR SELECT
   USING (is_published = true);
 
+DROP POLICY IF EXISTS "Admins can manage products" ON public.products;
 CREATE POLICY "Admins can manage products"
   ON public.products FOR ALL
   TO authenticated
   USING (public.has_role(auth.uid(), 'admin'))
   WITH CHECK (public.has_role(auth.uid(), 'admin'));
 
+DROP TRIGGER IF EXISTS products_set_updated_at ON public.products;
 CREATE TRIGGER products_set_updated_at
   BEFORE UPDATE ON public.products
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 -- ============ ORDERS ============
-CREATE TABLE public.orders (
+CREATE TABLE IF NOT EXISTS public.orders (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   status TEXT NOT NULL,
@@ -126,29 +145,39 @@ CREATE TABLE public.orders (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Legacy schemas may already have orders without user_id (e.g. created_by only).
+-- Add it so policies and later indexes can reference user-owned orders.
+ALTER TABLE public.orders
+  ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL;
+
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 
 -- Anonymous (guest) checkout allowed: anyone can insert an order
+DROP POLICY IF EXISTS "Anyone can create orders" ON public.orders;
 CREATE POLICY "Anyone can create orders"
   ON public.orders FOR INSERT
   WITH CHECK (true);
 
+DROP POLICY IF EXISTS "Users can view their own orders" ON public.orders;
 CREATE POLICY "Users can view their own orders"
   ON public.orders FOR SELECT
   TO authenticated
   USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Admins can view all orders" ON public.orders;
 CREATE POLICY "Admins can view all orders"
   ON public.orders FOR SELECT
   TO authenticated
   USING (public.has_role(auth.uid(), 'admin'));
 
+DROP POLICY IF EXISTS "Admins can update orders" ON public.orders;
 CREATE POLICY "Admins can update orders"
   ON public.orders FOR UPDATE
   TO authenticated
   USING (public.has_role(auth.uid(), 'admin'))
   WITH CHECK (public.has_role(auth.uid(), 'admin'));
 
+DROP TRIGGER IF EXISTS orders_set_updated_at ON public.orders;
 CREATE TRIGGER orders_set_updated_at
   BEFORE UPDATE ON public.orders
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
@@ -158,20 +187,24 @@ INSERT INTO storage.buckets (id, name, public)
 VALUES ('product-images', 'product-images', true)
 ON CONFLICT (id) DO NOTHING;
 
+DROP POLICY IF EXISTS "Public can view product images" ON storage.objects;
 CREATE POLICY "Public can view product images"
   ON storage.objects FOR SELECT
   USING (bucket_id = 'product-images');
 
+DROP POLICY IF EXISTS "Admins can upload product images" ON storage.objects;
 CREATE POLICY "Admins can upload product images"
   ON storage.objects FOR INSERT
   TO authenticated
   WITH CHECK (bucket_id = 'product-images' AND public.has_role(auth.uid(), 'admin'));
 
+DROP POLICY IF EXISTS "Admins can update product images" ON storage.objects;
 CREATE POLICY "Admins can update product images"
   ON storage.objects FOR UPDATE
   TO authenticated
   USING (bucket_id = 'product-images' AND public.has_role(auth.uid(), 'admin'));
 
+DROP POLICY IF EXISTS "Admins can delete product images" ON storage.objects;
 CREATE POLICY "Admins can delete product images"
   ON storage.objects FOR DELETE
   TO authenticated

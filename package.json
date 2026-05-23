@@ -6,6 +6,15 @@
   "scripts": {
     "dev": "vite dev",
     "dev:mobile": "vite dev --host 0.0.0.0 --port 5173",
+    "sync:public-images": "node scripts/generate-public-product-manifest.mjs",
+    "sync:public-products": "node scripts/generate-public-product-manifest.mjs",
+    "sync:public-products:supabase": "node --env-file=.env scripts/sync-public-products-to-supabase.mjs",
+    "images:process": "node scripts/process-product-images.mjs",
+    "images:process:dry": "node scripts/process-product-images.mjs --dry-run",
+    "product:add": "node --env-file=.env scripts/add-product.mjs",
+    "product:add:dry": "node --env-file=.env scripts/add-product.mjs --dry-run",
+    "product:sync:full": "node --env-file=.env scripts/add-product.mjs --full-sync",
+    "product:sync:full:dry": "node --env-file=.env scripts/add-product.mjs --full-sync --dry-run",
     "emulator:start": "powershell -ExecutionPolicy Bypass -Command \"& 'C:\\Users\\msham\\AppData\\Local\\Android\\Sdk\\emulator\\emulator.exe' -avd Pixel_7 -no-snapshot-load -no-snapshot-save -gpu host\"",
     "emulator:start:safe": "powershell -ExecutionPolicy Bypass -Command \"& 'C:\\Users\\msham\\AppData\\Local\\Android\\Sdk\\emulator\\emulator.exe' -avd Pixel_7 -no-snapshot -gpu swiftshader_indirect\"",
     "mobile:start": "powershell -ExecutionPolicy Bypass -File scripts/mobile-start.ps1",
@@ -91,6 +100,7 @@
     "globals": "^15.15.0",
     "nitro": "npm:nitro-nightly@latest",
     "prettier": "^3.7.3",
+    "sharp": "^0.34.5",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
     "vite": "^7.3.1"

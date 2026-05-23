@@ -62,6 +62,54 @@ export type Database = {
         }
         Relationships: []
       }
+      product_reviews: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          fit: string
+          helpful_count: number
+          id: string
+          photos: Json
+          product_id: string
+          rating: number
+          review_text: string
+          reviewer_name: string
+          size_label: string
+          updated_at: string
+          verified_purchase: boolean
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          fit: string
+          helpful_count?: number
+          id?: string
+          photos?: Json
+          product_id: string
+          rating: number
+          review_text: string
+          reviewer_name: string
+          size_label: string
+          updated_at?: string
+          verified_purchase?: boolean
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          fit?: string
+          helpful_count?: number
+          id?: string
+          photos?: Json
+          product_id?: string
+          rating?: number
+          review_text?: string
+          reviewer_name?: string
+          size_label?: string
+          updated_at?: string
+          verified_purchase?: boolean
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           brand: string
@@ -110,6 +158,24 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+        }
+        Relationships: []
+      }
+      store_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value?: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: Json
         }
         Relationships: []
       }

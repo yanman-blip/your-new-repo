@@ -26,14 +26,14 @@ begin
       end if;
     else
       -- Fallback direct check when enum/helper differs.
-      execute $$
+      execute $sql$
         select exists (
           select 1
           from public.user_roles ur
           where ur.user_id = $1
             and lower(ur.role::text) = 'admin'
         )
-      $$
+      $sql$
       into _is_admin
       using _user_id;
 
@@ -51,14 +51,14 @@ begin
       and table_name = 'profiles'
       and column_name = 'role'
   ) then
-    execute $$
+    execute $sql$
       select exists (
         select 1
         from public.profiles p
         where p.id = $1
           and lower(p.role::text) = 'admin'
       )
-    $$
+    $sql$
     into _is_admin
     using _user_id;
 

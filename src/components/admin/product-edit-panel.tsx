@@ -7,7 +7,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import type { Collection } from "@/lib/products";
+import type { Collection, ProductSizeFit } from "@/lib/products";
 
 export type ProductDraftValue = {
   name: string;
@@ -17,6 +17,9 @@ export type ProductDraftValue = {
   description: string;
   colors: string;
   sizes: string;
+  sizeFit: ProductSizeFit;
+  sizeGuidance: string;
+  sizeChart: string;
   gallery: string[];
 };
 
@@ -114,6 +117,7 @@ export function ProductEditPanel({ mode, initial, onClose, onSave, onUpload }: P
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Brand *">
                 <select
+                  title="Product brand"
                   value={draft.brand}
                   onChange={(e) =>
                     setDraft((p) => ({ ...p, brand: e.target.value as Collection }))
@@ -226,6 +230,41 @@ export function ProductEditPanel({ mode, initial, onClose, onSave, onUpload }: P
                 onChange={(e) => setDraft((p) => ({ ...p, sizes: e.target.value }))}
                 className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm"
                 placeholder="S,M,L,XL"
+              />
+            </Field>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Fit profile">
+                <select
+                  title="Product fit profile"
+                  value={draft.sizeFit}
+                  onChange={(e) =>
+                    setDraft((p) => ({ ...p, sizeFit: e.target.value as ProductSizeFit }))
+                  }
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm"
+                >
+                  <option value="true-to-size">True to size</option>
+                  <option value="runs-small">Runs small</option>
+                  <option value="runs-large">Runs large</option>
+                </select>
+              </Field>
+
+              <Field label="Size chart" hint="One row per line: Size|Bust|Hips">
+                <textarea
+                  value={draft.sizeChart}
+                  onChange={(e) => setDraft((p) => ({ ...p, sizeChart: e.target.value }))}
+                  className="min-h-24 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm"
+                  placeholder={"S|80-86 cm|86-92 cm\nM|86-92 cm|92-98 cm"}
+                />
+              </Field>
+            </div>
+
+            <Field label="Sizing guidance" hint="Shown on the product page near size selection.">
+              <textarea
+                value={draft.sizeGuidance}
+                onChange={(e) => setDraft((p) => ({ ...p, sizeGuidance: e.target.value }))}
+                className="min-h-20 w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm"
+                placeholder="Most shoppers choose their usual size for this style."
               />
             </Field>
 

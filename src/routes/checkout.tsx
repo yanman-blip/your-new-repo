@@ -4,6 +4,8 @@ import { useRef, useState } from "react";
 import { Trash2, ChevronLeft, MapPin, Truck, Minus, Plus, ShieldCheck } from "lucide-react";
 import { createOrderRecord, updateOrderRecord, type OrderWorkflowStatus, type PaymentMethodId } from "@/lib/orders";
 import { uploadProofToStorage } from "@/lib/proof-storage";
+import { useRecentlyViewedProducts } from "@/lib/recently-viewed";
+import { getProducts } from "@/lib/products";
 
 const paymentMethods: { id: PaymentMethodId; name: string; instructions: string }[] = [
   { id: "ecocash", name: "EcoCash", instructions: "Send payment to EcoCash number 0782853304 and use your order number as reference." },
@@ -24,13 +26,15 @@ export const Route = createFileRoute("/checkout")({
 });
 
 function Checkout() {
-  const { detailed, subtotal, remove, updateQty, count, couponCode, setCouponCode, appliedCoupon, couponError, discountAmount } = useCart();
+  const { detailed, subtotal, remove, updateQty, add, count, couponCode, setCouponCode, appliedCoupon, couponError, discountAmount } = useCart();
+  const recentlyViewed = useRecentlyViewedProducts(4);
   const [fulfillment, setFulfillment] = useState<"collect" | "delivery">("collect");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId>("ecocash");
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [proofUploaded, setProofUploaded] = useState(false);
   const [proofFileName, setProofFileName] = useState("");
   const [proofUploading, setProofUploading] = useState(false);
+  const [recommendationQtys, setRecommendationQtys] = useState<Record<string, number>>({});
   const [placingOrder, setPlacingOrder] = useState(false);
   const [proofUploadError, setProofUploadError] = useState("");
   const [activeOrderId, setActiveOrderId] = useState<string | null>(null);
@@ -61,6 +65,14 @@ function Checkout() {
 
   const selectedPayment = paymentMethods.find((m) => m.id === paymentMethod) ?? paymentMethods[0];
   const requiresProof = paymentMethod !== "cash-on-delivery";
+  const allProducts = getProducts();
+  const inCartIds = new Set(detailed.map((item) => item.productId));
+  const cartBrands = new Set(detailed.map((item) => item.product.brand));
+  const complementary = allProducts
+    .filter((product) => !inCartIds.has(product.id))
+    .filter((product) => cartBrands.has(product.brand))
+    .slice(0, 4);
+  const recentRecommendations = recentlyViewed.filter((product) => !inCartIds.has(product.id)).slice(0, 4);
 
   const handlePlaceOrder = async () => {
     if (placingOrderRef.current) {
@@ -381,7 +393,7 @@ function Checkout() {
                       <div className="text-xs text-muted-foreground mt-1">{i.product.brand} · {i.storage} · {i.color}</div>
                     </div>
                     <div className="text-right shrink-0">
-                      <div className="font-semibold text-[#e14f2a]">{money(i.lineTotal)}</div>
+                      <div className="font-semibold text-[#fe2c55]">{money(i.lineTotal)}</div>
                       <div className="text-xs text-muted-foreground">{money(i.product.price)} ea</div>
                     </div>
                   </div>
@@ -511,7 +523,7 @@ function Checkout() {
             )}
             <div className="flex justify-between"><dt className="text-muted-foreground">{fulfillment === "delivery" ? "Shipping Fee" : "Collection"}</dt><dd>{fulfillment === "delivery" ? money(deliveryFee) : "FREE"}</dd></div>
             <div className="flex justify-between"><dt className="text-muted-foreground">Estimated tax</dt><dd>{money(tax)}</dd></div>
-            <div className="border-t border-border pt-3 flex justify-between font-semibold text-2xl text-[#e14f2a]">
+            <div className="border-t border-border pt-3 flex justify-between font-semibold text-2xl text-[#fe2c55]">
               <dt>Total</dt><dd>{money(total)}</dd>
             </div>
           </dl>
@@ -606,6 +618,92 @@ function Checkout() {
           <p className="mt-3 text-xs text-muted-foreground text-center">
             Payment methods: EcoCash, InnBucks, Mukuru, Bank transfer, and Cash on delivery.
           </p>
+
+          {complementary.length > 0 && (
+            <div className="mt-6 rounded-xl border border-border bg-background p-4">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Complete the look</h3>
+              <div className="mt-3 space-y-3">
+                {complementary.map((product) => {
+                  const selectedQty = recommendationQtys[product.id] ?? 1;
+                  return (
+                    <div
+                      key={`checkout-rec-${product.id}`}
+                      className="rounded-lg border border-border p-2 hover:border-foreground/40"
+                    >
+                      <div className="flex w-full items-center gap-3 text-left">
+                    <img src={product.image} alt={product.name} className="h-14 w-14 rounded-md object-cover" />
+                    <div className="min-w-0 flex-1">
+                      <p className="line-clamp-2 text-xs text-foreground">{product.name}</p>
+                      <p className="mt-1 text-xs font-semibold text-[#fe2c55]">{money(product.price)}</p>
+                    </div>
+                      </div>
+                      <div className="mt-2 flex items-center justify-between gap-2">
+                        <div className="inline-flex items-center rounded-full border border-border">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setRecommendationQtys((prev) => ({
+                                ...prev,
+                                [product.id]: Math.max(1, (prev[product.id] ?? 1) - 1),
+                              }))
+                            }
+                            className="h-7 w-7 inline-flex items-center justify-center text-muted-foreground hover:text-foreground"
+                            aria-label={`Decrease recommendation quantity for ${product.name}`}
+                          >
+                            <Minus className="h-3.5 w-3.5" />
+                          </button>
+                          <span className="w-7 text-center text-xs font-medium">{selectedQty}</span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setRecommendationQtys((prev) => ({
+                                ...prev,
+                                [product.id]: Math.min(6, (prev[product.id] ?? 1) + 1),
+                              }))
+                            }
+                            className="h-7 w-7 inline-flex items-center justify-center text-muted-foreground hover:text-foreground"
+                            aria-label={`Increase recommendation quantity for ${product.name}`}
+                          >
+                            <Plus className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const size = product.storage[0] ?? "One Size";
+                            const color = product.colors[0]?.name ?? "Default";
+                            add({ productId: product.id, storage: size, color, qty: selectedQty });
+                          }}
+                          className="rounded-full border border-border px-3 py-1.5 text-xs font-medium hover:border-foreground/40"
+                        >
+                          Add {selectedQty}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {recentRecommendations.length > 0 && (
+            <div className="mt-4 rounded-xl border border-border bg-background p-4">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Recently viewed picks</h3>
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                {recentRecommendations.map((product) => (
+                  <Link
+                    key={`checkout-recent-${product.id}`}
+                    to="/product/$id"
+                    params={{ id: product.id }}
+                    className="rounded-lg border border-border p-2 hover:border-foreground/40"
+                  >
+                    <img src={product.image} alt={product.name} className="h-20 w-full rounded-md object-cover" />
+                    <p className="mt-2 line-clamp-2 text-[10px] text-muted-foreground">{product.name}</p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </aside>
       </div>
     </section>
