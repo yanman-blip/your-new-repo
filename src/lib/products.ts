@@ -1378,10 +1378,9 @@ export async function createCustomProduct(input: {
       is_published: true,
       payload: normalizedNext,
     });
-    if (error) {
-      throw new Error(`Saved locally but failed to sync to cloud: ${error.message}`);
+    if (!error) {
+      clearPending(normalizedNext.id);
     }
-    clearPending(normalizedNext.id);
   }
 
   return normalizedNext;
@@ -1465,10 +1464,9 @@ export async function updateCustomProduct(
         is_published: true,
         payload: normalizedNext,
       });
-    if (error) {
-      throw new Error(`Saved locally but failed to sync to cloud: ${error.message}`);
+    if (!error) {
+      clearPending(normalizedNext.id);
     }
-    clearPending(normalizedNext.id);
   }
 
   return normalizedNext;
@@ -1480,22 +1478,19 @@ export async function deleteCustomProduct(id: string): Promise<boolean> {
   const existedInBase = baseProducts.some((p) => p.id === id);
   if (!existedLocally && !existedInBase) return false;
 
-  const client = getOptionalSupabase();
-  if (client) {
-    const { error } = await client.from("products").delete().eq("id", id);
-    if (error) {
-      // Cloud refused — preserve local state and surface the failure so the
-      // caller can show a real error instead of silently re-appearing later.
-      markPendingDelete(id);
-      throw new Error(`Failed to delete from cloud: ${error.message}`);
-    }
-  }
-
   const remaining = customProducts.filter((p) => p.id !== id);
   writeCustomProducts(remaining);
   clearPending(id);
-  clearPendingDelete(id);
+  markPendingDelete(id);
   notifyProductsChanged();
+
+  const client = getOptionalSupabase();
+  if (client) {
+    const { error } = await client.from("products").delete().eq("id", id);
+    if (!error) {
+      clearPendingDelete(id);
+    }
+  }
 
   return true;
 }

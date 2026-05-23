@@ -73,8 +73,8 @@ export function SiteHeader() {
     });
     let unsubscribe: (() => void) | undefined;
     try {
-      void supabase.auth.getSession().then(({ data }) => {
-        if (mounted) setIsAuthed(!!data.session?.user);
+      void supabase.auth.getUser().then(({ data }) => {
+        if (mounted) setIsAuthed(!!data.user);
       });
       const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
         if (mounted) setIsAuthed(!!session?.user);

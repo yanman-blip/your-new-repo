@@ -58,8 +58,8 @@ function AccountOrders() {
   useEffect(() => {
     let mounted = true;
     void (async () => {
-      const { data } = await supabase.auth.getSession();
-      const authed = !!data.session?.user;
+      const { data } = await supabase.auth.getUser();
+      const authed = !!data.user;
       if (!mounted) return;
       setIsAuthed(authed);
       if (!authed) {
@@ -69,7 +69,7 @@ function AccountOrders() {
       const all = await fetchOrders();
       if (!mounted) return;
       // RLS already filters to the user's own rows, but be defensive.
-      const uid = data.session!.user.id;
+      const uid = data.user!.id;
       setOrders(all.filter((o: any) => !o.user_id || o.user_id === uid || true));
       setLoading(false);
     })();

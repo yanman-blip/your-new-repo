@@ -12,6 +12,10 @@ import { PendingSyncToast } from "@/components/admin/pending-sync-toast";
 
 export const Route = createFileRoute("/admin")({
   beforeLoad: async ({ location }) => {
+    // Session persistence for Supabase auth is browser-local. Running this
+    // check during SSR can incorrectly redirect authenticated users.
+    if (typeof window === "undefined") return;
+
     // The login page is nested under /admin but must be reachable without a
     // session — otherwise the auth check below would redirect into itself.
     if (location.pathname.startsWith("/admin/login")) return;
