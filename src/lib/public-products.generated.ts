@@ -167,63 +167,6 @@ export const publicGeneratedProducts: PublicGeneratedProduct[] = [
     ]
   },
   {
-    "id": "2pcsset-women-lace-sexy-lingerie-set-wireless-sexy-bra-thong",
-    "name": "2pcsSet Women Lace Sexy Lingerie Set (Wireless Sexy Bra + Thong)",
-    "brand": "Lace",
-    "productType": "Bra & Pant",
-    "price": 12,
-    "image": "/2pcsSet Women Lace Sexy Lingerie Set (Wireless Sexy Bra + Thong)/black/1764086511ede7562f82c16fef07aa712421a7d166_thumbnail_600x (1).jpg",
-    "gallery": [
-      "/2pcsSet Women Lace Sexy Lingerie Set (Wireless Sexy Bra + Thong)/black/1764086511ede7562f82c16fef07aa712421a7d166_thumbnail_600x (1).jpg",
-      "/2pcsSet Women Lace Sexy Lingerie Set (Wireless Sexy Bra + Thong)/black/1764086511ede7562f82c16fef07aa712421a7d166_thumbnail_600x.jpg",
-      "/2pcsSet Women Lace Sexy Lingerie Set (Wireless Sexy Bra + Thong)/black/1764086513df51a831bdc32ea37361e8f67ba09725_thumbnail_600x.jpg",
-      "/2pcsSet Women Lace Sexy Lingerie Set (Wireless Sexy Bra + Thong)/black/176408651598041a5eb91574531821c3f3011b7612_thumbnail_600x.jpg",
-      "/2pcsSet Women Lace Sexy Lingerie Set (Wireless Sexy Bra + Thong)/black/176408651786757f4ab06912471896a407df276bae_thumbnail_600x.jpg",
-      "/2pcsSet Women Lace Sexy Lingerie Set (Wireless Sexy Bra + Thong)/burgundy/1767692561bcb55a9009ddcbb0c3879dcb61a0097c_thumbnail_600x.jpg",
-      "/2pcsSet Women Lace Sexy Lingerie Set (Wireless Sexy Bra + Thong)/burgundy/17676925633e9831d88623406015d1ae17cb123f47_thumbnail_600x.jpg",
-      "/2pcsSet Women Lace Sexy Lingerie Set (Wireless Sexy Bra + Thong)/burgundy/176769255650e0ff0015b9be08b91da1d7fed29b4a_thumbnail_600x.jpg",
-      "/2pcsSet Women Lace Sexy Lingerie Set (Wireless Sexy Bra + Thong)/burgundy/17676925599020527b8d53da2dda663c6e81e109c1_thumbnail_600x.jpg",
-      "/2pcsSet Women Lace Sexy Lingerie Set (Wireless Sexy Bra + Thong)/burgundy/1767692555503484088586aa46f09e9a209499a226_thumbnail_600x.jpg",
-      "/2pcsSet Women Lace Sexy Lingerie Set (Wireless Sexy Bra + Thong)/dark green/1764172887d4a8bf8c75d5acceabbcee0c437fe50a_thumbnail_600x.jpg",
-      "/2pcsSet Women Lace Sexy Lingerie Set (Wireless Sexy Bra + Thong)/dark green/17641728927a5e7c76d7985e0a0f3147c440f64bbd_thumbnail_600x.jpg",
-      "/2pcsSet Women Lace Sexy Lingerie Set (Wireless Sexy Bra + Thong)/dark green/17641728866951b07e09d69446389e969a3d38a83b_thumbnail_600x.jpg",
-      "/2pcsSet Women Lace Sexy Lingerie Set (Wireless Sexy Bra + Thong)/hot pink/1685696491cb777da7a15449d563650ef39d441936_thumbnail_600x.jpg",
-      "/2pcsSet Women Lace Sexy Lingerie Set (Wireless Sexy Bra + Thong)/hot pink/168569648933f19eb115fd7d297f639746648b3159_thumbnail_600x.jpg",
-      "/2pcsSet Women Lace Sexy Lingerie Set (Wireless Sexy Bra + Thong)/hot pink/168569649281b1beb0d19a082e6a0a40d77ea2d4a0_thumbnail_600x.jpg",
-      "/2pcsSet Women Lace Sexy Lingerie Set (Wireless Sexy Bra + Thong)/hot pink/16856964932370ffc8505ac6d3dfd88a061a646ad5_thumbnail_600x.jpg"
-    ],
-    "storage": [
-      "S",
-      "M",
-      "L",
-      "XL"
-    ],
-    "colors": [
-      {
-        "name": "Black",
-        "hex": "#1c1c1e"
-      },
-      {
-        "name": "Burgundy",
-        "hex": "#7b1f2b"
-      },
-      {
-        "name": "Dark Green",
-        "hex": "#1c1c1e"
-      },
-      {
-        "name": "Hot Pink",
-        "hex": "#1c1c1e"
-      }
-    ],
-    "highlights": [
-      "Curated from your uploaded public assets",
-      "Comfort-forward fit",
-      "Available in multiple color options",
-      "Boutique catalog styling"
-    ]
-  },
-  {
     "id": "2pcsset-women-solid-color-wire-lingerie-bra-panties-set",
     "name": "2pcsSet Women Solid Color Wire Lingerie Bra & Panties Set",
     "brand": "Lace",
