@@ -19,13 +19,6 @@ export const publicProductGalleryManifest: PublicProductGalleryManifest = {
     "/Floral Lace Ruffle Hem Sexy Lingerie Dress With Thong/17187764981a28f60c1b4fd7780c1072b1be0bc1a7_thumbnail_600x.jpg",
     "/Floral Lace Ruffle Hem Sexy Lingerie Dress With Thong/169468484276ffb2d09c85c410a38d11c62d03e559_thumbnail_600x.jpg"
   ],
-  "Floral Underwire Puff Sleeve Lace Patchwork Top + Thong + Skirt 3pcs Set Bridal Lingerie Set, Going Out": [
-    "/Floral Underwire Puff Sleeve Lace Patchwork Top + Thong + Skirt 3pcs Set Bridal Lingerie Set, Going Out/1720071391d8df91aed2a448873d0dcf95c15bc09c_thumbnail_600x.jpg",
-    "/Floral Underwire Puff Sleeve Lace Patchwork Top + Thong + Skirt 3pcs Set Bridal Lingerie Set, Going Out/1720071394af3a439d54ccb0ad3279affd1ec1d73d_thumbnail_600x.jpg",
-    "/Floral Underwire Puff Sleeve Lace Patchwork Top + Thong + Skirt 3pcs Set Bridal Lingerie Set, Going Out/17200713865ac2497ceedd0dd6e15d95e15ea798a9_thumbnail_600x.jpg",
-    "/Floral Underwire Puff Sleeve Lace Patchwork Top + Thong + Skirt 3pcs Set Bridal Lingerie Set, Going Out/1720071398551c114ec9ae87552596d689b3df010c_thumbnail_600x (1).jpg",
-    "/Floral Underwire Puff Sleeve Lace Patchwork Top + Thong + Skirt 3pcs Set Bridal Lingerie Set, Going Out/1720071398551c114ec9ae87552596d689b3df010c_thumbnail_600x.jpg"
-  ],
   "Hollow Out Leopard Print Wrap-Around Sexy Lingerie For Going Out": [
     "/Hollow Out Leopard Print Wrap-Around Sexy Lingerie For Going Out/1721358826f062c608415bf914b555560f010c2355_thumbnail_600x.jpg",
     "/Hollow Out Leopard Print Wrap-Around Sexy Lingerie For Going Out/1721358829bfbf9afc4676be2856787486e3ac22cf_thumbnail_600x.jpg",

@@ -230,38 +230,6 @@ export const publicGeneratedProducts: PublicGeneratedProduct[] = [
     ]
   },
   {
-    "id": "floral-underwire-puff-sleeve-lace-patchwork-top-thong-skirt-3pcs-set-bridal-lingerie",
-    "name": "Floral Underwire Puff Sleeve Lace Patchwork Top + Thong + Skirt 3pcs Set Bridal Lingerie Set, Going Out",
-    "brand": "Lace",
-    "price": 13,
-    "image": "/Floral Underwire Puff Sleeve Lace Patchwork Top + Thong + Skirt 3pcs Set Bridal Lingerie Set, Going Out/1720071391d8df91aed2a448873d0dcf95c15bc09c_thumbnail_600x.jpg",
-    "gallery": [
-      "/Floral Underwire Puff Sleeve Lace Patchwork Top + Thong + Skirt 3pcs Set Bridal Lingerie Set, Going Out/1720071391d8df91aed2a448873d0dcf95c15bc09c_thumbnail_600x.jpg",
-      "/Floral Underwire Puff Sleeve Lace Patchwork Top + Thong + Skirt 3pcs Set Bridal Lingerie Set, Going Out/1720071394af3a439d54ccb0ad3279affd1ec1d73d_thumbnail_600x.jpg",
-      "/Floral Underwire Puff Sleeve Lace Patchwork Top + Thong + Skirt 3pcs Set Bridal Lingerie Set, Going Out/17200713865ac2497ceedd0dd6e15d95e15ea798a9_thumbnail_600x.jpg",
-      "/Floral Underwire Puff Sleeve Lace Patchwork Top + Thong + Skirt 3pcs Set Bridal Lingerie Set, Going Out/1720071398551c114ec9ae87552596d689b3df010c_thumbnail_600x (1).jpg",
-      "/Floral Underwire Puff Sleeve Lace Patchwork Top + Thong + Skirt 3pcs Set Bridal Lingerie Set, Going Out/1720071398551c114ec9ae87552596d689b3df010c_thumbnail_600x.jpg"
-    ],
-    "storage": [
-      "S",
-      "M",
-      "L",
-      "XL"
-    ],
-    "colors": [
-      {
-        "name": "Black",
-        "hex": "#1c1c1e"
-      }
-    ],
-    "highlights": [
-      "Curated from your uploaded public assets",
-      "Comfort-forward fit",
-      "Boutique occasion styling"
-    ],
-    "badge": "New"
-  },
-  {
     "id": "hollow-out-leopard-print-wrap-around-sexy-lingerie-for-going-out",
     "name": "Hollow Out Leopard Print Wrap-Around Sexy Lingerie For Going Out",
     "brand": "Lace",
