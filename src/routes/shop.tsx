@@ -55,13 +55,13 @@ export const Route = createFileRoute("/shop")({
 });
 
 type CollectionFilter = "All" | Collection;
-type PriceFilter = "All" | "Under $100" | "$100–$150" | "$150+";
+type PriceFilter = "All" | "Under $6.00" | "$6.00-$7.99" | "$8.00-$9.30";
 type SortFilter = "featured" | "low" | "high" | "newest";
 type RankStrategy = "personalized" | "merch";
 type CoverageFilter = "All" | "Sheer" | "Semi-Sheer" | "Opaque";
 
 const collectionFilters: CollectionFilter[] = ["All", "Lace", "Silk", "Lounge", "Everyday"];
-const priceFilters: PriceFilter[] = ["All", "Under $100", "$100–$150", "$150+"];
+const priceFilters: PriceFilter[] = ["All", "Under $6.00", "$6.00-$7.99", "$8.00-$9.30"];
 
 function parseFacetParam(raw?: string): string[] {
   if (!raw) return [];
@@ -689,9 +689,9 @@ function Shop() {
 
     if (price !== "All") {
       list = list.filter((p) => {
-        if (price === "Under $100") return p.price < 100;
-        if (price === "$100–$150") return p.price >= 100 && p.price < 150;
-        return p.price >= 150;
+        if (price === "Under $6.00") return p.price < 6;
+        if (price === "$6.00-$7.99") return p.price >= 6 && p.price < 8;
+        return p.price >= 8 && p.price <= 9.3;
       });
     }
     if (search.trim()) {
