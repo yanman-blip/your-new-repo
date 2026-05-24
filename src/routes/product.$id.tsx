@@ -910,38 +910,169 @@ function ProductPage() {
               </div>
             </div>
 
-            <section className="hidden rounded-xl border border-border bg-surface p-5 lg:col-span-2 lg:block">
-              <div className="flex items-center justify-between gap-3">
-                <h2 className="text-xl font-semibold tracking-tight">Customer Reviews ({reviewCountLabel})</h2>
+            <section id="reviews" className="hidden rounded-xl border border-border bg-surface p-5 lg:col-span-2 lg:block">
+              <div className="flex items-center justify-between gap-4">
+                <h2 className="text-2xl font-semibold tracking-tight">Customer Reviews ({reviewCountLabel})</h2>
                 <button
                   type="button"
                   onClick={() => scrollToSection("reviews")}
                   className="text-xs font-medium text-muted-foreground hover:text-foreground"
                 >
-                  View all reviews
+                  Jump to full reviews
                 </button>
               </div>
 
-              <div className="mt-4 space-y-3">
-                {displayedReviews.slice(0, 3).map((review) => (
-                  <article key={`preview-${review.id}`} className="rounded-lg border border-border bg-background p-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <div className="text-sm font-semibold text-foreground">{review.name}</div>
-                        <div className="mt-0.5 text-xs text-muted-foreground">{review.date}</div>
+              <form
+                className="mt-5 rounded-xl border border-border bg-background p-4"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  if (submittingReview) return;
+
+                  const name = reviewName.trim();
+                  const text = reviewTextInput.trim();
+                  const sizeValue = reviewSizeInput.trim();
+                  if (!name || !text || !sizeValue) {
+                    setReviewSubmitError("Please fill in your name, size, and review text.");
+                    setReviewSubmitSuccess("");
+                    return;
+                  }
+
+                  const photos = reviewPhotosInput
+                    .split(",")
+                    .map((value) => value.trim())
+                    .filter(Boolean);
+
+                  setSubmittingReview(true);
+                  setReviewSubmitError("");
+                  setReviewSubmitSuccess("");
+
+                  void createProductReview({
+                    productId: product.id,
+                    reviewerName: name,
+                    rating: reviewRatingInput,
+                    fit: reviewFitInput,
+                    sizeLabel: sizeValue,
+                    reviewText: text,
+                    photos,
+                  })
+                    .then((created) => {
+                      const review: CustomerReview = {
+                        id: created.id,
+                        name: created.reviewerName,
+                        rating: created.rating,
+                        date: formatReviewDate(created.createdAt),
+                        fit: created.fit,
+                        size: created.sizeLabel,
+                        text: created.reviewText,
+                        photos: created.photos,
+                        verified: created.verifiedPurchase,
+                        helpful: created.helpfulCount,
+                      };
+                      setLiveReviews((current) => [review, ...current]);
+                      setReviewName("");
+                      setReviewTextInput("");
+                      setReviewPhotosInput("");
+                      setReviewSubmitSuccess("Review posted. Thank you for sharing your experience.");
+                    })
+                    .catch(() => {
+                      setReviewSubmitError("Could not post your review right now. Please try again.");
+                    })
+                    .finally(() => {
+                      setSubmittingReview(false);
+                    });
+                }}
+              >
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Write a review</h3>
+                <div className="mt-3 grid gap-3 md:grid-cols-2">
+                  <input
+                    value={reviewName}
+                    onChange={(event) => setReviewName(event.target.value)}
+                    placeholder="Your name"
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                    aria-label="Reviewer name"
+                  />
+                  <input
+                    value={reviewSizeInput}
+                    onChange={(event) => setReviewSizeInput(event.target.value)}
+                    placeholder="Size purchased"
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                    aria-label="Size purchased"
+                  />
+                  <select
+                    value={reviewRatingInput}
+                    onChange={(event) => setReviewRatingInput(Number(event.target.value))}
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                    aria-label="Review rating"
+                  >
+                    {[5, 4, 3, 2, 1].map((value) => (
+                      <option key={value} value={value}>{value} star{value > 1 ? "s" : ""}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={reviewFitInput}
+                    onChange={(event) => setReviewFitInput(event.target.value as ProductReviewFit)}
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                    aria-label="Review fit"
+                  >
+                    {(["True to size", "Small", "Large"] as ProductReviewFit[]).map((fit) => (
+                      <option key={fit} value={fit}>{fit}</option>
+                    ))}
+                  </select>
+                  <textarea
+                    value={reviewTextInput}
+                    onChange={(event) => setReviewTextInput(event.target.value)}
+                    placeholder="Share your thoughts"
+                    className="min-h-28 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm md:col-span-2"
+                    aria-label="Review text"
+                  />
+                  <input
+                    value={reviewPhotosInput}
+                    onChange={(event) => setReviewPhotosInput(event.target.value)}
+                    placeholder="Photo URLs, comma separated"
+                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm md:col-span-2"
+                    aria-label="Review photo URLs"
+                  />
+                </div>
+
+                {(reviewSubmitError || reviewSubmitSuccess) && (
+                  <p className={`mt-3 text-sm ${reviewSubmitError ? "text-red-600" : "text-green-700"}`}>
+                    {reviewSubmitError || reviewSubmitSuccess}
+                  </p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={submittingReview}
+                  className="mt-4 rounded-full bg-black px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+                >
+                  {submittingReview ? "Posting..." : "Post review"}
+                </button>
+              </form>
+
+              <div className="mt-5 space-y-3">
+                {displayedReviews.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No reviews yet.</p>
+                ) : (
+                  displayedReviews.map((review) => (
+                    <article key={review.id} className="rounded-lg border border-border bg-background p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <div className="text-sm font-semibold text-foreground">{review.name}</div>
+                          <div className="mt-0.5 text-xs text-muted-foreground">{review.date}</div>
+                        </div>
+                        <div className="flex items-center gap-1 text-[#f4b400]">
+                          {Array.from({ length: 5 }).map((_, index) => (
+                            <Star
+                              key={`${review.id}-star-${index}`}
+                              className={`h-3.5 w-3.5 ${index < review.rating ? "fill-current" : "fill-neutral-200 text-neutral-200"}`}
+                            />
+                          ))}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-1 text-[#f4b400]">
-                        {Array.from({ length: 5 }).map((_, index) => (
-                          <Star
-                            key={`${review.id}-preview-star-${index}`}
-                            className={`h-3.5 w-3.5 ${index < review.rating ? "fill-current" : "fill-neutral-200 text-neutral-200"}`}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                    <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{review.text}</p>
-                  </article>
-                ))}
+                      <p className="mt-2 text-sm text-muted-foreground">{review.text}</p>
+                    </article>
+                  ))
+                )}
               </div>
             </section>
           </div>
@@ -976,167 +1107,40 @@ function ProductPage() {
               <span>Use code WET15 for extra savings on this item.</span>
             </div>
 
-            <div className="mt-5">
-              <div className="text-xl font-semibold">Color: <span className="font-normal text-muted-foreground">{color}</span></div>
-              <div className="mt-3 flex flex-wrap gap-2.5">
-                {availableColors.map((c) => (
-                  <button
-                    key={c}
-                    onClick={() => setColor(c)}
-                    aria-label={c}
-                    className="group flex w-14 flex-col items-center gap-1"
-                  >
-                    <span
-                      className={`h-11 w-11 rounded-md border-2 ${colorClassMap[c] ?? "bg-muted"} ${color === c ? "border-foreground" : "border-border"}`}
-                    />
-                    <span className={`text-xs ${color === c ? "font-medium text-foreground" : "text-muted-foreground group-hover:text-foreground"}`}>
-                      {c}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-5">
-              <div className="mb-2.5 text-2xl font-semibold">Size</div>
-              <div className="flex flex-wrap gap-2.5">
-                {product.storage.map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => setSize(s)}
-                    className={`min-w-14 rounded-full border px-5 py-1.5 text-lg transition ${size === s ? "border-foreground bg-foreground text-background" : "border-border hover:border-foreground/40"}`}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-              <div className="mt-3 rounded-xl border border-border bg-surface px-4 py-3 text-sm text-muted-foreground">
-                <div className="font-medium text-foreground">Sizing guidance</div>
-                <p className="mt-1">
-                  {sizeGuide?.guidance ?? "Most shoppers choose their usual size for this style."}
-                </p>
-              </div>
-
-              {sizeGuide?.chart && sizeGuide.chart.length > 0 && (
-                <div className="mt-3 overflow-hidden rounded-xl border border-border bg-background">
-                  <div className="grid grid-cols-3 border-b border-border bg-surface px-3 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    <span>Size</span>
-                    <span>Bust</span>
-                    <span>Hips</span>
-                  </div>
-                  {sizeGuide.chart.map((row) => (
-                    <div key={row.size} className="grid grid-cols-3 border-b border-border/70 px-3 py-2 text-xs last:border-b-0">
-                      <span className="font-medium text-foreground">{row.size}</span>
-                      <span className="text-muted-foreground">{row.bust}</span>
-                      <span className="text-muted-foreground">{row.hips}</span>
-                    </div>
-                  ))}
+            <section id="reviews" className="scroll-mt-28 mx-auto max-w-7xl px-5 py-6">
+              <div className="rounded-xl border border-border bg-surface p-5 md:p-6">
+                <div className="flex items-center justify-between gap-4">
+                  <h2 className="text-2xl font-semibold tracking-tight">Customer Reviews ({reviewCountLabel})</h2>
+                  <button className="text-sm text-muted-foreground hover:text-foreground">View all</button>
                 </div>
-              )}
-            </div>
 
-            {/* Scarcity signal */}
-            <div className={`mt-6 flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium ${
-              stock.urgent
-                ? "bg-red-50 text-red-700 border border-red-200"
-                : "bg-amber-50 text-amber-800 border border-amber-200"
-            }`}>
-              <span className={`h-2 w-2 rounded-full ${stock.urgent ? "bg-red-500 animate-pulse" : "bg-amber-500"}`} />
-              {stock.label}
-            </div>
-            <div className="mt-2 flex items-center gap-2 rounded-lg border border-[#efe6c3] bg-[#fffbe8] px-3 py-2 text-sm text-[#7c6a18]">
-              <span className="h-2 w-2 rounded-full bg-[#e0b400]" />
-              {liveShoppers} shoppers are viewing this right now
-            </div>
-
-            <div className="mt-4 flex gap-3">
-              <button
-                onClick={onAdd}
-                className="flex-1 rounded-none bg-black py-4 text-lg font-semibold text-white hover:opacity-90"
-              >
-                {added ? "ADDED" : "ADD TO CART"}
-              </button>
-              <button
-                aria-label={isWishlisted(product.id) ? "Remove from wishlist" : "Add to wishlist"}
-                onClick={() => toggleWishlist(product.id)}
-                className="h-14 w-14 rounded-full border border-border text-foreground hover:bg-background transition-colors"
-              >
-                <Heart className={`mx-auto h-8 w-8 transition-colors ${isWishlisted(product.id) ? "fill-red-500 text-red-500" : ""}`} />
-              </button>
-            </div>
-            <Link
-              to="/checkout"
-              onClick={() => add({ productId: product.id, storage: size, color, qty: 1 })}
-              className="mt-3 inline-flex w-full items-center justify-center rounded-none border border-black bg-white py-3 text-sm font-semibold text-black hover:bg-black hover:text-white"
-            >
-              BUY NOW
-            </Link>
-
-            <div className="mt-6 space-y-3">
-              <div className="flex gap-3 rounded-xl bg-surface p-4">
-                <Truck className="h-5 w-5 shrink-0 text-foreground mt-0.5" />
-                <div className="text-sm">
-                  <div className="font-semibold">Free shipping & returns</div>
-                  <div className="text-muted-foreground">30-day exchanges on all orders</div>
+                <div className="mt-6 space-y-4">
+                  {displayedReviews.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">No reviews yet.</p>
+                  ) : (
+                    displayedReviews.map((review) => (
+                      <article key={review.id} className="rounded-xl border border-border bg-background p-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <div className="text-sm font-semibold text-foreground">{review.name}</div>
+                            <div className="mt-0.5 text-xs text-muted-foreground">{review.date}</div>
+                          </div>
+                          <div className="flex items-center gap-1 text-[#f4b400]">
+                            {Array.from({ length: 5 }).map((_, index) => (
+                              <Star
+                                key={`${review.id}-star-${index}`}
+                                className={`h-4 w-4 ${index < review.rating ? "fill-current" : "fill-neutral-200 text-neutral-200"}`}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        <p className="mt-3 text-sm text-muted-foreground">{review.text}</p>
+                      </article>
+                    ))
+                  )}
                 </div>
               </div>
-              <div className="flex gap-3 rounded-xl border border-[#ffc9d2] bg-[#fff0f2] p-4">
-                <Clock3 className="h-5 w-5 shrink-0 text-[#fe2c55] mt-0.5" />
-                <div className="text-sm">
-                  <div className="font-semibold text-[#c9123a]">Delivers in 2&ndash;10 days</div>
-                  <div className="text-[#a40d2f]">Across Harare and major cities</div>
-                </div>
-              </div>
-            </div>
-
-            <ul className="mt-6 grid gap-2 text-sm">
-              {product.highlights.slice(0, 4).map((h) => (
-                <li key={h} className="flex items-start gap-2 text-muted-foreground">
-                  <Check className="mt-0.5 h-4 w-4 text-brand" /> {h}
-                </li>
-              ))}
-            </ul>
-
-            <div className="mt-6 rounded-xl border border-border bg-background p-4">
-              <h3 className="text-lg font-semibold">Product info</h3>
-              <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{product.description}</p>
-              <div className="mt-3 text-sm text-muted-foreground">Selected color: <span className="font-medium text-foreground">{color}</span></div>
-              <div className="mt-1 text-sm text-muted-foreground">Available colors: {availableColors.join(", ")}</div>
-            </div>
-
-            <div className="mt-4 flex items-center gap-5 text-xs text-muted-foreground">
-              <div className="inline-flex items-center gap-1"><Truck className="h-4 w-4" /> Fast local delivery</div>
-              <div className="inline-flex items-center gap-1"><Heart className="h-4 w-4" /> Loved by Harare shoppers</div>
-            </div>
-          </div>
-
-        </div>
-
-        <div className="mt-4 grid grid-cols-4 gap-2 lg:hidden">
-          {activeGallery.map((img, idx) => (
-            <button
-              key={img}
-              onClick={() => setSelectedImage(img)}
-              aria-label={`View image ${idx + 1}`}
-              className={`overflow-hidden rounded-md border ${selectedImage === img ? "border-foreground" : "border-border"}`}
-            >
-              <img src={img} alt={product.name} className="h-20 w-full object-cover" loading="lazy" onError={handleImageLoadError} />
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <section id="reviews" className="scroll-mt-28 mx-auto max-w-7xl px-5 py-8">
-        <div className="rounded-xl border border-border bg-surface p-5 md:p-6">
-          <div className="flex items-center justify-between gap-4">
-            <h2 className="text-3xl font-semibold tracking-tight">Customer Reviews ({reviewCountLabel})</h2>
-            <button className="text-sm text-muted-foreground hover:text-foreground">View all</button>
-          </div>
-
-          <form
-            className="mt-5 rounded-xl border border-border bg-background p-4"
-            onSubmit={(event) => {
-              event.preventDefault();
+            </section>
               if (submittingReview) return;
 
               const name = reviewName.trim();
