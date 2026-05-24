@@ -70,7 +70,12 @@ function inferProductType(name) {
 }
 
 function inferPrice(name) {
-  return 12 + (hashValue(name) % 7);
+  const minCents = 450;
+  const maxCents = 930;
+  const stepCents = 10;
+  const steps = Math.floor((maxCents - minCents) / stepCents) + 1;
+  const priceCents = minCents + (hashValue(name) % steps) * stepCents;
+  return Number((priceCents / 100).toFixed(2));
 }
 
 function inferHighlights(name, variantCount) {

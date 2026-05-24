@@ -18,7 +18,7 @@ export const publicGeneratedProducts: PublicGeneratedProduct[] = [
     "name": "2pcs Lace Patchwork Underwire Lingerie Bra & Panty Set, Charming Series, Small Size",
     "brand": "Lace",
     "productType": "Bra & Pant",
-    "price": 16,
+    "price": 5.6,
     "image": "/2pcs Lace Patchwork Underwire Lingerie Bra & Panty Set, Charming Series, Small Size/1747065682e11c6ec940b1dfb8a245b278400c31c1_thumbnail_600x.jpg",
     "gallery": [
       "/2pcs Lace Patchwork Underwire Lingerie Bra & Panty Set, Charming Series, Small Size/1747065682e11c6ec940b1dfb8a245b278400c31c1_thumbnail_600x.jpg",
@@ -50,7 +50,7 @@ export const publicGeneratedProducts: PublicGeneratedProduct[] = [
     "name": "2pcs Women's Romantic Lace Comfortable And Elegant Bowknot Lingerie Set",
     "brand": "Lace",
     "productType": "Bra & Pant",
-    "price": 13,
+    "price": 8.1,
     "image": "/2pcs Women's Romantic Lace Comfortable And Elegant Bowknot Lingerie Set/apricot/17206082469c8df19cc31908c49d96709c947bbfaa_thumbnail_600x.jpg",
     "gallery": [
       "/2pcs Women's Romantic Lace Comfortable And Elegant Bowknot Lingerie Set/apricot/17206082469c8df19cc31908c49d96709c947bbfaa_thumbnail_600x.jpg",
@@ -120,7 +120,7 @@ export const publicGeneratedProducts: PublicGeneratedProduct[] = [
     "name": "2pcsSet Lace Patchwork Women's Underwire Bra Set",
     "brand": "Lace",
     "productType": "Bra & Pant",
-    "price": 12,
+    "price": 7.3,
     "image": "/2pcsSet Lace Patchwork Women's Underwire Bra Set/burgundy/1761528423c1729639da020cc99e9ee74e566b9b9d_thumbnail_600x.jpg",
     "gallery": [
       "/2pcsSet Lace Patchwork Women's Underwire Bra Set/burgundy/1761528423c1729639da020cc99e9ee74e566b9b9d_thumbnail_600x.jpg",
@@ -171,7 +171,7 @@ export const publicGeneratedProducts: PublicGeneratedProduct[] = [
     "name": "2pcsSet Women Solid Color Wire Lingerie Bra & Panties Set",
     "brand": "Lace",
     "productType": "Bra & Pant",
-    "price": 14,
+    "price": 7.5,
     "image": "/2pcsSet Women Solid Color Wire Lingerie Bra & Panties Set/black/1754443180c3fd142a0eb96c3d62846bf5b167d7c3_thumbnail_600x.jpg",
     "gallery": [
       "/2pcsSet Women Solid Color Wire Lingerie Bra & Panties Set/black/1754443180c3fd142a0eb96c3d62846bf5b167d7c3_thumbnail_600x.jpg",
@@ -242,7 +242,7 @@ export const publicGeneratedProducts: PublicGeneratedProduct[] = [
     "name": "3pcs Sexy Lingerie Set For Women (With Underwire Bra, G-String, And Mini Skirt)",
     "brand": "Lace",
     "productType": "Bra & Pant",
-    "price": 12,
+    "price": 8,
     "image": "/3pcs Sexy Lingerie Set For Women (With Underwire Bra, G-String, And Mini Skirt)/1767494943a782b4d59644b4bd8ef28694a2cbe528_thumbnail_600x.jpg",
     "gallery": [
       "/3pcs Sexy Lingerie Set For Women (With Underwire Bra, G-String, And Mini Skirt)/1767494943a782b4d59644b4bd8ef28694a2cbe528_thumbnail_600x.jpg",
@@ -276,7 +276,7 @@ export const publicGeneratedProducts: PublicGeneratedProduct[] = [
     "name": "Bow Front Lace Cami Top & Shorts PJ Set Bow Tie",
     "brand": "Lace",
     "productType": "Bra & Pant",
-    "price": 17,
+    "price": 9.2,
     "image": "/Bow Front Lace Cami Top & Shorts PJ Set Bow Tie/red velvet/1699497119af6cad407a84b74817c0d091aa236dd3_thumbnail_600x.jpg",
     "gallery": [
       "/Bow Front Lace Cami Top & Shorts PJ Set Bow Tie/red velvet/1699497119af6cad407a84b74817c0d091aa236dd3_thumbnail_600x.jpg",
@@ -319,7 +319,7 @@ export const publicGeneratedProducts: PublicGeneratedProduct[] = [
     "name": "ChaseTheNight 2pcs Women Sexy Mesh Lingerie Set For Going Out, Lingerie For Women,Sexy,Valentine's Day,Sexy Lingerie,",
     "brand": "Lace",
     "productType": "Sexy Night Wear",
-    "price": 17,
+    "price": 6.4,
     "image": "/ChaseTheNight 2pcs Women Sexy Mesh Lingerie Set For Going Out, Lingerie For Women,Sexy,Valentine's Day,Sexy Lingerie,/black/1741862546befc94c5caa5dbf0d633563b4b12ca3a_thumbnail_600x.jpg",
     "gallery": [
       "/ChaseTheNight 2pcs Women Sexy Mesh Lingerie Set For Going Out, Lingerie For Women,Sexy,Valentine's Day,Sexy Lingerie,/black/1741862546befc94c5caa5dbf0d633563b4b12ca3a_thumbnail_600x.jpg",
@@ -361,7 +361,7 @@ export const publicGeneratedProducts: PublicGeneratedProduct[] = [
     "name": "Crystal Vow Hollow Out Scallop Trim Lace Panty Lingerie Bridallingerie",
     "brand": "Lace",
     "productType": "Sexy Lingerie",
-    "price": 17,
+    "price": 9.2,
     "image": "/Crystal Vow Hollow Out Scallop Trim Lace Panty Lingerie Bridallingerie/black/1703813861e16c7eb32332f898e2e429b76ebebe7b_thumbnail_600x.jpg",
     "gallery": [
       "/Crystal Vow Hollow Out Scallop Trim Lace Panty Lingerie Bridallingerie/black/1703813861e16c7eb32332f898e2e429b76ebebe7b_thumbnail_600x.jpg",
@@ -421,7 +421,7 @@ export const publicGeneratedProducts: PublicGeneratedProduct[] = [
     "name": "DelicateAllure 2pcs Lace Patchwork Women Bra Set With Underwire",
     "brand": "Lace",
     "productType": "Bra & Pant",
-    "price": 13,
+    "price": 8.1,
     "image": "/DelicateAllure 2pcs Lace Patchwork Women Bra Set With Underwire/black/17470351384de1725d6cc3c0ba99a5d4df5afe8140_thumbnail_600x.jpg",
     "gallery": [
       "/DelicateAllure 2pcs Lace Patchwork Women Bra Set With Underwire/black/17470351384de1725d6cc3c0ba99a5d4df5afe8140_thumbnail_600x.jpg",
@@ -491,7 +491,7 @@ export const publicGeneratedProducts: PublicGeneratedProduct[] = [
     "name": "EmpressEnvy Women's Classic Sexy Black Lace Semi Sheer Babydoll With Cut Out Details And Spaghetti Strap, Short Length Lingerie Set, Baddie Look",
     "brand": "Lace",
     "productType": "Sexy Night Wear",
-    "price": 13,
+    "price": 4.6,
     "image": "/EmpressEnvy Women's Classic Sexy Black Lace Semi Sheer Babydoll With Cut Out Details And Spaghetti Strap, Short Length Lingerie Set, Baddie Look/black/1772607749b43cdb6d086c5696a54df4ecae69474a_thumbnail_600x.jpg",
     "gallery": [
       "/EmpressEnvy Women's Classic Sexy Black Lace Semi Sheer Babydoll With Cut Out Details And Spaghetti Strap, Short Length Lingerie Set, Baddie Look/black/1772607749b43cdb6d086c5696a54df4ecae69474a_thumbnail_600x.jpg",
@@ -544,7 +544,7 @@ export const publicGeneratedProducts: PublicGeneratedProduct[] = [
     "name": "Floral Lace Ruffle Hem Sexy Lingerie Dress With Thong",
     "brand": "Lace",
     "productType": "Sexy Night Wear",
-    "price": 13,
+    "price": 4.6,
     "image": "/Floral Lace Ruffle Hem Sexy Lingerie Dress With Thong/1694684840fdecead2d30d3d517a849139c012d373_thumbnail_600x.jpg",
     "gallery": [
       "/Floral Lace Ruffle Hem Sexy Lingerie Dress With Thong/1694684840fdecead2d30d3d517a849139c012d373_thumbnail_600x.jpg",
@@ -577,7 +577,7 @@ export const publicGeneratedProducts: PublicGeneratedProduct[] = [
     "name": "Front Closure Wireless Letter Pattern Ladies Bra Set",
     "brand": "Lace",
     "productType": "Bra & Pant",
-    "price": 17,
+    "price": 5,
     "image": "/Front Closure Wireless Letter Pattern Ladies Bra Set/black/17367646190bf40efb59b4e860cf59497e1788b974_thumbnail_600x.jpg",
     "gallery": [
       "/Front Closure Wireless Letter Pattern Ladies Bra Set/black/17367646190bf40efb59b4e860cf59497e1788b974_thumbnail_600x.jpg",
@@ -642,7 +642,7 @@ export const publicGeneratedProducts: PublicGeneratedProduct[] = [
     "name": "Hollow Out Leopard Print Wrap-Around Sexy Lingerie For Going Out",
     "brand": "Lace",
     "productType": "Sexy Lingerie",
-    "price": 17,
+    "price": 5,
     "image": "/Hollow Out Leopard Print Wrap-Around Sexy Lingerie For Going Out/1721358826f062c608415bf914b555560f010c2355_thumbnail_600x.jpg",
     "gallery": [
       "/Hollow Out Leopard Print Wrap-Around Sexy Lingerie For Going Out/1721358826f062c608415bf914b555560f010c2355_thumbnail_600x.jpg",
@@ -675,7 +675,7 @@ export const publicGeneratedProducts: PublicGeneratedProduct[] = [
     "name": "Ladies' Lace Bra And Panty Set, 2pcs Lingerie Set, Kawaii",
     "brand": "Lace",
     "productType": "Bra & Pant",
-    "price": 13,
+    "price": 5.3,
     "image": "/Ladies' Lace Bra And Panty Set, 2pcs Lingerie Set, Kawaii/17000418921d3273282241986021d50f0a8a73820a_thumbnail_600x.jpg",
     "gallery": [
       "/Ladies' Lace Bra And Panty Set, 2pcs Lingerie Set, Kawaii/17000418921d3273282241986021d50f0a8a73820a_thumbnail_600x.jpg",
@@ -706,7 +706,7 @@ export const publicGeneratedProducts: PublicGeneratedProduct[] = [
     "name": "Ladies' Sexy Pu Leather Backless Halter Neck Lingerie Dress",
     "brand": "Lace",
     "productType": "Sexy Night Wear",
-    "price": 18,
+    "price": 9.3,
     "image": "/Ladies' Sexy Pu Leather Backless Halter Neck Lingerie Dress/1733913680dd2435df435fdf12e33eb3bbd6dd44b9_thumbnail_600x.jpg",
     "gallery": [
       "/Ladies' Sexy Pu Leather Backless Halter Neck Lingerie Dress/1733913680dd2435df435fdf12e33eb3bbd6dd44b9_thumbnail_600x.jpg",
@@ -739,7 +739,7 @@ export const publicGeneratedProducts: PublicGeneratedProduct[] = [
     "name": "Plus Size Lingerie, Hollow Out Cover-Up, Sheer Solid Color High Elasticity Lace Dress",
     "brand": "Lace",
     "productType": "Sexy Night Wear",
-    "price": 14,
+    "price": 5.4,
     "image": "/Plus Size Lingerie, Hollow Out Cover-Up, Sheer Solid Color High Elasticity Lace Dress/black/1723197112ae65fddce67262f205abde0e05b871b2_thumbnail_600x.jpg",
     "gallery": [
       "/Plus Size Lingerie, Hollow Out Cover-Up, Sheer Solid Color High Elasticity Lace Dress/black/1723197112ae65fddce67262f205abde0e05b871b2_thumbnail_600x.jpg",
@@ -781,7 +781,7 @@ export const publicGeneratedProducts: PublicGeneratedProduct[] = [
     "name": "Seamless Plain Halter Bra & Panty Lingerie Set",
     "brand": "Lace",
     "productType": "Bra & Pant",
-    "price": 16,
+    "price": 4.9,
     "image": "/Seamless Plain Halter Bra & Panty Lingerie Set/black/1636681717c5c840ac0d7a5042a8a5c3ef443247c7_thumbnail_600x.jpg",
     "gallery": [
       "/Seamless Plain Halter Bra & Panty Lingerie Set/black/1636681717c5c840ac0d7a5042a8a5c3ef443247c7_thumbnail_600x.jpg",
@@ -823,7 +823,7 @@ export const publicGeneratedProducts: PublicGeneratedProduct[] = [
     "name": "Seduluxe 2pcs Women Sheer Lace Camisole Sexy Bra And Boyshorts Lingerie Set",
     "brand": "Lace",
     "productType": "Bra & Pant",
-    "price": 12,
+    "price": 6.6,
     "image": "/Seduluxe 2pcs Women Sheer Lace Camisole Sexy Bra And Boyshorts Lingerie Set/black/1775537674f9c20f95b2148a99191049b8639e9733_thumbnail_600x.jpg",
     "gallery": [
       "/Seduluxe 2pcs Women Sheer Lace Camisole Sexy Bra And Boyshorts Lingerie Set/black/1775537674f9c20f95b2148a99191049b8639e9733_thumbnail_600x.jpg",
@@ -873,7 +873,7 @@ export const publicGeneratedProducts: PublicGeneratedProduct[] = [
     "name": "Sexy Lace Halter Romper Sleepwear For Women With Midriff-Baring Design",
     "brand": "Lounge",
     "productType": "Sexy Night Wear",
-    "price": 12,
+    "price": 5.2,
     "image": "/Sexy Lace Halter Romper Sleepwear For Women With Midriff-Baring Design/blue/1764145347c50f3507ae60bf0970753c025c84416c_thumbnail_600x.jpg",
     "gallery": [
       "/Sexy Lace Halter Romper Sleepwear For Women With Midriff-Baring Design/blue/1764145347c50f3507ae60bf0970753c025c84416c_thumbnail_600x.jpg",
@@ -935,7 +935,7 @@ export const publicGeneratedProducts: PublicGeneratedProduct[] = [
     "name": "Sexy Lingerie, Lace Underwire Sheer Seductive Garter Slip, Adjustable",
     "brand": "Lace",
     "productType": "Sexy Lingerie",
-    "price": 12,
+    "price": 5.2,
     "image": "/Sexy Lingerie, Lace Underwire Sheer Seductive Garter Slip, Adjustable/black/1747672364f38afe890a48088f07e8610dbf544072_thumbnail_600x.jpg",
     "gallery": [
       "/Sexy Lingerie, Lace Underwire Sheer Seductive Garter Slip, Adjustable/black/1747672364f38afe890a48088f07e8610dbf544072_thumbnail_600x.jpg",
@@ -983,7 +983,7 @@ export const publicGeneratedProducts: PublicGeneratedProduct[] = [
     "name": "Sleeveless Sexy Bandage Dress - Elegant Black & White Round Neck Long Fitted Design - Slit Hem, Tie Detail, Suitable For Summer Party & Evening Wear",
     "brand": "Lace",
     "productType": "Sexy Night Wear",
-    "price": 17,
+    "price": 9.2,
     "image": "/Sleeveless Sexy Bandage Dress - Elegant Black & White Round Neck Long Fitted Design - Slit Hem, Tie Detail, Suitable For Summer Party & Evening Wear/1740214829c55a69604848a81ed1bfc0618c85aa61_thumbnail_600x.jpg",
     "gallery": [
       "/Sleeveless Sexy Bandage Dress - Elegant Black & White Round Neck Long Fitted Design - Slit Hem, Tie Detail, Suitable For Summer Party & Evening Wear/1740214829c55a69604848a81ed1bfc0618c85aa61_thumbnail_600x.jpg",
@@ -1016,7 +1016,7 @@ export const publicGeneratedProducts: PublicGeneratedProduct[] = [
     "name": "Solid Color Hollow Out Mesh Bra And Triangle Underwear Sexy Lingerie Set, 2pcs. For Going Out",
     "brand": "Lace",
     "productType": "Bra & Pant",
-    "price": 16,
+    "price": 4.9,
     "image": "/Solid Color Hollow Out Mesh Bra And Triangle Underwear Sexy Lingerie Set, 2pcs. For Going Out/1718347198c3082cf17aa6eaed115598f2eb1d80e0_thumbnail_600x.jpg",
     "gallery": [
       "/Solid Color Hollow Out Mesh Bra And Triangle Underwear Sexy Lingerie Set, 2pcs. For Going Out/1718347198c3082cf17aa6eaed115598f2eb1d80e0_thumbnail_600x.jpg",
@@ -1049,7 +1049,7 @@ export const publicGeneratedProducts: PublicGeneratedProduct[] = [
     "name": "SXY Commute Minimalist Office Old Money Simple Women's Striped Hollow Out Patchwork Skinny Leggings, Everyday Casual Wear",
     "brand": "Everyday",
     "productType": "Sexy Lingerie",
-    "price": 14,
+    "price": 4.7,
     "image": "/SXY Commute Minimalist Office Old Money Simple Women's Striped Hollow Out Patchwork Skinny Leggings, Everyday Casual Wear/BLACK/1705482453a3929b55632678c274242039990b55c5_thumbnail_600x.jpg",
     "gallery": [
       "/SXY Commute Minimalist Office Old Money Simple Women's Striped Hollow Out Patchwork Skinny Leggings, Everyday Casual Wear/BLACK/1705482453a3929b55632678c274242039990b55c5_thumbnail_600x.jpg",
@@ -1092,7 +1092,7 @@ export const publicGeneratedProducts: PublicGeneratedProduct[] = [
     "name": "Women's Fashionable Tie Dye Slim Flared Long Pants",
     "brand": "Everyday",
     "productType": "Sexy Lingerie",
-    "price": 12,
+    "price": 4.5,
     "image": "/Women's Fashionable Tie Dye Slim Flared Long Pants/17114260010f674ff4cd464a34df19efdabc46a7e8_thumbnail_600x.jpg",
     "gallery": [
       "/Women's Fashionable Tie Dye Slim Flared Long Pants/17114260010f674ff4cd464a34df19efdabc46a7e8_thumbnail_600x.jpg",
@@ -1127,7 +1127,7 @@ export const publicGeneratedProducts: PublicGeneratedProduct[] = [
     "name": "Women's High Waist Solid Color Flare Yoga Leggings, Workout Running Fitness Pants Black Spring",
     "brand": "Everyday",
     "productType": "Sexy Lingerie",
-    "price": 17,
+    "price": 7.8,
     "image": "/Women's High Waist Solid Color Flare Yoga Leggings, Workout Running Fitness Pants Black Spring/black/1744081292c2bd87f6e640a76ef734f61a4b960030_thumbnail_600x.jpg",
     "gallery": [
       "/Women's High Waist Solid Color Flare Yoga Leggings, Workout Running Fitness Pants Black Spring/black/1744081292c2bd87f6e640a76ef734f61a4b960030_thumbnail_600x.jpg",
@@ -1203,7 +1203,7 @@ export const publicGeneratedProducts: PublicGeneratedProduct[] = [
     "name": "Women's Solid Color Halter Lace Sexy Bra And Panty Set",
     "brand": "Lace",
     "productType": "Bra & Pant",
-    "price": 18,
+    "price": 8.6,
     "image": "/Women's Solid Color Halter Lace Sexy Bra And Panty Set/1700895630a270824a03e08738b370f05825328e91_thumbnail_600x.jpg",
     "gallery": [
       "/Women's Solid Color Halter Lace Sexy Bra And Panty Set/1700895630a270824a03e08738b370f05825328e91_thumbnail_600x.jpg",
