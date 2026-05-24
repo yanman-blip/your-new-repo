@@ -1141,128 +1141,6 @@ function ProductPage() {
                 </div>
               </div>
             </section>
-              if (submittingReview) return;
-
-              const name = reviewName.trim();
-              const text = reviewTextInput.trim();
-              const sizeValue = reviewSizeInput.trim();
-              if (!name || !text || !sizeValue) {
-                setReviewSubmitError("Please fill in your name, size, and review text.");
-                setReviewSubmitSuccess("");
-                return;
-              }
-
-              const photos = reviewPhotosInput
-                .split(",")
-                .map((value) => value.trim())
-                .filter(Boolean);
-
-              setSubmittingReview(true);
-              setReviewSubmitError("");
-              setReviewSubmitSuccess("");
-
-              void createProductReview({
-                productId: product.id,
-                reviewerName: name,
-                rating: reviewRatingInput,
-                fit: reviewFitInput,
-                sizeLabel: sizeValue,
-                reviewText: text,
-                photos,
-              })
-                .then((created) => {
-                  const review: CustomerReview = {
-                    id: created.id,
-                    name: created.reviewerName,
-                    rating: created.rating,
-                    date: formatReviewDate(created.createdAt),
-                    fit: created.fit,
-                    size: created.sizeLabel,
-                    text: created.reviewText,
-                    photos: created.photos,
-                    verified: created.verifiedPurchase,
-                    helpful: created.helpfulCount,
-                  };
-                  setLiveReviews((current) => [review, ...current]);
-                  setReviewName("");
-                  setReviewTextInput("");
-                  setReviewPhotosInput("");
-                  setReviewSubmitSuccess("Review posted. Thank you for sharing your experience.");
-                })
-                .catch(() => {
-                  setReviewSubmitError("Could not post your review right now. Please try again.");
-                })
-                .finally(() => {
-                  setSubmittingReview(false);
-                });
-            }}
-          >
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Write a review</h3>
-            <div className="mt-3 grid gap-3 md:grid-cols-2">
-              <input
-                value={reviewName}
-                onChange={(event) => setReviewName(event.target.value)}
-                placeholder="Your name"
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-                aria-label="Reviewer name"
-              />
-              <input
-                value={reviewSizeInput}
-                onChange={(event) => setReviewSizeInput(event.target.value)}
-                placeholder="Size purchased"
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-                aria-label="Purchased size"
-              />
-              <select
-                value={reviewRatingInput}
-                onChange={(event) => setReviewRatingInput(Number(event.target.value))}
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-                aria-label="Review rating"
-              >
-                <option value={5}>5 - Excellent</option>
-                <option value={4}>4 - Good</option>
-                <option value={3}>3 - Okay</option>
-                <option value={2}>2 - Poor</option>
-                <option value={1}>1 - Bad</option>
-              </select>
-              <select
-                value={reviewFitInput}
-                onChange={(event) => setReviewFitInput(event.target.value as ProductReviewFit)}
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-                aria-label="Review fit"
-              >
-                <option value="True to size">True to size</option>
-                <option value="Small">Small</option>
-                <option value="Large">Large</option>
-              </select>
-            </div>
-            <textarea
-              value={reviewTextInput}
-              onChange={(event) => setReviewTextInput(event.target.value)}
-              placeholder="Tell other shoppers how it fits, feels, and looks..."
-              className="mt-3 min-h-24 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-              aria-label="Review text"
-            />
-            <input
-              value={reviewPhotosInput}
-              onChange={(event) => setReviewPhotosInput(event.target.value)}
-              placeholder="Optional photo URLs (comma separated)"
-              className="mt-3 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-              aria-label="Review photo URLs"
-            />
-            <div className="mt-3 flex items-center justify-between gap-3">
-              <button
-                type="submit"
-                disabled={submittingReview}
-                className="rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background disabled:opacity-60"
-              >
-                {submittingReview ? "Posting..." : "Post review"}
-              </button>
-              {loadingLiveReviews && <span className="text-xs text-muted-foreground">Refreshing reviews...</span>}
-            </div>
-            {reviewSubmitError && <p className="mt-2 text-xs text-[#b42318]">{reviewSubmitError}</p>}
-            {reviewSubmitSuccess && <p className="mt-2 text-xs text-[#1f7d57]">{reviewSubmitSuccess}</p>}
-          </form>
 
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <span className="text-5xl font-semibold leading-none">{averageRating.toFixed(2)}</span>
@@ -1376,7 +1254,8 @@ function ProductPage() {
             </div>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
 
       <div id="recommendations" className="scroll-mt-28" />
 
