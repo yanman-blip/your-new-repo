@@ -865,48 +865,85 @@ function ProductPage() {
             You May Also Like
           </button>
         </div>
-        <div className="grid gap-4 lg:grid-cols-[68px_minmax(0,1fr)_390px]">
-          <aside className="hidden lg:flex lg:flex-col lg:gap-2.5">
-            {activeGallery.map((img, idx) => (
-              <button
-                key={img}
-                onClick={() => setSelectedImage(img)}
-                aria-label={`View image ${idx + 1}`}
-                className={`overflow-hidden rounded-md border ${selectedImage === img ? "border-foreground" : "border-border"}`}
-              >
-                <img src={img} alt={product.name} className="h-16 w-full object-cover" loading="lazy" onError={handleImageLoadError} />
-              </button>
-            ))}
-          </aside>
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_390px] lg:items-start">
+          <div className="grid gap-4 lg:grid-cols-[68px_minmax(0,1fr)]">
+            <aside className="hidden lg:flex lg:flex-col lg:gap-2.5">
+              {activeGallery.map((img, idx) => (
+                <button
+                  key={img}
+                  onClick={() => setSelectedImage(img)}
+                  aria-label={`View image ${idx + 1}`}
+                  className={`overflow-hidden rounded-md border ${selectedImage === img ? "border-foreground" : "border-border"}`}
+                >
+                  <img src={img} alt={product.name} className="h-16 w-full object-cover" loading="lazy" onError={handleImageLoadError} />
+                </button>
+              ))}
+            </aside>
 
-          <div
-            className="group relative self-start overflow-hidden rounded-xl border border-border lg:max-h-[76vh]"
-            onTouchStart={onTouchStart}
-            onTouchEnd={onTouchEnd}
-          >
-            <img
-              src={selectedImage}
-              alt={product.name}
-              className="block h-auto w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
-              onError={handleMainImageError}
-            />
-            <button
-              onClick={showPrevImage}
-              className="absolute left-3 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full border border-border bg-background/90 text-foreground hover:bg-background"
-              aria-label="Previous image"
+            <div
+              className="group relative self-start overflow-hidden rounded-xl border border-border lg:max-h-[76vh]"
+              onTouchStart={onTouchStart}
+              onTouchEnd={onTouchEnd}
             >
-              <ChevronLeft className="mx-auto h-4 w-4" />
-            </button>
-            <button
-              onClick={showNextImage}
-              className="absolute right-3 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full border border-border bg-background/90 text-foreground hover:bg-background"
-              aria-label="Next image"
-            >
-              <ChevronRight className="mx-auto h-4 w-4" />
-            </button>
-            <div className="absolute bottom-3 right-3 rounded-full bg-background/90 px-2.5 py-0.5 text-[11px] text-muted-foreground">
-              {selectedIndex + 1} / {activeGallery.length}
+              <img
+                src={selectedImage}
+                alt={product.name}
+                className="block h-auto w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                onError={handleMainImageError}
+              />
+              <button
+                onClick={showPrevImage}
+                className="absolute left-3 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full border border-border bg-background/90 text-foreground hover:bg-background"
+                aria-label="Previous image"
+              >
+                <ChevronLeft className="mx-auto h-4 w-4" />
+              </button>
+              <button
+                onClick={showNextImage}
+                className="absolute right-3 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full border border-border bg-background/90 text-foreground hover:bg-background"
+                aria-label="Next image"
+              >
+                <ChevronRight className="mx-auto h-4 w-4" />
+              </button>
+              <div className="absolute bottom-3 right-3 rounded-full bg-background/90 px-2.5 py-0.5 text-[11px] text-muted-foreground">
+                {selectedIndex + 1} / {activeGallery.length}
+              </div>
             </div>
+
+            <section className="hidden rounded-xl border border-border bg-surface p-5 lg:col-span-2 lg:block">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-xl font-semibold tracking-tight">Customer Reviews ({reviewCountLabel})</h2>
+                <button
+                  type="button"
+                  onClick={() => scrollToSection("reviews")}
+                  className="text-xs font-medium text-muted-foreground hover:text-foreground"
+                >
+                  View all reviews
+                </button>
+              </div>
+
+              <div className="mt-4 space-y-3">
+                {displayedReviews.slice(0, 3).map((review) => (
+                  <article key={`preview-${review.id}`} className="rounded-lg border border-border bg-background p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="text-sm font-semibold text-foreground">{review.name}</div>
+                        <div className="mt-0.5 text-xs text-muted-foreground">{review.date}</div>
+                      </div>
+                      <div className="flex items-center gap-1 text-[#f4b400]">
+                        {Array.from({ length: 5 }).map((_, index) => (
+                          <Star
+                            key={`${review.id}-preview-star-${index}`}
+                            className={`h-3.5 w-3.5 ${index < review.rating ? "fill-current" : "fill-neutral-200 text-neutral-200"}`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{review.text}</p>
+                  </article>
+                ))}
+              </div>
+            </section>
           </div>
 
           <div className="lg:sticky lg:top-24 self-start">
@@ -1073,40 +1110,6 @@ function ProductPage() {
             </div>
           </div>
 
-          <section className="hidden rounded-xl border border-border bg-surface p-5 lg:col-span-2 lg:block">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-xl font-semibold tracking-tight">Customer Reviews ({reviewCountLabel})</h2>
-              <button
-                type="button"
-                onClick={() => scrollToSection("reviews")}
-                className="text-xs font-medium text-muted-foreground hover:text-foreground"
-              >
-                View all reviews
-              </button>
-            </div>
-
-            <div className="mt-4 space-y-3">
-              {displayedReviews.slice(0, 3).map((review) => (
-                <article key={`preview-${review.id}`} className="rounded-lg border border-border bg-background p-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <div className="text-sm font-semibold text-foreground">{review.name}</div>
-                      <div className="mt-0.5 text-xs text-muted-foreground">{review.date}</div>
-                    </div>
-                    <div className="flex items-center gap-1 text-[#f4b400]">
-                      {Array.from({ length: 5 }).map((_, index) => (
-                        <Star
-                          key={`${review.id}-preview-star-${index}`}
-                          className={`h-3.5 w-3.5 ${index < review.rating ? "fill-current" : "fill-neutral-200 text-neutral-200"}`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                  <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{review.text}</p>
-                </article>
-              ))}
-            </div>
-          </section>
         </div>
 
         <div className="mt-4 grid grid-cols-4 gap-2 lg:hidden">
