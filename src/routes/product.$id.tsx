@@ -2,33 +2,81 @@ import { createFileRoute, notFound, Link } from "@tanstack/react-router";
 import { fetchProductById, getProduct, products, type Product } from "@/lib/products";
 import { useCart } from "@/lib/cart";
 import { formatPrice, formatOldPrice } from "@/lib/format-price";
-import { resolvedProductFolderGalleryManifest, resolvedProductVariantManifest } from "@/lib/public-product-images";
+import {
+  resolvedProductFolderGalleryManifest,
+  resolvedProductVariantManifest,
+} from "@/lib/public-product-images";
 import { useEffect, useMemo, useRef, useState, type SyntheticEvent } from "react";
-import { Check, ChevronLeft, ChevronRight, Clock3, Heart, Star, Truck } from "lucide-react";
+import {
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Clock3,
+  Heart,
+  MessageCircle,
+  Star,
+  Truck,
+} from "lucide-react";
 import { ProductCard } from "@/components/product-card";
 import { useWishlist } from "@/lib/wishlist";
 import { markProductRecentlyViewed, useRecentlyViewedProducts } from "@/lib/recently-viewed";
-import { trackRecommendationClick, trackRecommendationImpression } from "@/lib/recommendation-analytics";
-import { createProductReview, fetchProductReviews, type ProductReviewFit } from "@/lib/product-reviews";
+import {
+  trackRecommendationClick,
+  trackRecommendationImpression,
+} from "@/lib/recommendation-analytics";
+import {
+  createProductReview,
+  fetchProductReviews,
+  type ProductReviewFit,
+} from "@/lib/product-reviews";
 
-const colorClassMap: Record<string, string> = {
-  Blush: "bg-[#f3c4cd]",
-  Champagne: "bg-[#e9d8b8]",
-  Noir: "bg-[#1c1c1e]",
-  Pearl: "bg-[#ece4d6]",
-  Bordeaux: "bg-[#5a1f2a]",
-  Ivory: "bg-[#f3ead8]",
-  Sage: "bg-[#bccdb6]",
-  Sand: "bg-[#dccdb6]",
-  Black: "bg-[#1c1c1e]",
-  Ivoire: "bg-[#f1e7d3]",
-  Red: "bg-[#aa1b2a]",
-  Pink: "bg-[#f3c4cd]",
-  Burgundy: "bg-[#7b1f2b]",
-  Blue: "bg-[#2c4f9e]",
-  "Dark Blue": "bg-[#1d2f5f]",
-  White: "bg-[#f6f6f2]",
+const colorHexMap: Record<string, string> = {
+  blush: "#f3c4cd",
+  champagne: "#e9d8b8",
+  noir: "#1c1c1e",
+  pearl: "#ece4d6",
+  bordeaux: "#5a1f2a",
+  ivory: "#f3ead8",
+  sage: "#bccdb6",
+  sand: "#dccdb6",
+  black: "#1c1c1e",
+  ivoire: "#f1e7d3",
+  red: "#aa1b2a",
+  pink: "#f3c4cd",
+  burgundy: "#7b1f2b",
+  blue: "#2c4f9e",
+  "dark blue": "#1d2f5f",
+  white: "#f6f6f2",
 };
+
+const DEFAULT_WHATSAPP_NUMBER = "263782853304";
+
+function normalizeColorKey(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function resolveSwatchHex(name: string, productColors: Product["colors"]): string {
+  const colorKey = normalizeColorKey(name);
+  const matchedProductColor = productColors.find(
+    (entry) => normalizeColorKey(entry.name) === colorKey,
+  );
+  return matchedProductColor?.hex ?? colorHexMap[colorKey] ?? "#d4d4d8";
+}
+
+function getWhatsAppLink(productName: string): string {
+  const configuredNumber =
+    typeof import.meta.env.VITE_WHATSAPP_NUMBER === "string"
+      ? import.meta.env.VITE_WHATSAPP_NUMBER
+      : DEFAULT_WHATSAPP_NUMBER;
+  const phone = configuredNumber.replace(/\D/g, "") || DEFAULT_WHATSAPP_NUMBER;
+  const text = encodeURIComponent(`Hi admin, I need help with ${productName}. Can you assist me?`);
+  return `https://wa.me/${phone}?text=${text}`;
+}
 
 export const Route = createFileRoute("/product/$id")({
   loader: async ({ params }) => {
@@ -57,7 +105,9 @@ export const Route = createFileRoute("/product/$id")({
   notFoundComponent: () => (
     <div className="mx-auto max-w-3xl px-6 py-24 text-center">
       <h1 className="text-3xl font-semibold">Piece not found</h1>
-      <Link to="/shop" className="mt-6 inline-block underline underline-offset-4">Back to shop</Link>
+      <Link to="/shop" className="mt-6 inline-block underline underline-offset-4">
+        Back to shop
+      </Link>
     </div>
   ),
   component: ProductPage,
@@ -107,7 +157,7 @@ function buildReviews(gallery: string[]): CustomerReview[] {
       date: "09 Feb 2025",
       fit: "True to size",
       size: "S",
-      text: "I was skeptical ordering online but this exceeded every expectation. The fabric feels genuinely luxurious against the skin and the stitching is immaculate. This is now my go-to for special occasions — I\'ve already recommended it to three friends.",
+      text: "I was skeptical ordering online but this exceeded every expectation. The fabric feels genuinely luxurious against the skin and the stitching is immaculate. This is now my go-to for special occasions — I've already recommended it to three friends.",
       photos: safeGallery.slice(1, 3),
       verified: true,
       helpful: 18,
@@ -144,9 +194,15 @@ function getLiveShoppersHint(id: string): number {
 
 function formatCountdown(totalSeconds: number): string {
   const safe = Math.max(0, totalSeconds);
-  const hours = Math.floor(safe / 3600).toString().padStart(2, "0");
-  const minutes = Math.floor((safe % 3600) / 60).toString().padStart(2, "0");
-  const seconds = Math.floor(safe % 60).toString().padStart(2, "0");
+  const hours = Math.floor(safe / 3600)
+    .toString()
+    .padStart(2, "0");
+  const minutes = Math.floor((safe % 3600) / 60)
+    .toString()
+    .padStart(2, "0");
+  const seconds = Math.floor(safe % 60)
+    .toString()
+    .padStart(2, "0");
   return `${hours}:${minutes}:${seconds}`;
 }
 
@@ -310,6 +366,28 @@ function toPublicProductImageUrl(
   return `${baseUrl}/${encodedPath}${delimiter}quality=85&width=1200`;
 }
 
+function toSizedProductImageUrl(imageUrl: string, width: number, quality = 78): string {
+  if (!/^https?:\/\//i.test(imageUrl)) return imageUrl;
+
+  try {
+    const url = new URL(imageUrl);
+    const renderMarker = "/storage/v1/render/image/public/product-images/";
+    const objectMarker = "/storage/v1/object/public/product-images/";
+
+    if (url.pathname.includes(objectMarker)) {
+      url.pathname = url.pathname.replace(objectMarker, renderMarker);
+    }
+
+    if (!url.pathname.includes(renderMarker)) return imageUrl;
+
+    url.searchParams.set("width", String(width));
+    url.searchParams.set("quality", String(quality));
+    return url.toString();
+  } catch {
+    return imageUrl;
+  }
+}
+
 function toNormalizedProductFolderImageUrl(imageUrl: string): string | null {
   if (!/^https?:\/\//i.test(imageUrl)) return null;
 
@@ -320,9 +398,7 @@ function toNormalizedProductFolderImageUrl(imageUrl: string): string | null {
     if (bucketIndex < 0 || !parts[bucketIndex + 1]) return null;
 
     const decodedFolder = decodeURIComponent(parts[bucketIndex + 1]);
-    const normalizedFolder = decodedFolder
-      .replace(/[^A-Za-z0-9]+/g, "_")
-      .replace(/^_+|_+$/g, "");
+    const normalizedFolder = decodedFolder.replace(/[^A-Za-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
 
     if (!normalizedFolder || normalizedFolder === decodedFolder) return null;
 
@@ -484,39 +560,42 @@ function ProductPage() {
       ),
     [productFolder, productImagesBaseUrl, canonicalFolderSegment],
   );
-  const folderVariants = resolvedProductVariantManifest[productFolder] ?? {};
+  const folderVariants = useMemo(
+    () => resolvedProductVariantManifest[productFolder] ?? {},
+    [productFolder],
+  );
   const knownAbsoluteImagesByFilename = useMemo(
     () =>
-      buildAbsoluteImageByFilename([
-        ...folderGallery,
-        ...(product.gallery ?? []),
-        product.image,
-      ]),
+      buildAbsoluteImageByFilename([...folderGallery, ...(product.gallery ?? []), product.image]),
     [folderGallery, product.gallery, product.image],
   );
   const variantEntries = useMemo(
-    () => Object.entries(folderVariants).map(([rawColor, images]) => ({
-      color: toDisplayColorName(rawColor),
-      images: uniquePreferredImages(
-        images.map((imagePath) =>
-          resolveVariantImageUrl(
-            imagePath,
-            productImagesBaseUrl,
-            knownAbsoluteImagesByFilename,
-            canonicalFolderSegment,
+    () =>
+      Object.entries(folderVariants).map(([rawColor, images]) => ({
+        color: toDisplayColorName(rawColor),
+        images: uniquePreferredImages(
+          images.map((imagePath) =>
+            resolveVariantImageUrl(
+              imagePath,
+              productImagesBaseUrl,
+              knownAbsoluteImagesByFilename,
+              canonicalFolderSegment,
+            ),
           ),
         ),
-      ),
-    })),
+      })),
     [folderVariants, productImagesBaseUrl, knownAbsoluteImagesByFilename, canonicalFolderSegment],
   );
 
-  const fallbackColor = detectColorFromImagePath(product.image) ?? product.colors[0]?.name ?? "Default";
+  const fallbackColor =
+    detectColorFromImagePath(product.image) ?? product.colors[0]?.name ?? "Default";
   const initialColor = variantEntries[0]?.color ?? fallbackColor;
   const [color, setColor] = useState(initialColor);
 
   const activeGallery = useMemo(() => {
-    const selectedVariant = variantEntries.find((v) => v.color.toLowerCase() === color.toLowerCase());
+    const selectedVariant = variantEntries.find(
+      (v) => v.color.toLowerCase() === color.toLowerCase(),
+    );
     if (selectedVariant && selectedVariant.images.length > 0) return selectedVariant.images;
     if (folderGallery.length > 0) return folderGallery;
     if (product.gallery && product.gallery.length > 0) return product.gallery;
@@ -528,9 +607,27 @@ function ProductPage() {
     return [fallbackColor];
   }, [fallbackColor, variantEntries]);
 
+  const availableColorOptions = useMemo(
+    () => availableColors.map((name) => ({ name, hex: resolveSwatchHex(name, product.colors) })),
+    [availableColors, product.colors],
+  );
+
   const [selectedImage, setSelectedImage] = useState(activeGallery[0]);
   const [added, setAdded] = useState(false);
   const touchStartX = useRef<number | null>(null);
+  const whatsappHref = useMemo(() => getWhatsAppLink(product.name), [product.name]);
+  const thumbnailGallery = useMemo(
+    () =>
+      activeGallery.map((full) => ({
+        full,
+        thumb: toSizedProductImageUrl(full, 160, 62),
+      })),
+    [activeGallery],
+  );
+  const selectedImageSrc = useMemo(
+    () => toSizedProductImageUrl(selectedImage, 960, 78),
+    [selectedImage],
+  );
 
   useEffect(() => {
     setColor(initialColor);
@@ -602,7 +699,9 @@ function ProductPage() {
     setOpen(true);
   };
 
-  const related = products.filter((p) => p.id !== product.id && p.brand === product.brand).slice(0, 3);
+  const related = products
+    .filter((p) => p.id !== product.id && p.brand === product.brand)
+    .slice(0, 3);
   const alsoViewed = products.filter((p) => p.id !== product.id).slice(0, 10);
   const bundleProducts = products.filter((p) => p.id !== product.id).slice(0, 2);
   const primaryStyle = product.attributes?.styles?.[0];
@@ -735,7 +834,8 @@ function ProductPage() {
 
     return list;
   }, [reviews, reviewFilter, reviewSort]);
-  const averageRating = reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0;
+  const averageRating =
+    reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0;
   const sku = `JC-${product.id.replace(/-/g, "").slice(0, 10).toUpperCase()}`;
   const oldPrice = Math.max(product.price + 18, Math.round(product.price * 1.8));
   const discountPct = Math.max(1, Math.round(((oldPrice - product.price) / oldPrice) * 100));
@@ -829,7 +929,10 @@ function ProductPage() {
       )}
 
       <div className="mx-auto max-w-7xl px-5 pt-8">
-        <Link to="/shop" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+        <Link
+          to="/shop"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        >
           <ChevronLeft className="w-4 h-4" /> All pieces
         </Link>
       </div>
@@ -837,7 +940,9 @@ function ProductPage() {
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#ffc9d2] bg-[#fff0f2] px-4 py-3 text-sm">
           <div className="flex items-center gap-2 text-[#c9123a]">
             <Clock3 className="h-4 w-4" />
-            <span className="font-semibold">Flash deal ends in {formatCountdown(dealSecondsLeft)}</span>
+            <span className="font-semibold">
+              Flash deal ends in {formatCountdown(dealSecondsLeft)}
+            </span>
           </div>
           <div className="text-[#7a3a27]">Free returns in 30 days</div>
         </div>
@@ -868,14 +973,22 @@ function ProductPage() {
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_390px] lg:items-start">
           <div className="grid gap-4 lg:grid-cols-[68px_minmax(0,1fr)]">
             <aside className="hidden lg:flex lg:flex-col lg:gap-2.5">
-              {activeGallery.map((img, idx) => (
+              {thumbnailGallery.map(({ full, thumb }, idx) => (
                 <button
-                  key={img}
-                  onClick={() => setSelectedImage(img)}
+                  key={full}
+                  onClick={() => setSelectedImage(full)}
                   aria-label={`View image ${idx + 1}`}
-                  className={`overflow-hidden rounded-md border ${selectedImage === img ? "border-foreground" : "border-border"}`}
+                  className={`overflow-hidden rounded-md border ${selectedImage === full ? "border-foreground" : "border-border"}`}
                 >
-                  <img src={img} alt={product.name} className="h-16 w-full object-cover" loading="lazy" onError={handleImageLoadError} />
+                  <img
+                    src={thumb}
+                    alt={product.name}
+                    className="h-16 w-full object-cover"
+                    loading="lazy"
+                    decoding="async"
+                    fetchPriority="low"
+                    onError={handleImageLoadError}
+                  />
                 </button>
               ))}
             </aside>
@@ -886,9 +999,12 @@ function ProductPage() {
               onTouchEnd={onTouchEnd}
             >
               <img
-                src={selectedImage}
+                src={selectedImageSrc}
                 alt={product.name}
                 className="block h-auto w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                loading="eager"
+                decoding="async"
+                fetchPriority="high"
                 onError={handleMainImageError}
               />
               <button
@@ -910,9 +1026,14 @@ function ProductPage() {
               </div>
             </div>
 
-            <section id="reviews" className="hidden rounded-xl border border-border bg-surface p-5 lg:col-span-2 lg:block">
+            <section
+              id="reviews"
+              className="hidden rounded-xl border border-border bg-surface p-5 lg:col-span-2 lg:block"
+            >
               <div className="flex items-center justify-between gap-4">
-                <h2 className="text-2xl font-semibold tracking-tight">Customer Reviews ({reviewCountLabel})</h2>
+                <h2 className="text-2xl font-semibold tracking-tight">
+                  Customer Reviews ({reviewCountLabel})
+                </h2>
                 <button
                   type="button"
                   onClick={() => scrollToSection("reviews")}
@@ -972,17 +1093,23 @@ function ProductPage() {
                       setReviewName("");
                       setReviewTextInput("");
                       setReviewPhotosInput("");
-                      setReviewSubmitSuccess("Review posted. Thank you for sharing your experience.");
+                      setReviewSubmitSuccess(
+                        "Review posted. Thank you for sharing your experience.",
+                      );
                     })
                     .catch(() => {
-                      setReviewSubmitError("Could not post your review right now. Please try again.");
+                      setReviewSubmitError(
+                        "Could not post your review right now. Please try again.",
+                      );
                     })
                     .finally(() => {
                       setSubmittingReview(false);
                     });
                 }}
               >
-                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Write a review</h3>
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  Write a review
+                </h3>
                 <div className="mt-3 grid gap-3 md:grid-cols-2">
                   <input
                     value={reviewName}
@@ -1005,7 +1132,9 @@ function ProductPage() {
                     aria-label="Review rating"
                   >
                     {[5, 4, 3, 2, 1].map((value) => (
-                      <option key={value} value={value}>{value} star{value > 1 ? "s" : ""}</option>
+                      <option key={value} value={value}>
+                        {value} star{value > 1 ? "s" : ""}
+                      </option>
                     ))}
                   </select>
                   <select
@@ -1015,7 +1144,9 @@ function ProductPage() {
                     aria-label="Review fit"
                   >
                     {(["True to size", "Small", "Large"] as ProductReviewFit[]).map((fit) => (
-                      <option key={fit} value={fit}>{fit}</option>
+                      <option key={fit} value={fit}>
+                        {fit}
+                      </option>
                     ))}
                   </select>
                   <textarea
@@ -1035,7 +1166,9 @@ function ProductPage() {
                 </div>
 
                 {(reviewSubmitError || reviewSubmitSuccess) && (
-                  <p className={`mt-3 text-sm ${reviewSubmitError ? "text-red-600" : "text-green-700"}`}>
+                  <p
+                    className={`mt-3 text-sm ${reviewSubmitError ? "text-red-600" : "text-green-700"}`}
+                  >
                     {reviewSubmitError || reviewSubmitSuccess}
                   </p>
                 )}
@@ -1054,7 +1187,10 @@ function ProductPage() {
                   <p className="text-sm text-muted-foreground">No reviews yet.</p>
                 ) : (
                   displayedReviews.map((review) => (
-                    <article key={review.id} className="rounded-lg border border-border bg-background p-4">
+                    <article
+                      key={review.id}
+                      className="rounded-lg border border-border bg-background p-4"
+                    >
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <div className="text-sm font-semibold text-foreground">{review.name}</div>
@@ -1090,36 +1226,58 @@ function ProductPage() {
             </div>
 
             <div className="mt-4 flex items-end gap-2.5">
-              <span className="text-3xl font-semibold text-[#fe2c55]">{formatPrice(product.price, product.id)}</span>
-              <span className="rounded bg-[#fff0f2] px-2 py-0.5 text-sm font-medium text-[#fe2c55]">Estimated -{discountPct}%</span>
-              <span className="text-base text-muted-foreground line-through">{formatOldPrice(oldPrice, product.id)}</span>
-              <span className="ml-auto inline-flex items-center gap-1 text-sm text-[#fe2c55]"><Clock3 className="h-4 w-4" /> Last day</span>
+              <span className="text-3xl font-semibold text-[#fe2c55]">
+                {formatPrice(product.price, product.id)}
+              </span>
+              <span className="rounded bg-[#fff0f2] px-2 py-0.5 text-sm font-medium text-[#fe2c55]">
+                Estimated -{discountPct}%
+              </span>
+              <span className="text-base text-muted-foreground line-through">
+                {formatOldPrice(oldPrice, product.id)}
+              </span>
+              <span className="ml-auto inline-flex items-center gap-1 text-sm text-[#fe2c55]">
+                <Clock3 className="h-4 w-4" /> Last day
+              </span>
             </div>
 
             <div className="mt-4 flex flex-wrap gap-2 text-sm">
-              {["53% OFF: No Min. Buy", "51% OFF orders $31.64+", "35% OFF select items"].map((offer) => (
-                <span key={offer} className="rounded border border-[#ffc9d2] bg-[#fff0f2] px-2 py-1 text-[#fe2c55]">{offer}</span>
-              ))}
+              {["53% OFF: No Min. Buy", "51% OFF orders $31.64+", "35% OFF select items"].map(
+                (offer) => (
+                  <span
+                    key={offer}
+                    className="rounded border border-[#ffc9d2] bg-[#fff0f2] px-2 py-1 text-[#fe2c55]"
+                  >
+                    {offer}
+                  </span>
+                ),
+              )}
             </div>
-            <div className="mt-3 rounded border border-[#b9dcca] bg-[#e8f5ec] px-3 py-2 text-[#1f7d57]">Special Free Shipping Deal</div>
+            <div className="mt-3 rounded border border-[#b9dcca] bg-[#e8f5ec] px-3 py-2 text-[#1f7d57]">
+              Special Free Shipping Deal
+            </div>
             <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-[#ffc9d2] bg-[#fff0f2] px-3 py-2 text-xs text-[#c9123a]">
-              <span className="rounded-full bg-[#111] px-2 py-0.5 font-semibold text-white">Coupon</span>
+              <span className="rounded-full bg-[#111] px-2 py-0.5 font-semibold text-white">
+                Coupon
+              </span>
               <span>Use code WET15 for extra savings on this item.</span>
             </div>
 
-            {availableColors.length > 1 && (
+            {availableColorOptions.length > 1 && (
               <div className="mt-5">
-                <p className="mb-2 text-sm font-medium">Color: <span className="text-muted-foreground">{color}</span></p>
+                <p className="mb-2 text-sm font-medium">
+                  Color: <span className="text-muted-foreground">{color}</span>
+                </p>
                 <div className="flex flex-wrap gap-2">
-                  {availableColors.map((c) => (
+                  {availableColorOptions.map(({ name, hex }) => (
                     <button
-                      key={c}
+                      key={name}
                       type="button"
-                      title={c}
-                      onClick={() => setColor(c)}
-                      className={`h-7 w-7 rounded-full border-2 transition ${color === c ? "border-foreground scale-110" : "border-transparent"} ${colorClassMap[c] ?? "bg-muted"}`}
-                      aria-label={c}
-                      aria-pressed={color === c ? "true" : "false"}
+                      title={name}
+                      onClick={() => setColor(name)}
+                      className={`h-7 w-7 rounded-full border-2 transition ${color === name ? "border-foreground scale-110" : "border-border/70"}`}
+                      style={{ backgroundColor: hex }}
+                      aria-label={name}
+                      aria-pressed={color === name}
                     />
                   ))}
                 </div>
@@ -1127,7 +1285,9 @@ function ProductPage() {
             )}
 
             <div className="mt-5">
-              <p className="mb-2 text-sm font-medium">Size: <span className="text-muted-foreground">{size}</span></p>
+              <p className="mb-2 text-sm font-medium">
+                Size: <span className="text-muted-foreground">{size}</span>
+              </p>
               <div className="flex flex-wrap gap-2">
                 {product.storage.map((s) => (
                   <button
@@ -1142,8 +1302,14 @@ function ProductPage() {
               </div>
             </div>
 
-            <p className={`mt-3 text-sm font-medium ${stock.urgent ? "text-[#b42318]" : "text-muted-foreground"}`}>{stock.label}</p>
-            <p className="mt-1 text-xs text-muted-foreground">{liveShoppers} people are viewing this right now</p>
+            <p
+              className={`mt-3 text-sm font-medium ${stock.urgent ? "text-[#b42318]" : "text-muted-foreground"}`}
+            >
+              {stock.label}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {liveShoppers} people are viewing this right now
+            </p>
 
             <div className="mt-5 hidden gap-3 lg:flex">
               <button
@@ -1152,7 +1318,9 @@ function ProductPage() {
                 onClick={() => toggleWishlist(product.id)}
                 className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-border transition hover:border-foreground/40"
               >
-                <Heart className={`h-5 w-5 transition-colors ${isWishlisted(product.id) ? "fill-[#fe2c55] text-[#fe2c55]" : ""}`} />
+                <Heart
+                  className={`h-5 w-5 transition-colors ${isWishlisted(product.id) ? "fill-[#fe2c55] text-[#fe2c55]" : ""}`}
+                />
               </button>
               <button
                 type="button"
@@ -1163,20 +1331,34 @@ function ProductPage() {
               </button>
             </div>
 
+            <a
+              href={whatsappHref}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full border border-[#25d366] bg-[#25d366]/10 px-5 py-3 text-sm font-semibold text-[#128c4a] transition hover:bg-[#25d366]/20"
+            >
+              <MessageCircle className="h-4 w-4" />
+              Chat with admin on WhatsApp
+            </a>
+
             <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
               <Truck className="h-4 w-4 shrink-0" />
               <span>Express 2–10 days · Free on orders over $49</span>
             </div>
 
             {product.description && (
-              <p className="mt-5 text-sm leading-relaxed text-muted-foreground">{product.description}</p>
+              <p className="mt-5 text-sm leading-relaxed text-muted-foreground">
+                {product.description}
+              </p>
             )}
           </div>
         </div>
       </section>
 
       <section id="reviews" className="scroll-mt-28 mx-auto max-w-7xl px-5 py-10">
-        <h2 className="text-2xl font-semibold tracking-tight">Customer Reviews ({reviewCountLabel})</h2>
+        <h2 className="text-2xl font-semibold tracking-tight">
+          Customer Reviews ({reviewCountLabel})
+        </h2>
 
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <span className="text-5xl font-semibold leading-none">{averageRating.toFixed(2)}</span>
@@ -1189,13 +1371,15 @@ function ProductPage() {
         </div>
 
         <div className="mt-4 flex flex-wrap items-center gap-2">
-          {([
-            { id: "all", label: "All" },
-            { id: "with-photos", label: "With photos" },
-            { id: "5-star", label: "5 star" },
-            { id: "4-star", label: "4 star" },
-            { id: "true-to-size", label: "True to size" },
-          ] as { id: ReviewFilter; label: string }[]).map((item) => (
+          {(
+            [
+              { id: "all", label: "All" },
+              { id: "with-photos", label: "With photos" },
+              { id: "5-star", label: "5 star" },
+              { id: "4-star", label: "4 star" },
+              { id: "true-to-size", label: "True to size" },
+            ] as { id: ReviewFilter; label: string }[]
+          ).map((item) => (
             <button
               key={item.id}
               type="button"
@@ -1226,17 +1410,29 @@ function ProductPage() {
             <div className="mt-3 space-y-3 text-sm">
               <div className="grid grid-cols-[70px_1fr_40px] items-center gap-2">
                 <span>Small</span>
-                <div className="h-1.5 rounded bg-border"><div className={`h-1.5 rounded bg-foreground ${getFitWidthClass(fitBreakdown.small)}`} /></div>
+                <div className="h-1.5 rounded bg-border">
+                  <div
+                    className={`h-1.5 rounded bg-foreground ${getFitWidthClass(fitBreakdown.small)}`}
+                  />
+                </div>
                 <span>{fitBreakdown.small}%</span>
               </div>
               <div className="grid grid-cols-[70px_1fr_40px] items-center gap-2">
                 <span>True to size</span>
-                <div className="h-1.5 rounded bg-border"><div className={`h-1.5 rounded bg-foreground ${getFitWidthClass(fitBreakdown.trueToSize)}`} /></div>
+                <div className="h-1.5 rounded bg-border">
+                  <div
+                    className={`h-1.5 rounded bg-foreground ${getFitWidthClass(fitBreakdown.trueToSize)}`}
+                  />
+                </div>
                 <span>{fitBreakdown.trueToSize}%</span>
               </div>
               <div className="grid grid-cols-[70px_1fr_40px] items-center gap-2">
                 <span>Large</span>
-                <div className="h-1.5 rounded bg-border"><div className={`h-1.5 rounded bg-foreground ${getFitWidthClass(fitBreakdown.large)}`} /></div>
+                <div className="h-1.5 rounded bg-border">
+                  <div
+                    className={`h-1.5 rounded bg-foreground ${getFitWidthClass(fitBreakdown.large)}`}
+                  />
+                </div>
                 <span>{fitBreakdown.large}%</span>
               </div>
             </div>
@@ -1244,7 +1440,10 @@ function ProductPage() {
 
           <div className="space-y-6">
             {displayedReviews.map((review) => (
-              <article key={review.id} className="border border-border rounded-xl p-5 bg-background">
+              <article
+                key={review.id}
+                className="border border-border rounded-xl p-5 bg-background"
+              >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-foreground text-background text-sm font-semibold">
@@ -1262,7 +1461,10 @@ function ProductPage() {
                       <div className="mt-0.5 flex items-center gap-2">
                         <div className="flex items-center gap-0.5 text-[#f4b400]">
                           {Array.from({ length: 5 }).map((_, i) => (
-                            <Star key={i} className={`h-3.5 w-3.5 ${i < review.rating ? "fill-current" : "text-border"}`} />
+                            <Star
+                              key={i}
+                              className={`h-3.5 w-3.5 ${i < review.rating ? "fill-current" : "text-border"}`}
+                            />
                           ))}
                         </div>
                         <span className="text-xs text-muted-foreground">· {review.date}</span>
@@ -1270,20 +1472,38 @@ function ProductPage() {
                     </div>
                   </div>
                 </div>
-                <div className="mt-2 text-xs text-muted-foreground">Fit: {review.fit} · Size: {review.size}</div>
+                <div className="mt-2 text-xs text-muted-foreground">
+                  Fit: {review.fit} · Size: {review.size}
+                </div>
                 <p className="mt-3 text-sm leading-relaxed text-foreground">{review.text}</p>
                 {review.photos.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-2">
                     {review.photos.map((photo) => (
-                      <button key={photo} type="button" onClick={() => setLightboxPhoto(photo)} className="focus:outline-none">
-                        <img src={photo} alt="Customer photo" className="h-20 w-20 rounded-lg object-cover border border-border hover:opacity-90 transition cursor-zoom-in" loading="lazy" onError={handleImageLoadError} />
+                      <button
+                        key={photo}
+                        type="button"
+                        onClick={() => setLightboxPhoto(photo)}
+                        className="focus:outline-none"
+                      >
+                        <img
+                          src={photo}
+                          alt="Customer photo"
+                          className="h-20 w-20 rounded-lg object-cover border border-border hover:opacity-90 transition cursor-zoom-in"
+                          loading="lazy"
+                          onError={handleImageLoadError}
+                        />
                       </button>
                     ))}
                   </div>
                 )}
                 <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
                   <span>Helpful?</span>
-                  <button type="button" className="rounded border border-border px-2 py-0.5 hover:border-foreground/40 transition">Yes ({review.helpful})</button>
+                  <button
+                    type="button"
+                    className="rounded border border-border px-2 py-0.5 hover:border-foreground/40 transition"
+                  >
+                    Yes ({review.helpful})
+                  </button>
                 </div>
               </article>
             ))}
@@ -1297,24 +1517,40 @@ function ProductPage() {
         <section className="mx-auto max-w-7xl px-5 pb-12">
           <div className="rounded-xl border border-border bg-background p-5 md:p-6">
             <h2 className="text-2xl font-semibold tracking-tight">Frequently Bought Together</h2>
-            <p className="mt-1 text-sm text-muted-foreground">Complete the look with this high-converting pairing set.</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Complete the look with this high-converting pairing set.
+            </p>
 
             <div className="mt-4 grid gap-3 md:grid-cols-3">
               {[product, ...bundleProducts].map((item) => (
                 <div key={item.id} className="rounded-lg border border-border p-3">
                   <div className="aspect-3/4 overflow-hidden rounded-md bg-muted">
-                    <img src={item.image} alt={item.name} className="h-full w-full object-cover" loading="lazy" onError={handleImageLoadError} />
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                      onError={handleImageLoadError}
+                    />
                   </div>
-                  <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{shortenName(item.name)}</p>
-                  <p className="mt-1 text-sm font-semibold text-[#fe2c55]">{formatPrice(item.price, item.id)}</p>
+                  <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">
+                    {shortenName(item.name)}
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-[#fe2c55]">
+                    {formatPrice(item.price, item.id)}
+                  </p>
                 </div>
               ))}
             </div>
 
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-surface px-4 py-3">
               <div>
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Bundle Total</p>
-                <p className="text-2xl font-semibold text-[#fe2c55]">{formatPrice(bundleTotal, product.id)}</p>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Bundle Total
+                </p>
+                <p className="text-2xl font-semibold text-[#fe2c55]">
+                  {formatPrice(bundleTotal, product.id)}
+                </p>
               </div>
               <button
                 type="button"
@@ -1352,12 +1588,27 @@ function ProductPage() {
                 className="group rounded-lg border border-border overflow-hidden bg-background hover:shadow-md transition"
               >
                 <div className="aspect-3/4 overflow-hidden">
-                  <img src={p.image} alt={p.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" loading="lazy" onError={handleImageLoadError} />
+                  <img
+                    src={p.image}
+                    alt={p.name}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    loading="lazy"
+                    onError={handleImageLoadError}
+                  />
                 </div>
                 <div className="p-3">
-                  <div className="text-xs text-[#fe2c55]">-{Math.max(8, Math.min(60, Math.round(((p.price + 20 - p.price) / (p.price + 20)) * 100)))}% Last day</div>
+                  <div className="text-xs text-[#fe2c55]">
+                    -
+                    {Math.max(
+                      8,
+                      Math.min(60, Math.round(((p.price + 20 - p.price) / (p.price + 20)) * 100)),
+                    )}
+                    % Last day
+                  </div>
                   <div className="mt-1 text-sm leading-tight">{shortenName(p.name)}</div>
-                  <div className="mt-1 text-xl font-semibold text-[#fe2c55]">{formatPrice(p.price, p.id)}</div>
+                  <div className="mt-1 text-xl font-semibold text-[#fe2c55]">
+                    {formatPrice(p.price, p.id)}
+                  </div>
                   <div className="text-xs text-muted-foreground">Estimated</div>
                 </div>
               </Link>
@@ -1387,16 +1638,27 @@ function ProductPage() {
 
       {mixedRecommendations.length > 0 && (
         <section className="mx-auto max-w-7xl px-5 pb-16">
-          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-2">Recommended Next</h2>
-          <p className="mb-6 text-sm text-muted-foreground">A mixed feed of style matches and bag complements.</p>
+          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-2">
+            Recommended Next
+          </h2>
+          <p className="mb-6 text-sm text-muted-foreground">
+            A mixed feed of style matches and bag complements.
+          </p>
           {import.meta.env.DEV && (
             <details className="mb-4 rounded-lg border border-border bg-surface px-4 py-3 text-xs text-muted-foreground">
-              <summary className="cursor-pointer font-medium text-foreground">Recommendation debug</summary>
+              <summary className="cursor-pointer font-medium text-foreground">
+                Recommendation debug
+              </summary>
               <div className="mt-2 space-y-1">
                 {mixedRecommendations.map((entry) => (
-                  <div key={`debug-${entry.product.id}`} className="flex items-center justify-between gap-3">
+                  <div
+                    key={`debug-${entry.product.id}`}
+                    className="flex items-center justify-between gap-3"
+                  >
                     <span className="line-clamp-1">{entry.product.name}</span>
-                    <span className="shrink-0">score {entry.score} · {entry.reason}</span>
+                    <span className="shrink-0">
+                      score {entry.score} · {entry.reason}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -1418,7 +1680,9 @@ function ProductPage() {
 
       {related.length > 0 && (
         <section className="mx-auto max-w-7xl px-5 py-12">
-          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-6">More from {product.brand}</h2>
+          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-6">
+            More from {product.brand}
+          </h2>
           <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {related.map((p) => (
               <ProductCard
@@ -1435,7 +1699,9 @@ function ProductPage() {
 
       {recentlyViewed.length > 0 && (
         <section className="mx-auto max-w-7xl px-5 pb-16">
-          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-6">Your Recently Viewed</h2>
+          <h2 className="text-2xl md:text-3xl font-semibold tracking-tight mb-6">
+            Your Recently Viewed
+          </h2>
           <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
             {recentlyViewed.map((p) => (
               <ProductCard
@@ -1458,13 +1724,21 @@ function ProductPage() {
             onClick={() => toggleWishlist(product.id)}
             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border"
           >
-            <Heart className={`h-5 w-5 transition-colors ${isWishlisted(product.id) ? "fill-[#fe2c55] text-[#fe2c55]" : ""}`} />
+            <Heart
+              className={`h-5 w-5 transition-colors ${isWishlisted(product.id) ? "fill-[#fe2c55] text-[#fe2c55]" : ""}`}
+            />
           </button>
           <div className="min-w-0 flex-1">
-            <div className="truncate text-[11px] text-muted-foreground">{shortenName(product.name)}</div>
+            <div className="truncate text-[11px] text-muted-foreground">
+              {shortenName(product.name)}
+            </div>
             <div className="flex items-center gap-1.5">
-              <span className="text-base font-bold text-[#fe2c55]">{formatPrice(product.price, product.id)}</span>
-              <span className="text-[11px] text-muted-foreground line-through">{formatOldPrice(oldPrice, product.id)}</span>
+              <span className="text-base font-bold text-[#fe2c55]">
+                {formatPrice(product.price, product.id)}
+              </span>
+              <span className="text-[11px] text-muted-foreground line-through">
+                {formatOldPrice(oldPrice, product.id)}
+              </span>
             </div>
           </div>
           <button
@@ -1473,6 +1747,16 @@ function ProductPage() {
           >
             {added ? "✓ Added" : "Add to Bag"}
           </button>
+          <a
+            href={whatsappHref}
+            target="_blank"
+            rel="noreferrer"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#25d366] bg-[#25d366] text-white"
+            aria-label="Chat with admin on WhatsApp"
+            title="Chat with admin on WhatsApp"
+          >
+            <MessageCircle className="h-5 w-5" />
+          </a>
         </div>
       </div>
       <div className="h-32 lg:hidden" />
