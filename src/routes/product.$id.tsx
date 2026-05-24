@@ -1107,155 +1107,189 @@ function ProductPage() {
               <span>Use code WET15 for extra savings on this item.</span>
             </div>
 
-            <section id="reviews" className="scroll-mt-28 mx-auto max-w-7xl px-5 py-6">
-              <div className="rounded-xl border border-border bg-surface p-5 md:p-6">
-                <div className="flex items-center justify-between gap-4">
-                  <h2 className="text-2xl font-semibold tracking-tight">Customer Reviews ({reviewCountLabel})</h2>
-                  <button className="text-sm text-muted-foreground hover:text-foreground">View all</button>
-                </div>
-
-                <div className="mt-6 space-y-4">
-                  {displayedReviews.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">No reviews yet.</p>
-                  ) : (
-                    displayedReviews.map((review) => (
-                      <article key={review.id} className="rounded-xl border border-border bg-background p-4">
-                        <div className="flex items-start justify-between gap-4">
-                          <div>
-                            <div className="text-sm font-semibold text-foreground">{review.name}</div>
-                            <div className="mt-0.5 text-xs text-muted-foreground">{review.date}</div>
-                          </div>
-                          <div className="flex items-center gap-1 text-[#f4b400]">
-                            {Array.from({ length: 5 }).map((_, index) => (
-                              <Star
-                                key={`${review.id}-star-${index}`}
-                                className={`h-4 w-4 ${index < review.rating ? "fill-current" : "fill-neutral-200 text-neutral-200"}`}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                        <p className="mt-3 text-sm text-muted-foreground">{review.text}</p>
-                      </article>
-                    ))
-                  )}
+            {availableColors.length > 1 && (
+              <div className="mt-5">
+                <p className="mb-2 text-sm font-medium">Color: <span className="text-muted-foreground">{color}</span></p>
+                <div className="flex flex-wrap gap-2">
+                  {availableColors.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      title={c}
+                      onClick={() => setColor(c)}
+                      className={`h-7 w-7 rounded-full border-2 transition ${color === c ? "border-foreground scale-110" : "border-transparent"} ${colorClassMap[c] ?? "bg-muted"}`}
+                      aria-label={c}
+                      aria-pressed={color === c ? "true" : "false"}
+                    />
+                  ))}
                 </div>
               </div>
-            </section>
+            )}
 
-          <div className="mt-4 flex flex-wrap items-center gap-3">
-            <span className="text-5xl font-semibold leading-none">{averageRating.toFixed(2)}</span>
-            <div className="flex items-center gap-1 text-[#f4b400]">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star key={i} className="h-5 w-5 fill-current" />
-              ))}
+            <div className="mt-5">
+              <p className="mb-2 text-sm font-medium">Size: <span className="text-muted-foreground">{size}</span></p>
+              <div className="flex flex-wrap gap-2">
+                {product.storage.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setSize(s)}
+                    className={`rounded-lg border px-4 py-2 text-sm font-medium transition ${size === s ? "border-foreground bg-foreground text-background" : "border-border hover:border-foreground/40"}`}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
             </div>
-            <span className="text-sm text-muted-foreground">Review policy</span>
-          </div>
 
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            {([
-              { id: "all", label: "All" },
-              { id: "with-photos", label: "With photos" },
-              { id: "5-star", label: "5 star" },
-              { id: "4-star", label: "4 star" },
-              { id: "true-to-size", label: "True to size" },
-            ] as { id: ReviewFilter; label: string }[]).map((item) => (
+            <p className={`mt-3 text-sm font-medium ${stock.urgent ? "text-[#b42318]" : "text-muted-foreground"}`}>{stock.label}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{liveShoppers} people are viewing this right now</p>
+
+            <div className="mt-5 hidden gap-3 lg:flex">
               <button
-                key={item.id}
                 type="button"
-                onClick={() => setReviewFilter(item.id)}
-                className={`rounded-full border px-3 py-1 text-xs ${reviewFilter === item.id ? "border-foreground bg-foreground text-background" : "border-border"}`}
+                aria-label={isWishlisted(product.id) ? "Remove from wishlist" : "Add to wishlist"}
+                onClick={() => toggleWishlist(product.id)}
+                className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-border transition hover:border-foreground/40"
               >
-                {item.label}
+                <Heart className={`h-5 w-5 transition-colors ${isWishlisted(product.id) ? "fill-[#fe2c55] text-[#fe2c55]" : ""}`} />
               </button>
-            ))}
-
-            <select
-              value={reviewSort}
-              onChange={(event) => setReviewSort(event.target.value as ReviewSort)}
-              className="ml-auto rounded-full border border-border bg-background px-3 py-1.5 text-xs"
-              aria-label="Sort reviews"
-              title="Sort reviews"
-            >
-              <option value="helpful">Most helpful</option>
-              <option value="newest">Newest</option>
-              <option value="highest">Highest rating</option>
-              <option value="lowest">Lowest rating</option>
-            </select>
-          </div>
-
-          <div className="mt-4 grid gap-6 border-t border-border pt-6 lg:grid-cols-[1fr_2fr]">
-            <div>
-              <div className="text-sm font-medium">Overall Fit</div>
-              <div className="mt-3 space-y-3 text-sm">
-                <div className="grid grid-cols-[70px_1fr_40px] items-center gap-2">
-                  <span>Small</span>
-                  <div className="h-1.5 rounded bg-border"><div className={`h-1.5 rounded bg-foreground ${getFitWidthClass(fitBreakdown.small)}`} /></div>
-                  <span>{fitBreakdown.small}%</span>
-                </div>
-                <div className="grid grid-cols-[70px_1fr_40px] items-center gap-2">
-                  <span>True to size</span>
-                  <div className="h-1.5 rounded bg-border"><div className={`h-1.5 rounded bg-foreground ${getFitWidthClass(fitBreakdown.trueToSize)}`} /></div>
-                  <span>{fitBreakdown.trueToSize}%</span>
-                </div>
-                <div className="grid grid-cols-[70px_1fr_40px] items-center gap-2">
-                  <span>Large</span>
-                  <div className="h-1.5 rounded bg-border"><div className={`h-1.5 rounded bg-foreground ${getFitWidthClass(fitBreakdown.large)}`} /></div>
-                  <span>{fitBreakdown.large}%</span>
-                </div>
-              </div>
+              <button
+                type="button"
+                onClick={onAdd}
+                className="flex-1 rounded-full bg-[#fe2c55] px-5 py-3 text-sm font-bold uppercase tracking-wide text-white transition hover:bg-[#c9123a]"
+              >
+                {added ? "✓ Added to Bag" : "Add to Bag"}
+              </button>
             </div>
 
-            <div className="space-y-6">
-              {displayedReviews.map((review) => (
-                <article key={review.id} className="border border-border rounded-xl p-5 bg-background">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-foreground text-background text-sm font-semibold">
-                        {review.name.charAt(0)}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold">{review.name}</span>
-                          {review.verified && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-[#ecf8f1] px-2 py-0.5 text-[10px] font-medium text-[#1f7d57]">
-                              <Check className="h-3 w-3" /> Verified Purchase
-                            </span>
-                          )}
-                        </div>
-                        <div className="mt-0.5 flex items-center gap-2">
-                          <div className="flex items-center gap-0.5 text-[#f4b400]">
-                            {Array.from({ length: 5 }).map((_, i) => (
-                              <Star key={i} className={`h-3.5 w-3.5 ${i < review.rating ? "fill-current" : "text-border"}`} />
-                            ))}
-                          </div>
-                          <span className="text-xs text-muted-foreground">· {review.date}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-2 text-xs text-muted-foreground">Fit: {review.fit} · Size: {review.size}</div>
-                  <p className="mt-3 text-sm leading-relaxed text-foreground">{review.text}</p>
-                  {review.photos.length > 0 && (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {review.photos.map((photo) => (
-                        <button key={photo} type="button" onClick={() => setLightboxPhoto(photo)} className="focus:outline-none">
-                          <img src={photo} alt="Customer photo" className="h-20 w-20 rounded-lg object-cover border border-border hover:opacity-90 transition cursor-zoom-in" loading="lazy" onError={handleImageLoadError} />
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-                    <span>Helpful?</span>
-                    <button type="button" className="rounded border border-border px-2 py-0.5 hover:border-foreground/40 transition">Yes ({review.helpful})</button>
-                  </div>
-                </article>
-              ))}
+            <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+              <Truck className="h-4 w-4 shrink-0" />
+              <span>Express 2–10 days · Free on orders over $49</span>
             </div>
+
+            {product.description && (
+              <p className="mt-5 text-sm leading-relaxed text-muted-foreground">{product.description}</p>
+            )}
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      <section id="reviews" className="scroll-mt-28 mx-auto max-w-7xl px-5 py-10">
+        <h2 className="text-2xl font-semibold tracking-tight">Customer Reviews ({reviewCountLabel})</h2>
+
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <span className="text-5xl font-semibold leading-none">{averageRating.toFixed(2)}</span>
+          <div className="flex items-center gap-1 text-[#f4b400]">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Star key={i} className="h-5 w-5 fill-current" />
+            ))}
+          </div>
+          <span className="text-sm text-muted-foreground">Review policy</span>
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          {([
+            { id: "all", label: "All" },
+            { id: "with-photos", label: "With photos" },
+            { id: "5-star", label: "5 star" },
+            { id: "4-star", label: "4 star" },
+            { id: "true-to-size", label: "True to size" },
+          ] as { id: ReviewFilter; label: string }[]).map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => setReviewFilter(item.id)}
+              className={`rounded-full border px-3 py-1 text-xs ${reviewFilter === item.id ? "border-foreground bg-foreground text-background" : "border-border"}`}
+            >
+              {item.label}
+            </button>
+          ))}
+
+          <select
+            value={reviewSort}
+            onChange={(event) => setReviewSort(event.target.value as ReviewSort)}
+            className="ml-auto rounded-full border border-border bg-background px-3 py-1.5 text-xs"
+            aria-label="Sort reviews"
+            title="Sort reviews"
+          >
+            <option value="helpful">Most helpful</option>
+            <option value="newest">Newest</option>
+            <option value="highest">Highest rating</option>
+            <option value="lowest">Lowest rating</option>
+          </select>
+        </div>
+
+        <div className="mt-6 grid gap-6 border-t border-border pt-6 lg:grid-cols-[1fr_2fr]">
+          <div>
+            <div className="text-sm font-medium">Overall Fit</div>
+            <div className="mt-3 space-y-3 text-sm">
+              <div className="grid grid-cols-[70px_1fr_40px] items-center gap-2">
+                <span>Small</span>
+                <div className="h-1.5 rounded bg-border"><div className={`h-1.5 rounded bg-foreground ${getFitWidthClass(fitBreakdown.small)}`} /></div>
+                <span>{fitBreakdown.small}%</span>
+              </div>
+              <div className="grid grid-cols-[70px_1fr_40px] items-center gap-2">
+                <span>True to size</span>
+                <div className="h-1.5 rounded bg-border"><div className={`h-1.5 rounded bg-foreground ${getFitWidthClass(fitBreakdown.trueToSize)}`} /></div>
+                <span>{fitBreakdown.trueToSize}%</span>
+              </div>
+              <div className="grid grid-cols-[70px_1fr_40px] items-center gap-2">
+                <span>Large</span>
+                <div className="h-1.5 rounded bg-border"><div className={`h-1.5 rounded bg-foreground ${getFitWidthClass(fitBreakdown.large)}`} /></div>
+                <span>{fitBreakdown.large}%</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            {displayedReviews.map((review) => (
+              <article key={review.id} className="border border-border rounded-xl p-5 bg-background">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-foreground text-background text-sm font-semibold">
+                      {review.name.charAt(0)}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold">{review.name}</span>
+                        {review.verified && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-[#ecf8f1] px-2 py-0.5 text-[10px] font-medium text-[#1f7d57]">
+                            <Check className="h-3 w-3" /> Verified Purchase
+                          </span>
+                        )}
+                      </div>
+                      <div className="mt-0.5 flex items-center gap-2">
+                        <div className="flex items-center gap-0.5 text-[#f4b400]">
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <Star key={i} className={`h-3.5 w-3.5 ${i < review.rating ? "fill-current" : "text-border"}`} />
+                          ))}
+                        </div>
+                        <span className="text-xs text-muted-foreground">· {review.date}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-2 text-xs text-muted-foreground">Fit: {review.fit} · Size: {review.size}</div>
+                <p className="mt-3 text-sm leading-relaxed text-foreground">{review.text}</p>
+                {review.photos.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {review.photos.map((photo) => (
+                      <button key={photo} type="button" onClick={() => setLightboxPhoto(photo)} className="focus:outline-none">
+                        <img src={photo} alt="Customer photo" className="h-20 w-20 rounded-lg object-cover border border-border hover:opacity-90 transition cursor-zoom-in" loading="lazy" onError={handleImageLoadError} />
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+                  <span>Helpful?</span>
+                  <button type="button" className="rounded border border-border px-2 py-0.5 hover:border-foreground/40 transition">Yes ({review.helpful})</button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <div id="recommendations" className="scroll-mt-28" />
 
