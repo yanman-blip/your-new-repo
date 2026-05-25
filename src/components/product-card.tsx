@@ -115,7 +115,7 @@ export function ProductCard({ p, large = false, overlayText = false, clean = fal
           className="group block w-full overflow-hidden rounded-xl bg-white transition-shadow hover:shadow-md"
         >
           {/* Image */}
-          <div className="relative aspect-[4/5] overflow-hidden bg-neutral-100">
+          <div className="relative aspect-4/5 overflow-hidden bg-neutral-100">
             <img
               src={currentImage}
               alt={p.name}

@@ -68,6 +68,43 @@ function resolveSwatchHex(name: string, productColors: Product["colors"]): strin
   return matchedProductColor?.hex ?? colorHexMap[colorKey] ?? "#d4d4d8";
 }
 
+function getSwatchClass(name: string): string {
+  const token = normalizeColorKey(name);
+  switch (token) {
+    case "black":
+      return "bg-[#1c1c1e]";
+    case "white":
+      return "bg-[#f6f6f2]";
+    case "red":
+      return "bg-[#aa1b2a]";
+    case "pink":
+    case "dusty pink":
+    case "hot pink":
+      return "bg-[#f3c4cd]";
+    case "burgundy":
+    case "bordeaux":
+      return "bg-[#7b1f2b]";
+    case "blue":
+      return "bg-[#2c4f9e]";
+    case "dark blue":
+      return "bg-[#1d2f5f]";
+    case "green":
+    case "sage":
+      return "bg-[#4f6f52]";
+    case "brown":
+      return "bg-[#7a5230]";
+    case "champagne":
+    case "cream":
+    case "ivory":
+    case "ivoire":
+    case "pearl":
+    case "sand":
+      return "bg-[#ece4d6]";
+    default:
+      return "bg-neutral-300";
+  }
+}
+
 function getWhatsAppLink(productName: string): string {
   const configuredNumber =
     typeof import.meta.env.VITE_WHATSAPP_NUMBER === "string"
@@ -1268,16 +1305,14 @@ function ProductPage() {
                   Color: <span className="text-muted-foreground">{color}</span>
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {availableColorOptions.map(({ name, hex }) => (
+                  {availableColorOptions.map(({ name }) => (
                     <button
                       key={name}
                       type="button"
                       title={name}
                       onClick={() => setColor(name)}
-                      className={`h-7 w-7 rounded-full border-2 transition ${color === name ? "border-foreground scale-110" : "border-border/70"}`}
-                      style={{ backgroundColor: hex }}
+                      className={`h-7 w-7 rounded-full border-2 transition ${getSwatchClass(name)} ${color === name ? "border-foreground scale-110" : "border-border/70"}`}
                       aria-label={name}
-                      aria-pressed={color === name}
                     />
                   ))}
                 </div>
