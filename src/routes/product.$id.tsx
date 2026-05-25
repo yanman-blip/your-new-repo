@@ -1300,6 +1300,14 @@ function ProductPage() {
                   </button>
                 ))}
               </div>
+              <div className="mt-3 rounded-lg border border-border bg-surface px-3 py-2 text-xs text-muted-foreground">
+                <div className="flex items-center justify-between gap-3">
+                  <span>Need help with fit? Check the full size guide before checkout.</span>
+                  <Link to="/size-guide" className="shrink-0 font-semibold text-foreground underline underline-offset-4">
+                    Open size guide
+                  </Link>
+                </div>
+              </div>
             </div>
 
             <p

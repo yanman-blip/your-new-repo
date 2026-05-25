@@ -44,12 +44,12 @@ const nav: NavItem[] = [
   },
   {
     to: "/collections/$slug",
-    label: "Sexy Lingerie",
+    label: "Lace",
     params: { slug: getProductTypeSlug("Sexy Lingerie") },
   },
   {
     to: "/collections/$slug",
-    label: "Sexy Night Wear",
+    label: "After Dark",
     params: { slug: getProductTypeSlug("Sexy Night Wear") },
   },
   { to: "/about", label: "About" },
@@ -207,11 +207,7 @@ export function SiteFooter() {
       heading: "Shop",
       links: [
         { label: "New In", to: "/shop" as const, search: { sort: "newest" } },
-        {
-          label: "Best Sellers",
-          to: "/collections/$slug" as const,
-          params: { slug: getProductTypeSlug("Sexy Lingerie") },
-        },
+        { label: "Best Sellers", to: "/shop" as const, search: { sort: "featured" } },
         { label: "Sale", to: "/shop" as const, search: { sort: "low" } },
         { label: "Curves", to: "/shop" as const, search: { q: "plus size" } },
       ],

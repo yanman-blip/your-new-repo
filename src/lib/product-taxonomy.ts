@@ -42,7 +42,7 @@ export const productTypeLandingContent: Record<
   "Sexy Lingerie": {
     slug: "sexy-lingerie",
     eyebrow: "Main character",
-    title: "Sexy lingerie built for impact.",
+    title: "Lace pieces built for impact.",
     description:
       "The boldest lace, mesh and cut-out styles in the catalog, merchandised for nights out, gifting and confidence buys.",
     badge: "High-conversion picks",
@@ -50,9 +50,9 @@ export const productTypeLandingContent: Record<
   "Sexy Night Wear": {
     slug: "sexy-night-wear",
     eyebrow: "Late shift",
-    title: "Sexy night wear with a little more drama.",
+    title: "After-dark nightwear with extra drama.",
     description:
-      "Nightwear silhouettes with sheer panels, body-skimming fits and high-heat styling for evening wear and intimate looks.",
+      "Nightwear silhouettes with sheer panels and body-skimming fits, styled for evening plans and intimate looks.",
     badge: "After-hours edit",
   },
 };

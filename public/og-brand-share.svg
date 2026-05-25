@@ -1,0 +1,39 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#120A0C"/>
+      <stop offset="1" stop-color="#3A1822"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#F7E9EE"/>
+      <stop offset="1" stop-color="#D9B8C4"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <circle cx="1060" cy="90" r="210" fill="#FFFFFF" fill-opacity="0.08"/>
+  <circle cx="170" cy="560" r="260" fill="#FFFFFF" fill-opacity="0.06"/>
+
+  <g transform="translate(72,80)">
+    <text x="0" y="0" fill="#F7E9EE" font-family="Playfair Display, Georgia, serif" font-size="84" font-weight="700" letter-spacing="7" dominant-baseline="hanging">
+      WET LACE
+    </text>
+    <text x="0" y="128" fill="#F7E9EE" font-family="Playfair Display, Georgia, serif" font-size="38" font-style="italic" dominant-baseline="hanging">
+      For the ones who don't behave
+    </text>
+    <text x="0" y="202" fill="#EFDCE2" font-family="Arial, sans-serif" font-size="28" dominant-baseline="hanging">
+      Lingerie, sleepwear, and after-dark edits from Harare.
+    </text>
+  </g>
+
+  <g transform="translate(670,170)">
+    <rect x="0" y="0" width="150" height="250" rx="20" fill="url(#card)"/>
+    <rect x="165" y="-20" width="150" height="270" rx="20" fill="#F2D7DF"/>
+    <rect x="330" y="20" width="150" height="230" rx="20" fill="#EBC7D3"/>
+
+    <image href="https://feakfahndsbslsmhhczy.supabase.co/storage/v1/render/image/public/product-images/2pcs%20Set%20Romantic%20Mesh%20Lace%20Splice%20Tie-Up%20Ruched%20Nightgown%20For%20Going%20Out/1766542738f7a2e7702fa0566adfbd08cce04477ca_square_thumbnail_600x.jpg?width=350&quality=80" x="10" y="12" width="130" height="226" preserveAspectRatio="xMidYMid slice"/>
+    <image href="https://feakfahndsbslsmhhczy.supabase.co/storage/v1/render/image/public/product-images/2pcs%20Plus%20Size%20Lace%20Bra%20Set%20With%20Underwire/black/217387446-1.jpeg?width=350&quality=80" x="175" y="-8" width="130" height="246" preserveAspectRatio="xMidYMid slice"/>
+    <image href="https://feakfahndsbslsmhhczy.supabase.co/storage/v1/render/image/public/product-images/Floral%20Lace%20Ruffle%20Hem%20Sexy%20Lingerie%20Dress%20With%20Thong/1694684840fdecead2d30d3d517a849139c012d373_thumbnail_600x.jpg?width=350&quality=80" x="340" y="32" width="130" height="206" preserveAspectRatio="xMidYMid slice"/>
+  </g>
+</svg>

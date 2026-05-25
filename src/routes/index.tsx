@@ -49,6 +49,21 @@ function Home() {
       : ["Lingerie Sets", "Babydolls", "Bodysuits", "Plus Size", "Sleepwear", "Leggings"];
   const safeRecentlyViewed = isClientHydrated ? recentlyViewed : [];
 
+  const pickDistinct = <T extends { id: string }>(
+    source: T[],
+    count: number,
+    used: Set<string>,
+  ) => {
+    const next: T[] = [];
+    for (const item of source) {
+      if (used.has(item.id)) continue;
+      used.add(item.id);
+      next.push(item);
+      if (next.length >= count) break;
+    }
+    return next;
+  };
+
   const recommendedForYou = useMemo(() => {
     if (!isClientHydrated || !personalizationEnabled) return [];
     if (products.length === 0) return [];
@@ -87,22 +102,39 @@ function Home() {
     const pickImage = (product: typeof hero) =>
       (product?.gallery && product.gallery.length > 0 ? product.gallery[0] : product?.image) ?? fallback;
     const heroProduct = hero;
+    const uniqueHeroProducts = products
+      .filter((product) => !!product?.image)
+      .reduce<typeof products>((acc, product) => {
+        if (!acc.some((existing) => existing.id === product.id)) acc.push(product);
+        return acc;
+      }, [])
+      .slice(0, 8);
+
     const newProduct =
-      products.find((p) => p.badge?.toLowerCase() === "new") ?? products[1] ?? heroProduct;
+      products.find((p) => p.badge?.toLowerCase() === "new") ?? uniqueHeroProducts[0] ?? heroProduct;
     const bestProduct =
-      products.find((p) => p.badge?.toLowerCase().includes("best")) ?? products[2] ?? heroProduct;
+      products.find((p) => p.badge?.toLowerCase().includes("best") && p.id !== newProduct?.id) ??
+      uniqueHeroProducts.find((p) => p.id !== newProduct?.id) ??
+      heroProduct;
+    const saleProduct =
+      products
+        .slice()
+        .sort((a, b) => a.price - b.price)
+        .find((p) => p.id !== newProduct?.id && p.id !== bestProduct?.id) ??
+      uniqueHeroProducts.find((p) => p.id !== newProduct?.id && p.id !== bestProduct?.id) ??
+      heroProduct;
 
     return [
       {
         tag: "New In",
         heading: "The Lace Edit",
         sub: "Considered new pieces in silk, mesh and fine lace. Handpicked weekly.",
-        cta: "Discover",
+        cta: "Shop New In",
         sortKey: "newest" as const,
         image: pickImage(newProduct),
       },
       {
-        tag: "Most Loved",
+        tag: "Quietly Iconic",
         heading: "Quietly Iconic",
         sub: "Top-rated pieces from this season's collection.",
         cta: "Shop Best",
@@ -115,10 +147,41 @@ function Home() {
         sub: "A curated selection of pieces, now at gentler prices.",
         cta: "Shop Sale",
         sortKey: "low" as const,
-        image: pickImage(heroProduct),
+        image: pickImage(saleProduct),
       },
     ];
   }, [products, hero]);
+
+  const sectionItems = useMemo(() => {
+    const used = new Set<string>();
+    const newDropItems = pickDistinct(
+      products.filter((p) => p.badge?.toLowerCase() === "new"),
+      merchSettings.newDropsCount,
+      used,
+    );
+    const bestSellerCandidates = [
+      ...products.filter((p) => p.badge?.toLowerCase().includes("best")),
+      ...products,
+    ];
+    const bestSellerItems = pickDistinct(bestSellerCandidates, 6, used);
+    const saleCandidates = [...products].sort((a, b) => a.price - b.price);
+    const saleItems = pickDistinct(saleCandidates, 6, used);
+
+    return {
+      newDropItems,
+      bestSellerItems,
+      saleItems,
+    };
+  }, [products, merchSettings.newDropsCount]);
+
+  const shortcutSearch: Record<string, { q?: string; types?: string; sort?: string }> = {
+    "Lingerie Sets": { types: "Bra & Pant" },
+    Babydolls: { q: "babydoll", types: "Night Wear" },
+    Bodysuits: { q: "bodysuit" },
+    "Plus Size": { q: "plus size" },
+    Sleepwear: { types: "Night Wear" },
+    Leggings: { q: "leggings" },
+  };
 
   useEffect(() => {
     setIsClientHydrated(true);
@@ -223,7 +286,12 @@ function Home() {
 
           <div className="mt-3 flex flex-wrap gap-2">
             {categoryShortcuts.map((category) => (
-              <Link key={category} to="/shop" className="rounded-full border border-border bg-white px-3 py-1.5 text-xs font-medium hover:border-foreground/40">
+              <Link
+                key={category}
+                to="/shop"
+                search={shortcutSearch[category] ?? { q: category.toLowerCase() }}
+                className="rounded-full border border-border bg-white px-3 py-1.5 text-xs font-medium hover:border-foreground/40"
+              >
                 {category}
               </Link>
             ))}
@@ -242,13 +310,13 @@ function Home() {
           </Link>
         </div>
         <div className="grid grid-cols-2 gap-2 md:grid-cols-4 xl:grid-cols-6">
-          {(salePicks.length > 0 ? salePicks : trending).slice(0, 6).map((p) => (
+          {(sectionItems.saleItems.length > 0 ? sectionItems.saleItems : salePicks).slice(0, 6).map((p) => (
             <ProductCard key={`sale-${p.id}`} p={p} clean />
           ))}
         </div>
       </section>
 
-      {newDrops.length > 0 && (
+      {sectionItems.newDropItems.length > 0 && (
         <section className="mx-auto max-w-7xl px-6 pb-10">
           <div className="mb-6 flex items-end justify-between">
             <div>
@@ -258,31 +326,8 @@ function Home() {
             <Link to="/shop" search={{ sort: "newest" }} className="hidden text-sm text-muted-foreground hover:text-foreground md:inline-flex">See all</Link>
           </div>
           <div className="grid gap-2 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-            {newDrops.map((p) => (
+            {sectionItems.newDropItems.map((p) => (
               <ProductCard key={p.id} p={p} clean />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {safeRecentlyViewed.length > 0 && (
-        <section className="mx-auto max-w-7xl px-6 pb-10">
-          <div className="mb-6 flex items-end justify-between">
-            <div>
-              <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">Because You Viewed</h2>
-              <p className="mt-2 text-sm text-muted-foreground">Your browsing history, instantly turned into quick picks.</p>
-            </div>
-            <Link to="/shop" className="hidden text-sm text-muted-foreground hover:text-foreground md:inline-flex">Shop all</Link>
-          </div>
-          <div className="grid gap-2 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-            {safeRecentlyViewed.map((p) => (
-              <ProductCard
-                key={p.id}
-                p={p}
-                clean
-                recommendationReason="Based on your recent views"
-                onClick={() => trackRecommendationClick("home-because-you-viewed", p.id)}
-              />
             ))}
           </div>
         </section>
@@ -311,24 +356,6 @@ function Home() {
         </section>
       )}
 
-      <section className="mx-auto max-w-7xl px-6 py-12">
-        <div className="mb-10 flex items-end justify-between">
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Daily New</h2>
-            <p className="mt-2 text-muted-foreground">Latest uploads arranged for fast browsing.</p>
-          </div>
-          <Link to="/shop" className="hidden items-center gap-2 text-sm transition-colors hover:text-brand md:inline-flex">
-            Shop all <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-
-        <div className="grid gap-2 grid-cols-2 md:grid-cols-4 lg:grid-cols-5">
-          {trending.map((p) => (
-            <ProductCard key={p.id} p={p} clean />
-          ))}
-        </div>
-      </section>
-
       <section className="mx-auto max-w-7xl px-6 pb-16">
         <div className="mb-6 flex items-end justify-between">
           <div>
@@ -338,7 +365,7 @@ function Home() {
           <Link to="/shop" search={{ sort: "featured" }} className="hidden text-sm text-muted-foreground hover:text-foreground md:inline-flex">View ranking</Link>
         </div>
         <div className="grid gap-2 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
-          {trending.slice(0, 6).map((p) => (
+          {sectionItems.bestSellerItems.map((p) => (
             <ProductCard key={p.id} p={p} clean />
           ))}
         </div>
@@ -346,29 +373,54 @@ function Home() {
 
       <section className="mx-auto max-w-7xl px-6 pb-20">
         <div className="rounded-3xl border border-border bg-[#f7f7f7] p-8 md:p-10">
-          <div className="mb-6 flex items-center justify-between gap-4">
+          <div className="grid gap-8 md:grid-cols-[1.2fr_1fr]">
             <div>
-              <p className="text-xs font-semibold tracking-[0.2em] text-muted-foreground">PERSONALIZATION</p>
-              <h3 className="mt-2 text-2xl font-bold tracking-tight md:text-3xl">Recommended For You</h3>
+              <p className="text-xs font-semibold tracking-[0.2em] text-muted-foreground">TRUSTED CHECKOUT</p>
+              <h3 className="mt-2 text-2xl font-bold tracking-tight md:text-3xl">Easy ways to pay in Zimbabwe</h3>
+              <p className="mt-3 text-sm text-muted-foreground">Pay with EcoCash, ZIPIT, or USD bank transfer. Need help before checkout? Message us on WhatsApp for size or fit advice.</p>
+              <div className="mt-4 flex flex-wrap gap-2 text-xs">
+                {[
+                  "EcoCash",
+                  "ZIPIT",
+                  "USD Bank Transfer",
+                  "Secure Checkout",
+                ].map((item) => (
+                  <span key={item} className="rounded-full border border-border bg-white px-3 py-1.5 font-medium">
+                    {item}
+                  </span>
+                ))}
+              </div>
+              <a
+                href="https://wa.me/263782853304?text=Hi%20Wet%20Lace%2C%20I%20need%20help%20with%20a%20size%20or%20order."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-4 inline-flex rounded-full border border-[#25d366] bg-[#25d366]/10 px-4 py-2 text-sm font-semibold text-[#128c4a]"
+              >
+                Chat on WhatsApp
+              </a>
             </div>
-            <button
-              type="button"
-              onClick={togglePersonalization}
-              className={`rounded-full border px-4 py-2 text-xs font-semibold ${personalizationEnabled ? "border-black bg-black text-white" : "border-border bg-white"}`}
-            >
-              Personalization {personalizationEnabled ? "On" : "Off"}
-            </button>
-          </div>
-          <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
-            {(recommendedForYou.length > 0 ? recommendedForYou : trending.slice(0, 4)).map((p) => (
-              <ProductCard
-                key={`rec-bottom-${p.id}`}
-                p={p}
-                clean
-                recommendationReason={recommendedForYou.length > 0 ? "Picked for your style" : undefined}
-                onClick={() => trackRecommendationClick("home-recommended-for-you", p.id)}
-              />
-            ))}
+
+            <div>
+              <p className="text-xs font-semibold tracking-[0.2em] text-muted-foreground">NEWSLETTER</p>
+              <h4 className="mt-2 text-xl font-semibold tracking-tight">Get 10% off your first order</h4>
+              <p className="mt-2 text-sm text-muted-foreground">Join for drops, restocks, and private sale alerts.</p>
+              <form className="mt-4 flex flex-col gap-2 sm:flex-row">
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  className="w-full rounded-full border border-border bg-white px-4 py-2.5 text-sm"
+                  aria-label="Email address"
+                />
+                <button type="submit" className="rounded-full bg-black px-5 py-2.5 text-sm font-semibold text-white">
+                  Join
+                </button>
+              </form>
+              <div className="mt-5 rounded-xl border border-border bg-white p-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">Customer Love</p>
+                <p className="mt-2 text-sm text-foreground">"Beautiful quality and true-to-size fit. Delivery was fast in Harare."</p>
+                <p className="mt-1 text-xs text-muted-foreground">4.8/5 average from verified reviews</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>

@@ -314,13 +314,128 @@ function normalizeProductImages(product: Product): Product {
   };
 }
 
+const PRODUCT_NAME_OVERRIDES: Record<string, string> = {
+  "ChaseTheNight 2pcs Women Sexy Mesh Lingerie Set For Going Out, Lingerie For Women,Sexy,Valentine's Day,Sexy Lingerie,": "ChaseTheNight Mesh Set",
+  "2pcs Plus Size Full-Cup Lingerie Bra & Panty Set With Underwire, Romantic & Simple, Lace Panel Detail & Criss-Cross Strap, Comfortable Everyday Wear For Valentine's Day, Lift": "Romantic Full-Cup Set Plus",
+  "Solid Color Hollow Out Mesh Bra And Triangle Underwear Sexy Lingerie Set, 2pcs. For Going Out": "Hollow Mesh Triangle Set",
+};
+
+function buildConciseProductName(rawName: string): string {
+
+  const lower = rawName.toLowerCase();
+  const hasPlus = /plus\s*size|\bplus\b/.test(lower);
+  const hasLeggings = /legging|yoga|flare pants|fitness pants/.test(lower);
+  const hasBabydoll = /babydoll/.test(lower);
+  const hasBodysuit = /bodysuit/.test(lower);
+  const hasDress = /\bdress\b|nightgown/.test(lower);
+  const hasBraOnly = /\bbra\b/.test(lower) && !/pant|panty|thong|set|2pcs|3pcs|4pcs/.test(lower);
+  const hasSet = /set|2pcs|3pcs|4pcs/.test(lower);
+
+  const brandMatch = rawName.match(/\b[A-Z][A-Za-z]+(?:[A-Z][A-Za-z]+)+\b/);
+  const brand = brandMatch?.[0];
+
+  const featureRules: Array<{ re: RegExp; value: string }> = [
+    { re: /full[\s-]?cup/, value: "Full-Cup" },
+    { re: /hollow[\s-]?out/, value: "Hollow" },
+    { re: /triangle/, value: "Triangle" },
+    { re: /leopard/, value: "Leopard" },
+    { re: /fishnet/, value: "Fishnet" },
+    { re: /mesh/, value: "Mesh" },
+    { re: /lace/, value: "Lace" },
+    { re: /satin/, value: "Satin" },
+    { re: /floral/, value: "Floral" },
+    { re: /rhinestone/, value: "Rhinestone" },
+    { re: /underwire/, value: "Underwire" },
+    { re: /wireless/, value: "Wireless" },
+    { re: /striped/, value: "Striped" },
+  ];
+
+  const features = featureRules
+    .filter((rule) => rule.re.test(lower))
+    .map((rule) => rule.value);
+
+  const productKind = hasLeggings
+    ? "Leggings"
+    : hasBabydoll
+      ? "Babydoll"
+      : hasBodysuit
+        ? "Bodysuit"
+        : hasDress
+          ? "Dress"
+          : hasBraOnly
+            ? "Bra"
+            : hasSet
+              ? "Set"
+              : "Lingerie";
+
+  const parts: string[] = [];
+  if (brand) parts.push(brand);
+
+  for (const feature of features) {
+    if (parts.length >= 4) break;
+    if (!parts.includes(feature)) parts.push(feature);
+  }
+
+  if (!parts.includes(productKind)) parts.push(productKind);
+  if (hasPlus && parts.length < 6 && !parts.includes("Plus")) parts.push("Plus");
+
+  let compact = parts
+    .filter(Boolean)
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const tokens = compact.split(" ").filter(Boolean);
+  if (tokens.length > 6) compact = tokens.slice(0, 6).join(" ");
+
+  const minTokens = compact.split(" ").filter(Boolean);
+  if (minTokens.length < 3) {
+    compact = `${compact} Signature Set`.trim();
+  }
+
+  return compact || "Signature Lace Set";
+}
+
+const COMPLETE_PRODUCT_NAME_MAP: Record<string, string> = Object.fromEntries(
+  publicGeneratedProducts
+    .filter((product) => typeof product?.name === "string" && product.name.trim().length > 0)
+    .map((product) => [product.name, buildConciseProductName(product.name)]),
+);
+
+function toConciseProductName(rawName: string): string {
+  const trimmed = rawName.trim();
+  const directOverride = PRODUCT_NAME_OVERRIDES[trimmed];
+  if (directOverride) return directOverride;
+
+  const mapped = COMPLETE_PRODUCT_NAME_MAP[trimmed];
+  if (mapped) return mapped;
+
+  return buildConciseProductName(trimmed);
+}
+
+function toPremiumDescription(rawDescription: string, displayName: string): string {
+  const normalized = rawDescription.trim();
+  if (!normalized) return `${displayName}. Curated for comfort, confidence, and repeat wear.`;
+
+  const isImportedBoilerplate = normalized.toLowerCase().startsWith("imported from your public catalog:");
+  const tooLong = normalized.length > 170;
+  const tooKeywordDense = /sexy\b.*sexy\b|lingerie\b.*lingerie\b/i.test(normalized);
+
+  if (isImportedBoilerplate || tooLong || tooKeywordDense) {
+    return `${displayName}. Curated for comfort, confidence, and repeat wear.`;
+  }
+
+  return normalized;
+}
+
 function sanitizeProduct(input: unknown): Product | null {
   if (!input || typeof input !== "object") return null;
   const candidate = input as Partial<Product> & { [key: string]: unknown };
 
   const id = typeof candidate.id === "string" ? candidate.id.trim() : "";
-  const name = typeof candidate.name === "string" ? candidate.name.trim() : "";
-  if (!id || !name) return null;
+  const rawName = typeof candidate.name === "string" ? candidate.name.trim() : "";
+  if (!id || !rawName) return null;
+  const name = toConciseProductName(rawName);
 
   const priceNumber =
     typeof candidate.price === "number"
@@ -374,18 +489,23 @@ function sanitizeProduct(input: unknown): Product | null {
 
   const baseTagline =
     typeof candidate.tagline === "string" && candidate.tagline.trim().length > 0
-      ? candidate.tagline
+      ? `${name} - boutique pick for your collection.`
       : `${name} - boutique pick for your collection.`;
 
-  const baseDescription =
+  const rawDescription =
     typeof candidate.description === "string" && candidate.description.trim().length > 0
       ? candidate.description
-      : name;
+      : rawName;
+
+  const baseDescription = toPremiumDescription(rawDescription, name);
 
   const derivedAttributes = deriveProductAttributes({
-    name,
-    tagline: baseTagline,
-    description: baseDescription,
+    name: rawName,
+    tagline:
+      typeof candidate.tagline === "string" && candidate.tagline.trim().length > 0
+        ? candidate.tagline
+        : rawName,
+    description: rawDescription,
     highlights: sanitizedHighlights,
   });
 

@@ -849,6 +849,12 @@ function Shop() {
   ].filter(Boolean) as string[];
 
   const quickCategories = requestedProductTypes;
+  const quickCategoryLabels: Record<ProductTypeFilter, string> = {
+    "Night Wear": "Night Wear",
+    "Bra & Pant": "Bra & Pant",
+    "Sexy Lingerie": "Lace",
+    "Sexy Night Wear": "After Dark",
+  };
   const trendTracks = ["Most Wanted", "Price Drop", "New In 24h", "Top Rated", "Curve Picks"];
 
   return (
@@ -883,11 +889,11 @@ function Shop() {
                 type="button"
                 onClick={() => {
                   setSelectedTypes([item]);
-                  setSearch(item);
+                  setSearch(quickCategoryLabels[item]);
                 }}
                 className="rounded-full border border-border bg-[#f8f8f8] px-3 py-1.5 text-xs font-medium hover:border-foreground/30"
               >
-                {item}
+                {quickCategoryLabels[item]}
               </button>
             ))}
           </div>
