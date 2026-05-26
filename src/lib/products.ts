@@ -428,6 +428,16 @@ function toPremiumDescription(rawDescription: string, displayName: string): stri
   return normalized;
 }
 
+function normalizeCatalogPrice(rawName: string, rawPrice: number): number {
+  if (!Number.isFinite(rawPrice) || rawPrice <= 0) return 0;
+
+  const lower = rawName.toLowerCase();
+  const isMultiPieceSet = /(2pcs|3pcs|4pcs|set)/.test(lower);
+
+  if (isMultiPieceSet) return Math.max(rawPrice, 15);
+  return rawPrice;
+}
+
 function sanitizeProduct(input: unknown): Product | null {
   if (!input || typeof input !== "object") return null;
   const candidate = input as Partial<Product> & { [key: string]: unknown };
@@ -443,7 +453,7 @@ function sanitizeProduct(input: unknown): Product | null {
       : typeof candidate.price === "string"
         ? Number(candidate.price)
         : NaN;
-  const price = Number.isFinite(priceNumber) ? Math.max(0, priceNumber) : 0;
+  const price = Number.isFinite(priceNumber) ? normalizeCatalogPrice(rawName, Math.max(0, priceNumber)) : 0;
 
   const rawGallery = Array.isArray(candidate.gallery)
     ? candidate.gallery.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
