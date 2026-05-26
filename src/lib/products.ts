@@ -435,7 +435,7 @@ function normalizeCatalogPrice(rawName: string, rawPrice: number): number {
   const isMultiPieceSet = /(2pcs|3pcs|4pcs|set)/.test(lower);
 
   if (isMultiPieceSet) return Math.max(rawPrice, 15);
-  return rawPrice;
+  return Math.max(rawPrice, 9.2);
 }
 
 function sanitizeProduct(input: unknown): Product | null {
