@@ -428,14 +428,73 @@ function toPremiumDescription(rawDescription: string, displayName: string): stri
   return normalized;
 }
 
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
+}
+
+function nameHashJitter(rawName: string): number {
+  let hash = 0;
+  for (const char of rawName.toLowerCase()) {
+    hash = (hash * 31 + char.charCodeAt(0)) % 10000;
+  }
+  // Spread similar items so catalog pricing does not collapse to identical numbers.
+  return (hash / 10000) * 0.7 - 0.35;
+}
+
+function toCharmPrice(value: number): number {
+  const whole = Math.floor(value);
+  const endings = whole < 10 ? [0.19, 0.49, 0.79] : [0.29, 0.59, 0.89];
+  const decimal = value - whole;
+
+  let bestEnding = endings[0];
+  let bestDistance = Math.abs(decimal - bestEnding);
+
+  for (const ending of endings.slice(1)) {
+    const distance = Math.abs(decimal - ending);
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      bestEnding = ending;
+    }
+  }
+
+  return Number((whole + bestEnding).toFixed(2));
+}
+
 function normalizeCatalogPrice(rawName: string, rawPrice: number): number {
   if (!Number.isFinite(rawPrice) || rawPrice <= 0) return 0;
 
   const lower = rawName.toLowerCase();
-  const isMultiPieceSet = /(2pcs|3pcs|4pcs|set)/.test(lower);
+  const isTwoPiece = /2pcs/.test(lower);
+  const isThreeOrMorePiece = /(3pcs|4pcs|5pcs)/.test(lower);
+  const isSet = /\bset\b/.test(lower);
 
-  if (isMultiPieceSet) return Math.max(rawPrice, 15);
-  return Math.max(rawPrice, 9.2);
+  const premiumSignals = [
+    "underwire",
+    "plus size",
+    "bridal",
+    "rhinestone",
+    "leather",
+    "satin",
+    "silk",
+    "embroidery",
+    "push up",
+  ];
+  const valueSignals = ["wireless", "casual", "everyday", "simple", "basic"];
+
+  const premiumScore = premiumSignals.filter((signal) => lower.includes(signal)).length;
+  const valueScore = valueSignals.filter((signal) => lower.includes(signal)).length;
+
+  let targetPrice = Math.max(rawPrice, 9.2);
+
+  if (isThreeOrMorePiece) targetPrice += 2.3;
+  else if (isTwoPiece || isSet) targetPrice += 1.4;
+
+  targetPrice += premiumScore * 0.25;
+  targetPrice -= valueScore * 0.15;
+  targetPrice += nameHashJitter(rawName);
+
+  const clamped = clamp(targetPrice, 9.2, 14.89);
+  return toCharmPrice(clamped);
 }
 
 function sanitizeProduct(input: unknown): Product | null {
